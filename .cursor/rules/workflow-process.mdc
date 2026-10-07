@@ -5,7 +5,7 @@ globs:
   - AGENTS.md
 alwaysApply: true
 ---
-> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Workflow — 6 Bước Bắt Buộc
 
@@ -16,7 +16,7 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 **Trước khi vào Bước 1**, với mọi thay đổi **lớn** (theo bảng tiêu chí cuối file), phải **nói rõ** cho user biết:
 
 - Tôi định làm gì (1–2 dòng tóm tắt).
-- Bước nào sắp chạy (Plan / Song song / Model / Hỏi / Làm / Review).
+- Bước nào sắp chạy (Plan / Chia plan / Model / Hỏi / Làm / Review).
 - Tại sao cần xin phép (thay đổi architecture / multi-file / sensitive).
 
 → Dùng `AskQuestion` với các lựa chọn rõ ràng (đồng ý / chỉnh sửa / hủy).
@@ -28,7 +28,7 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 | Quyết định | Lý do |
 |---|---|
 | Duyệt **Plan** tổng thể (Bước 1) | User cần biết scope trước khi agent viết/sửa file |
-| Duyệt cách **chia task song song** (Bước 2) | User cần kiểm soát số subagent + phân chia |
+| Duyệt cách **chia plan** (Bước 2) | User cần kiểm soát số subagent + cách phân chia subplan |
 | Duyệt **format / scope** cho refactor lớn (Bước 4) | Quyết định genuinely của user (AGENTS.md) |
 | Duyệt thay đổi **sensitive** (auth/payment/deploy) | Quyết định có rủi ro cao |
 
@@ -44,9 +44,9 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 
 | Tình huống | Hành động |
 |---|---|
-| User nói "thêm rule song song" | Bước 0: nói "Tôi sẽ thêm Bước 2 — Song song vào `workflow-process.mdc`. Hỏi 1 câu: tách thành bước riêng hay nhúng vào Plan?" → AskQuestion |
+| User nói "thêm rule chia plan" | Bước 0: nói "Tôi sẽ thêm Bước 2 — Chia plan vào `workflow-process.mdc`. Hỏi 1 câu: tách thành bước riêng hay nhúng vào Plan?" → AskQuestion |
 | User nói "sửa typo trong file X" | Không hỏi — sửa luôn, báo cáo ở Bước 6 |
-| User nói "refactor cả folder `src/types/`" | Bước 0: nói scope + cách chia → AskQuestion → chờ duyệt → Plan → Song song → Hỏi format chi tiết → Làm |
+| User nói "refactor cả folder `src/types/`" | Bước 0: nói scope + cách chia → AskQuestion → chờ duyệt → Plan → Chia plan → Hỏi format chi tiết → Làm |
 | User nói "thêm auth mới" | Bước 0: nói sensitive → AskQuestion → nếu đồng ý mới qua Plan |
 
 ## Bước 0.5 — Worktree (khi 2 chat song song)
@@ -62,94 +62,105 @@ Viết ra:
 - File thay đổi (path + bản chất: tạo / sửa / xoá).
 - Nếu refactor nhiều file → list concern nhóm.
 
-## Bước 2 — Song song
+## Bước 2 — Chia plan
 
-Sau khi liệt kê task ở Bước 1, **đánh giá khả năng chạy đồng thời** trước khi vào Bước 3 (Hỏi).
+Sau khi viết Plan ở Bước 1, **phân rã plan thành các subplan độc lập** trước khi vào Bước 3 (Hỏi). Mỗi subplan được dispatch cho 1 subagent.
 
-### Khi nào SONG SONG
+### Phân cấp: Plan → Subplan → Task
 
-Các task được coi là **độc lập (independent)** khi thỏa **tất cả** tiêu chí:
-
-- Khác file đích (hoặc file chung nhưng sửa phần khác nhau, không overlap).
-- Không phụ thuộc output của nhau (task B không cần kết quả task A).
-- Không cùng đọc/ghi 1 doc/import/file constant.
-- Có thể review từng phần một mà không cần hiểu phần còn lại.
-
-→ Nếu thỏa → **dispatch subagent làm đồng thời** (multi-call trong 1 response, theo skill `tllq-workflow:itz-dispatching-parallel-agents`).
-
-### Khi nào KHÔNG song song
-
-**Bắt buộc tuần tự** khi có ≥ 1 trong các dấu hiệu:
-
-- Cùng sửa 1 file (kể cả phần khác nhau).
-- Task sau cần output của task trước (vd: tạo type trước → viết component sau).
-- Cùng cập nhật 1 file docs/index (vd `AGENTS.md`, `docs/CLAUDE.md`).
-- Rule doc mới reference rule cũ chưa tồn tại.
-- Cùng thêm row vào 1 bảng (vd rule index).
-
-### Quy tắc 1 agent = 1 task
-
-Mỗi subagent phụ trách **đúng 1 task**, không gộp:
-
-```
-❌ 1 agent làm 3 file rule
-✅ 3 agent, mỗi agent 1 file rule
+```text
+Plan      = mục tiêu lớn (vd: "build cart module", "migrate sang i18n")
+Subplan   = phần độc lập theo concern/ownership (vd: "CartView UI", "CartStore logic", "Cart tests")
+Task      = công việc cụ thể trong subplan (vd: "tạo CartItemRow.tsx", "thêm useCart.ts hook")
 ```
 
-Lý do: context cô lập, kết quả rõ ràng, debug được từng phần.
+| Cấp | Phạm vi | Phân bổ |
+|---|---|---|
+| **Plan** | Nhiều subplan + nhiều task (toàn bộ work) | Coordinator (chính agent) |
+| **Subplan** | Nhiều task related cùng concern/ownership | **1 subagent** (subplan owner) |
+| **Task** | 1 file cụ thể, 1 hàm cụ thể | Subagent tự xử lý trong subplan |
+
+### Quy tắc 1 subagent = 1 subplan
+
+Mỗi subagent phụ trách **đúng 1 subplan** (gồm nhiều task related), không gộp nhiều subplan:
+
+```
+❌ 1 agent làm toàn bộ plan (4 module, 12 file)
+❌ 1 agent = 1 file (12 file → 12 agent)
+
+✅ 1 plan có 4 subplan → 4 subagent, mỗi subagent 1 subplan (1 module, 3 file related)
+✅ 1 plan có 1 subplan → 1 subagent (1 module, 3 file) hoặc coordinator tự làm
+```
+
+Lý do: **subplan owner hiểu sâu concern của mình**, context cô lập giữa các concern, debug theo concern, kết quả rõ ràng.
+
+### Tiêu chí CHIA plan thành subplan
+
+Một subplan là **độc lập (independent)** với subplan khác khi thỏa **tất cả** 4 tiêu chí:
+
+1. **Khác concern/ownership** — module khác, feature khác, hoặc phần riêng biệt trong cùng module (vd: UI vs logic vs tests).
+2. **Khác file đích gốc** — không sửa cùng file. Nếu 2 subplan cùng sửa 1 file → gộp lại thành 1 subplan.
+3. **Không phụ thuộc output** — subplan B không cần kết quả subplan A để chạy. Nếu phụ thuộc → đánh dấu thứ tự, chạy tuần tự.
+4. **Review độc lập** — reviewer đọc 1 subplan có thể hiểu được mà không cần đọc subplan khác.
+
+→ Nếu tất cả subplan đều độc lập → dispatch song song trong 1 response.
+→ Nếu có subplan phụ thuộc → gom nhóm phụ thuộc, chạy theo thứ tự giữa các nhóm, song song trong từng nhóm.
+
+### Khi nào KHÔNG cần subagent
+
+Coordinator tự làm khi:
+
+- **Plan chỉ có 1 subplan** và subplan đó nhỏ (≤ 2 file, scope đã rõ) → không cần dispatch.
+- **Subplan quá lớn so với 1 subagent** (> 5 file, > 2 concern lồng nhau) → tách nhỏ subplan trước khi dispatch.
+- **Tất cả subplan phụ thuộc tuần tự** (subplan B cần output A) → chạy tuần tự, có thể tự làm nếu đơn giản.
 
 ### Cách dispatch (multi-call trong 1 response)
 
 Đặt **tất cả subagent call trong cùng 1 response** (function_calls block) → chạy song song thật sự.
 
 Mỗi subagent phải nhận:
-- **Scope cụ thể**: 1 file path, 1 concern duy nhất.
-- **Context đầy đủ**: paste rule liên quan, format yêu cầu, mẫu nếu có.
-- **Model**: chọn theo bảng dưới (xem mục "Chọn model").
-- **Constraint**: KHÔNG sửa ngoài scope, KHÔNG push, KHÔNG mở rộng.
-- **Output kỳ vọng**: báo cáo theo format `AGENTS.md`.
+- **Subplan cụ thể**: concern + danh sách task (file) trong subplan, ranh giới với subplan khác.
+- **Context đầy đủ**: paste rule liên quan, format yêu cầu, mẫu nếu có, dependency từ subplan khác (nếu có).
+- **Model**: chọn theo bảng dưới.
+- **Constraint**: KHÔNG sửa ngoài subplan, KHÔNG push, KHÔNG mở rộng sang subplan khác, KHÔNG tự ý tạo file ngoài scope.
+- **Output kỳ vọng**: báo cáo theo format `AGENTS.md` (Bước 6).
+
+**Giới hạn thực tế**: ≤ 8 subagent / response. Nếu plan có > 8 subplan độc lập → batch nhiều response, mỗi response ≤ 8.
 
 ### Chọn model
 
-Mỗi task cần **đánh giá model phù hợp** trước khi dispatch. Không dùng model mạnh cho task đơn giản.
+Mỗi subplan cần **đánh giá model phù hợp** trước khi dispatch. Không dùng model mạnh cho subplan đơn giản.
 
-#### Các model có sẵn
+#### Bảng chọn model theo loại subplan
 
-| Model | Mô tả | Giá |
+| Loại subplan | Model khuyến nghị | Lý do |
 |---|---|---|
-| `inherit` | Model mặc định — dùng khi không chỉ định | — |
-| `tsqq52ihtoijc7ivtviohmd` | Model cụ thể (xem model list trong context) | — |
-
-#### Bảng chọn model theo loại task
-
-| Loại task | Model khuyến nghị | Lý do |
-|---|---|---|
-| Tạo/sửa file rule `.mdc` | `inherit` | Cần tuân thủ format chặt chẽ, context rule có sẵn |
-| Tạo component UI đơn giản | `inherit` | Boilerplate, convention rõ |
-| Tạo file `.ts` logic/phân tích | `inherit` | Code pattern có sẵn |
-| Refactor kiến trúc lớn | `inherit` | Cần hiểu full context |
-| Fix bug đơn lẻ | `inherit` | Debug pattern có sẵn |
-| Tạo nhiều file cùng concern | `inherit` | 1 agent = 1 task, không cần model mạnh |
-| Task mới lạ, chưa có pattern | `inherit` | Để tôi tự quyết định model tối ưu |
+| Subplan tạo/sửa nhiều file rule `.mdc` cùng concern | `inherit` | Cần tuân thủ format chặt chẽ, context rule có sẵn |
+| Subplan scaffold 1 module Next.js (UI + types + store + API) | `inherit` | Boilerplate, convention rõ trong `layer-convention.mdc` |
+| Subplan tạo 1 module logic/phân tích (services + tests) | `inherit` | Code pattern có sẵn |
+| Subplan refactor kiến trúc lớn (1 layer, nhiều file) | `inherit` | Cần hiểu full context của layer đó |
+| Subplan fix bug theo module (nhiều file liên quan) | `inherit` | Debug pattern có sẵn |
+| Subplan tích hợp nhiều concern mới, chưa có pattern | `inherit` | Để coordinator tự quyết định model tối ưu |
 
 #### Hỏi user về model
 
-Sau khi đánh giá model cho từng task, trình bày theo format:
+Sau khi đánh giá model cho từng subplan, trình bày theo format:
 
 ```text
-## Đánh giá song song (Bước 2)
+## Đánh giá chia plan (Bước 2)
 
-Task độc lập: 3 task
+Plan: "Xây cart module" — 4 subplan độc lập
 
-| # | Task | File | Model đề xuất | Lý do |
+| # | Subplan | Task trong subplan | Model đề xuất | Lý do |
 |---|---|---|---|---|
-| 1 | Tạo rule i18n | `.cursor/rules/i18n.mdc` | inherit | Tuân format rule có sẵn |
-| 2 | Tạo rule features | `.cursor/rules/features.mdc` | inherit | Template giống rule khác |
-| 3 | Tạo rule error | `.cursor/rules/error.mdc` | inherit | Pattern có sẵn |
+| 1 | CartView UI | CartView.tsx, CartItemRow.tsx, checkout/page.tsx | inherit | Boilerplate, convention rõ |
+| 2 | CartStore + hooks | stores/cart.store.ts, hooks/useCart.ts | inherit | Pattern có sẵn (Zustand) |
+| 3 | Cart API + types | lib/api/cart.api.ts, types/cart.ts | inherit | Theo api/client.ts template |
+| 4 | Cart tests | cart.test.ts (4 file rule) | inherit | Snapshot tests, pattern cũ |
 
-→ **Câu hỏi**: Dùng 1 model cho tất cả hay theo đề xuất từng task?
-- Dùng `inherit` cho tất cả (Recommended)
-- Theo đề xuất từng task (bảng trên)
+→ Câu hỏi: Dùng 1 model cho tất cả hay theo đề xuất từng subplan?
+- Dùng inherit cho tất cả (Recommended)
+- Theo đề xuất từng subplan (bảng trên)
 - Model khác (chỉ định)
 ```
 
@@ -157,20 +168,21 @@ Task độc lập: 3 task
 
 ### Sau khi subagent xong
 
-1. **Đọc từng summary** — xác nhận đúng scope, không lệch.
-2. **Verify tổng thể** — chạy build/lint, đọc các file mới xem có conflict không.
-3. **Đối chiếu plan** — task nào chưa xong, task nào dư.
-4. **Báo cáo user** theo format Bước 5.
+1. **Đọc từng summary** — xác nhận đúng subplan, không lệch sang subplan khác.
+2. **Verify tổng thể** — chạy build/lint, đọc các file mới xem có conflict giữa các subplan không.
+3. **Đối chiếu plan** — subplan nào chưa xong, subplan nào dư.
+4. **Báo cáo user** theo format Bước 6.
 
 ### Ví dụ
 
-| Task list | Phán đoán | Cách chạy |
+| Plan | Phân rã subplan | Cách chạy |
 |---|---|---|
-| 3 file rule mới (i18n, features, error) | Độc lập — 3 file khác nhau, không import lẫn nhau | 3 subagent song song |
-| Tạo M1 (tách i18n) + M2 (features) + M5 (update AGENTS.md) | M5 sửa `AGENTS.md` tham chiếu M1+M2 → M5 phụ thuộc | M1, M2 song song → M5 tuần tự sau |
-| Restore 22 file `.mdc` | 22 file giống template, KHÔNG phụ thuộc nhau | 22 subagent song song (giới hạn thực tế: ≤ 8 / response) |
-| 4 fix bug ở 4 module khác nhau | Độc lập | 4 subagent song song |
-| Sửa 1 component React có 3 lỗi | 1 file → KHÔNG song song | 1 agent làm tuần tự |
+| **Build "cart module"** (4 concern) | SP1: CartView UI · SP2: CartStore + hooks · SP3: Cart API + types · SP4: Cart tests | 4 subagent song song, mỗi agent 1 subplan |
+| **Migrate sang i18n** (3 phase) | SP1: Tách i18n provider · SP2: Migrate features · SP3: Update AGENTS.md | SP1 song song SP2 → SP3 tuần tự sau (SP3 cập nhật index reference SP1+SP2) |
+| **Scaffold 4 module** (auth, cart, product, order) | 4 subplan = 4 module | 4 subagent song song, mỗi agent scaffold 1 module (4–5 file) |
+| **Tạo 22 file rule `.mdc`** (rule docs) | 1 subplan = "all rule docs" (1 concern duy nhất) | **Coordinator tự làm** — 22 file cùng concern, không có subplan độc lập để tách |
+| **Sửa 1 component có 3 lỗi** (1 file) | 1 subplan = "fix component X" | **Coordinator tự làm** — 1 file, không tách được |
+| **4 fix bug ở 4 module khác nhau** | 4 subplan = 4 module | 4 subagent song song |
 
 ## Bước 3 — Model
 
@@ -178,7 +190,7 @@ Task độc lập: 3 task
 - **Tự làm** — sửa file đơn lẻ, scope < 1 file, đã biết rõ nội dung.
 - **Tự làm + review chéo** — refactor nhiều file cùng concern, thay đổi nội dung không sensitive.
 - **Cần user** — cần quyết định format/stack/scope, thay đổi sensitive (auth, payment, deploy).
-- **Subagent** — task đã xác định ở Bước 2 là song song, mỗi subagent phụ trách 1 task với scope + context đầy đủ. **Model**: đã chọn ở Bước 2 (hỏi user nếu chưa).
+- **Subagent** — subplan đã xác định ở Bước 2 là độc lập, mỗi subagent phụ trách 1 subplan (nhiều task related) với scope + context đầy đủ. **Model**: đã chọn ở Bước 2 (hỏi user nếu chưa).
 
 ## Bước 4 — Hỏi
 
@@ -192,6 +204,93 @@ Dùng `AskQuestion` cho mọi quyết định **genuinely của user**:
 - Đã có rule rõ ràng (`stack-versions.mdc` đã chốt Next 16.3.8).
 - Thay đổi nhỏ không ảnh hưởng kiến trúc.
 - Có default hợp lý trong rule khác.
+
+### Thông tin BẮT BUỘC kèm theo câu hỏi
+
+Mỗi lần hỏi user, **BẮT BUỘC** trình bày trước 3 khối thông tin để user nắm rõ context trước khi chọn. Áp dụng cho **mọi câu hỏi** (Bước 0, Bước 2, Bước 4) — không chỉ Bước 4.
+
+| Khối | Câu hỏi phải trả lời | Nội dung ví dụ |
+|---|---|---|
+| **Scope** | Câu hỏi này đang quyết định cái gì? Phạm vi nào? | Sửa rule `workflow-process.mdc` Bước 2; thêm 1 file `.mdc` mới; refactor folder `src/types/` |
+| **Impact** | Nếu user chọn X, hệ quả là gì? Số file, concern, vùng ảnh hưởng? | 1 file rule; 4–5 module; UI component + store; sensitive = auth/payment |
+| **Risk** | Rủi ro / điểm cần cân nhắc? Có lock-in gì không? Cần rollback không? | Không reversible (rename); sensitive (auth); cần test; breaking change API |
+
+**Format**: dùng **bảng** (markdown table) — không bullet, không free text — để user scan nhanh.
+
+### Hai chế độ hỏi
+
+Mọi câu hỏi đều phải có **markdown text đầy đủ** (Scope/Impact/Risk + bảng đáp án) trước. Sau đó tuỳ ngữ cảnh chọn 1 trong 2 chế độ:
+
+| Chế độ | Khi nào dùng | Ưu điểm |
+|---|---|---|
+| **A — Popup UI (`AskQuestion`)** (mặc định) | Câu hỏi có ≤ 3 đáp án, user click nhanh được | User click nhanh, ít gõ |
+| **B — Markdown text thuần (không UI)** | Câu hỏi phức tạp (nhiều options, cần giải thích dài, ≥ 3 đáp án) | Đọc đầy đủ trong transcript, không bị che bởi popup |
+
+**Quy tắc**:
+- **Markdown text đầy đủ LUÔN phải có trước** — bất kể dùng chế độ A hay B. User phải đọc được full context trong chat.
+- **Chế độ A (popup UI) là mặc định** — chỉ chuyển sang B khi user yêu cầu rõ ("đưa luôn thông tin lên câu hỏi và đáp án" hoặc câu hỏi quá phức tạp để gói gọn trong popup).
+- **Không được gọi `AskQuestion` UI mà KHÔNG có markdown text đầy đủ đi kèm trước** — đây là lỗi vi phạm rule.
+
+#### Template mẫu (chế độ A — popup UI, mặc định)
+
+```text
+Trước khi hỏi, đây là context đầy đủ:
+
+| Khối | Nội dung |
+|---|---|
+| **Scope** | [Câu hỏi này quyết định cái gì, phạm vi nào] |
+| **Impact** | [Số file, concern, vùng ảnh hưởng nếu user chọn approach A/B/C] |
+| **Risk** | [Rủi ro: không reversible / sensitive / cần test / breaking change] |
+
+**Đáp án (chọn 1):**
+
+| # | Lựa chọn | Mô tả |
+|---|---|---|
+| **A** | [Tên option A] | [Mô tả ngắn] (Recommended) |
+| **B** | [Tên option B] | [Mô tả ngắn] |
+| **C** | [Tên option C] | [Mô tả ngắn] |
+
+Bạn chọn A, B, hay C?
+<gọi AskQuestion UI với 3 options tương ứng>
+```
+
+#### Ví dụ cụ thể (chế độ A)
+
+```text
+Trước khi hỏi, đây là context đầy đủ:
+
+| Khối | Nội dung |
+|---|---|
+| **Scope** | Quyết định cách chia "build cart module" thành subplan (Bước 2) |
+| **Impact** | 4 module × ~5 file = ~20 file; 1 plan → 1–4 subplan → 1–4 subagent song song |
+| **Risk** | Không reversible nếu đã dispatch (subagent đã đọc context); sensitive = không (cart thường) |
+
+**Đáp án (chọn 1):**
+
+| # | Lựa chọn | Mô tả |
+|---|---|---|
+| **A** | 1 subplan = 1 module (4 subplan, 4 subagent song song) | (Recommended) |
+| **B** | 1 subplan = 1 layer (UI / API / store / tests — ~12 subplan) | |
+| **C** | 1 subplan = toàn bộ plan (1 subagent, tuần tự) | |
+
+Bạn chọn A, B, hay C?
+<gọi AskQuestion UI với 3 options A/B/C>
+```
+
+#### Khi nào chuyển sang chế độ B (markdown text thuần)
+
+Chỉ dùng khi:
+- Câu hỏi có ≥ 4 đáp án phức tạp, mỗi đáp án cần giải thích dài hơn 1 dòng.
+- User yêu cầu rõ ràng ("đưa luôn thông tin lên câu hỏi và đáp án", "không cần popup", "trả lời trong chat").
+- Câu hỏi cần user gõ lại câu trả lời dài (không phù hợp click nhanh).
+
+Cách làm: trình bày đầy đủ trong markdown, **KHÔNG** gọi `AskQuestion` UI. User sẽ tự trả lời trong transcript chat tiếp theo.
+
+#### Trường hợp đặc biệt
+
+- **Nhiều câu hỏi cùng lúc**: mỗi câu trong `AskQuestion` đều cần Scope/Impact/Risk riêng (không gộp chung).
+- **Câu hỏi nhanh (yes/no)**: vẫn phải có Scope/Impact/Risk — có thể gọn 1 dòng mỗi khối.
+- **Sau khi user hỏi ngược "tại sao?"**: trả lời thẳng vào khối Risk (đó là lý do cần hỏi).
 
 ## Bước 5 — Làm
 
@@ -230,7 +329,7 @@ Báo cáo user theo format trong `AGENTS.md` mục "Báo cáo sau khi hoàn thà
 
 ## Bảng tiêu chí — khi nào áp dụng
 
-| Loại thay đổi | Plan | Song song | Model | Hỏi | Làm | Review |
+| Loại thay đổi | Plan | Chia plan | Model | Hỏi | Làm | Review |
 |---|---|---|---|---|---|---|
 | Sửa typo / format 1 dòng | gộp | không | tự làm | không | ✅ | gộp |
 | Sửa 1 file đã biết rõ | ngắn | không | tự làm | không | ✅ | ngắn |
