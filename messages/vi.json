@@ -1,0 +1,300 @@
+{
+  "common": {
+    "appName": "Flash Sale B2C",
+    "appTagline": "Sàn Flash Sale B2C chống Over-selling",
+    "loading": "Đang tải...",
+    "retry": "Thử lại",
+    "cancel": "Huỷ",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "delete": "Xoá",
+    "edit": "Sửa",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "search": "Tìm kiếm",
+    "noData": "Không có dữ liệu",
+    "redirecting": "Đang chuyển hướng...",
+    "goShopping": "Mua sắm ngay",
+    "continueShopping": "Tiếp tục mua sắm →",
+    "languageSwitch": "English",
+    "header": {
+      "brand": "FlashSale",
+      "nav": {
+        "flashSale": "Flash Sale",
+        "products": "Sản phẩm",
+        "orders": "Đơn hàng"
+      },
+      "cart": "Giỏ hàng",
+      "logout": "Đăng xuất",
+      "login": "Đăng nhập",
+      "register": "Đăng ký"
+    },
+    "footer": {
+      "shopping": "Mua sắm",
+      "account": "Tài khoản",
+      "support": "Hỗ trợ",
+      "profile": "Hồ sơ",
+      "voucher": "Kho voucher",
+      "supportEmail": "Liên hệ: support@flashsale.utc2",
+      "copyright": "© 2026 UTC2"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng bạn quay lại với FlashSale B2C",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "noAccount": "Chưa có tài khoản?",
+      "registerLink": "Đăng ký ngay",
+      "success": "Đăng nhập thành công!",
+      "errorGeneric": "Có lỗi xảy ra"
+    },
+    "register": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Đăng ký để tham gia Flash Sale trong vài giây",
+      "fullName": "Họ tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "submit": "Đăng ký",
+      "haveAccount": "Đã có tài khoản?",
+      "loginLink": "Đăng nhập",
+      "success": "Đăng ký thành công!",
+      "errorGeneric": "Có lỗi xảy ra"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "HOT",
+      "title": "Flash Sale giờ vàng - giá sốc mỗi ngày",
+      "subtitle": "Đặt chỗ kho trong 5 phút, thanh toán QR ZaloPay hoặc COD. Hàng nghìn người cùng lúc nhấn Mua ngay - không lo hết hàng.",
+      "viewAll": "Xem tất cả Flash Sale",
+      "browseProducts": "Sản phẩm thường"
+    },
+    "loadError": "Không tải được danh sách Flash Sale. Vui lòng kiểm tra kết nối tới backend.",
+    "activeSection": "ĐANG DIỄN RA",
+    "upcomingSection": "Sắp diễn ra",
+    "productCount": "{count, plural, =0 {Không có sản phẩm} =1 {1 sản phẩm} other {# sản phẩm}}"
+  },
+  "product": {
+    "list": {
+      "title": "Khám phá sản phẩm",
+      "searchLabel": "Tìm kiếm",
+      "searchPlaceholder": "Nhập tên sản phẩm...",
+      "categories": "Danh mục",
+      "all": "Tất cả",
+      "empty": "Không có sản phẩm phù hợp.",
+      "pageOf": "Trang {page} / {total}",
+      "prev": "Trước",
+      "next": "Sau"
+    },
+    "detail": {
+      "notFound": "Không tìm thấy sản phẩm.",
+      "variants": "Phiên bản",
+      "stock": "Kho: {count}",
+      "outOfStock": "Hết hàng",
+      "addToCart": "Thêm vào giỏ",
+      "addSuccess": "Đã thêm vào giỏ hàng",
+      "addError": "Thêm giỏ hàng thất bại"
+    }
+  },
+  "cart": {
+    "view": {
+      "title": "Giỏ hàng của bạn",
+      "loadError": "Không tải được giỏ hàng. Vui lòng thử lại.",
+      "empty": "Giỏ hàng của bạn đang trống.",
+      "subtotal": "Tạm tính",
+      "summary": "Tổng giỏ hàng",
+      "items": "Số lượng",
+      "total": "Tổng cộng",
+      "checkout": "Tiến hành thanh toán",
+      "splitNote": "Đơn hàng sẽ được tách theo từng gian hàng khi thanh toán.",
+      "clearAll": "Xóa toàn bộ giỏ hàng"
+    },
+    "item": {
+      "noImage": "No image",
+      "delete": "Xóa",
+      "deleteSuccess": "Đã xóa sản phẩm khỏi giỏ"
+    }
+  },
+  "checkout": {
+    "title": "Thanh toán",
+    "loading": "Đang tải...",
+    "emptyCart": "Giỏ hàng trống.",
+    "addressSection": "Địa chỉ giao hàng",
+    "paymentSection": "Phương thức thanh toán",
+    "storesSection": "Đơn hàng theo cửa hàng",
+    "zaloPay": "ZaloPay QR",
+    "cod": "Thanh toán khi nhận (COD)",
+    "voucherLabel": "Mã giảm giá",
+    "voucherPlaceholder": "VD: SALE10",
+    "voucherApply": "Áp dụng",
+    "voucherInvalid": "Mã không hợp lệ",
+    "voucherDiscount": "Đã giảm: -{amount}",
+    "selectAddress": "Vui lòng chọn địa chỉ giao hàng",
+    "noAddress": "Bạn chưa có địa chỉ.",
+    "addAddress": "Thêm địa chỉ",
+    "submit": "Đặt hàng",
+    "createdOrders": "Đã tạo {count} đơn hàng",
+    "paymentFailed": "Thanh toán thất bại"
+  },
+  "address": {
+    "list": {
+      "title": "Sổ địa chỉ",
+      "add": "+ Thêm địa chỉ",
+      "empty": "Bạn chưa có địa chỉ nào.",
+      "default": "Mặc định",
+      "setDefault": "Đặt mặc định",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "deleteSuccess": "Đã xóa địa chỉ",
+      "setDefaultSuccess": "Đã đặt làm mặc định",
+      "saveSuccess": "Đã lưu địa chỉ"
+    },
+    "form": {
+      "addTitle": "Thêm địa chỉ mới",
+      "editTitle": "Sửa địa chỉ",
+      "contactName": "Người nhận",
+      "phone": "Số điện thoại",
+      "province": "Tỉnh/Thành",
+      "district": "Quận/Huyện",
+      "ward": "Phường/Xã",
+      "detail": "Địa chỉ chi tiết (số nhà, đường)",
+      "isDefault": "Đặt làm mặc định",
+      "selectPlaceholder": "-- Chọn --",
+      "validationError": "Vui lòng kiểm tra thông tin"
+    }
+  },
+  "profile": {
+    "title": "Tài khoản của tôi",
+    "info": "Thông tin cá nhân",
+    "email": "Email",
+    "fullName": "Họ tên",
+    "phone": "Số điện thoại",
+    "changePassword": "Đổi mật khẩu",
+    "oldPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmNew": "Xác nhận mật khẩu mới",
+    "submit": "Đổi mật khẩu",
+    "logout": "Đăng xuất",
+    "success": "Đổi mật khẩu thành công",
+    "confirmMismatch": "Mật khẩu xác nhận không khớp"
+  },
+  "order": {
+    "list": {
+      "title": "Đơn hàng của tôi",
+      "empty": "Bạn chưa có đơn hàng nào."
+    },
+    "card": {
+      "items": "{count, plural, =0 {Không có sản phẩm} =1 {1 sản phẩm} other {# sản phẩm}}"
+    },
+    "detail": {
+      "title": "Đơn #{orderCode}",
+      "loading": "Đang tải đơn hàng...",
+      "notFound": "Không tìm thấy đơn hàng.",
+      "store": "Cửa hàng",
+      "total": "Tổng",
+      "pendingPayment": "Chờ thanh toán",
+      "expiresIn": "Hết hạn sau",
+      "scanQr": "Quét QR ZaloPay để hoàn tất",
+      "amount": "Số tiền",
+      "cancel": "Hủy đơn",
+      "cancelSuccess": "Đã hủy đơn",
+      "cancelError": "Hủy thất bại"
+    },
+    "status": {
+      "PENDING_PAYMENT": "Chờ thanh toán",
+      "PAID": "Đã thanh toán",
+      "CONFIRMED": "Đã xác nhận",
+      "SHIPPING": "Đang giao",
+      "COMPLETED": "Hoàn thành",
+      "CANCELLED_TIMEOUT": "Đã huỷ – quá hạn thanh toán",
+      "CANCELLED_USER": "Đã huỷ"
+    }
+  },
+  "payment": {
+    "status": {
+      "PENDING": "Đang chờ",
+      "SUCCESS": "Thành công",
+      "FAILED": "Thất bại",
+      "EXPIRED": "Hết hạn",
+      "REFUNDED": "Đã hoàn tiền"
+    }
+  },
+  "flash-sale": {
+    "list": {
+      "title": "Tất cả Flash Sale",
+      "items": "{count, plural, =0 {0 sản phẩm} =1 {1 sản phẩm} other {# sản phẩm}}"
+    },
+    "slot": {
+      "startsIn": "Bắt đầu sau",
+      "endsIn": "Kết thúc sau",
+      "ended": "Đã kết thúc"
+    },
+    "status": {
+      "UPCOMING": "Sắp diễn ra",
+      "ACTIVE": "Đang diễn ra",
+      "ENDED": "Đã kết thúc"
+    },
+    "countdown": {
+      "defaultLabel": "Còn",
+      "paymentIn": "Thanh toán trong"
+    },
+    "stock": {
+      "sold": "Đã bán {percent}",
+      "remaining": "Còn {remaining}/{allocated}"
+    },
+    "buyModal": {
+      "title": "Mua ngay Flash Sale",
+      "selectAddress": "-- Chọn địa chỉ --",
+      "noAddress": "Bạn chưa có địa chỉ. Vui lòng vào",
+      "addressBook": "Sổ địa chỉ",
+      "toAdd": "để thêm.",
+      "quantity": "Số lượng",
+      "maxQuantity": "Tối đa {max} sản phẩm",
+      "purchaseLimit": "Giới hạn mua: {limit} sản phẩm/khách",
+      "sku": "SKU",
+      "stockOf": "Còn {available}/{allocated}",
+      "submit": "Đặt giữ chỗ (5 phút)",
+      "selectAddressError": "Vui lòng chọn địa chỉ nhận hàng",
+      "quantityError": "Số lượng tối đa là {max}",
+      "success": "Đặt hàng thành công! Chuyển sang trang thanh toán.",
+      "errorGeneric": "Đặt hàng thất bại, thử lại sau",
+      "requireLogin": "Vui lòng đăng nhập để mua",
+      "buyNow": "Mua ngay",
+      "outOfStock": "Hết hàng"
+    },
+    "slotDetail": {
+      "startsIn": "Bắt đầu sau",
+      "endsIn": "Kết thúc sau"
+    },
+    "qr": {
+      "scanInstruction": "Quét mã ZaloPay",
+      "order": "Đơn hàng",
+      "method": "Phương thức",
+      "methodZaloPay": "ZaloPay QR",
+      "amount": "Số tiền",
+      "txCode": "Mã GD",
+      "createdAt": "Tạo lúc",
+      "refresh": "Làm mới trạng thái"
+    }
+  },
+  "toast": {
+    "common": {
+      "error": "Đã có lỗi xảy ra"
+    }
+  },
+  "error": {
+    "AUTH_001": "Phiên đăng nhập đã hết hạn",
+    "AUTH_002": "Vui lòng đăng nhập lại",
+    "VALIDATION_ERROR": "Dữ liệu không hợp lệ",
+    "NOT_FOUND": "Không tìm thấy",
+    "CONFLICT": "Xung đột dữ liệu",
+    "RATE_LIMIT": "Bạn thao tác quá nhanh",
+    "INTERNAL_ERROR": "Lỗi hệ thống, vui lòng thử lại sau",
+    "NETWORK_ERROR": "Lỗi mạng, kiểm tra kết nối"
+  }
+}
