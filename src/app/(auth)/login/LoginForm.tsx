@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,6 +22,7 @@ export function LoginForm() {
   const search = useSearchParams();
   const setSession = useAuthStore((s) => s.setSession);
   const toast = useToast();
+  const t = useTranslations("auth.login");
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -40,11 +43,11 @@ export function LoginForm() {
         accessToken: res.accessToken,
         refreshToken: res.refreshToken,
       });
-      toast.success("Đăng nhập thành công!");
+      toast.success(t("success"));
       const next = search.get("next") || "/";
       router.push(next);
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Có lỗi xảy ra";
+      const msg = err instanceof ApiError ? err.message : t("errorGeneric");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -54,26 +57,26 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <InputField
-        label="Email"
+        label={t("email")}
         type="email"
         autoComplete="email"
         error={errors.email?.message}
         {...register("email")}
       />
       <InputField
-        label="Mật khẩu"
+        label={t("password")}
         type="password"
         autoComplete="current-password"
         error={errors.password?.message}
         {...register("password")}
       />
       <Button type="submit" loading={submitting} className="w-full">
-        Đăng nhập
+        {t("submit")}
       </Button>
       <p className="text-center text-sm text-zinc-500">
-        Chưa có tài khoản?{" "}
+        {t("noAccount")}{" "}
         <Link href="/register" className="font-medium text-red-600 hover:underline">
-          Đăng ký ngay
+          {t("registerLink")}
         </Link>
       </p>
     </form>

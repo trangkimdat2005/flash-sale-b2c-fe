@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useRouter, Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input as InputField } from "@/components/ui";
@@ -19,6 +19,7 @@ export function RegisterForm() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
   const toast = useToast();
+  const t = useTranslations("auth.register");
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -55,10 +56,10 @@ export function RegisterForm() {
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
       });
-      toast.success("Đăng ký thành công!");
+      toast.success(t("success"));
       router.push("/");
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "Có lỗi xảy ra";
+      const msg = err instanceof ApiError ? err.message : t("errorGeneric");
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -68,45 +69,45 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <InputField
-        label="Họ tên"
+        label={t("fullName")}
         autoComplete="name"
         error={errors.fullName?.message}
         {...register("fullName")}
       />
       <InputField
-        label="Email"
+        label={t("email")}
         type="email"
         autoComplete="email"
         error={errors.email?.message}
         {...register("email")}
       />
       <InputField
-        label="Số điện thoại"
+        label={t("phone")}
         autoComplete="tel"
         error={errors.phone?.message}
         {...register("phone")}
       />
       <InputField
-        label="Mật khẩu"
+        label={t("password")}
         type="password"
         autoComplete="new-password"
         error={errors.password?.message}
         {...register("password")}
       />
       <InputField
-        label="Xác nhận mật khẩu"
+        label={t("confirmPassword")}
         type="password"
         autoComplete="new-password"
         error={errors.confirmPassword?.message}
         {...register("confirmPassword")}
       />
       <Button type="submit" loading={submitting} className="w-full">
-        Đăng ký
+        {t("submit")}
       </Button>
       <p className="text-center text-sm text-zinc-500">
-        Đã có tài khoản?{" "}
+        {t("haveAccount")}{" "}
         <Link href="/login" className="font-medium text-red-600 hover:underline">
-          Đăng nhập
+          {t("loginLink")}
         </Link>
       </p>
     </form>
