@@ -1,6 +1,11 @@
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export function Footer() {
+  const t = useTranslations("common.footer");
+  const tNav = useTranslations("common.header.nav");
+  const tHeader = useTranslations("common.header");
+
   return (
     <footer className="border-t border-zinc-200 bg-zinc-50 py-8 dark:border-zinc-800 dark:bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4">
@@ -12,26 +17,38 @@ export function Footer() {
             </p>
           </div>
           <div>
-            <p className="font-medium">Mua sắm</p>
+            <p className="font-medium">{t("shopping")}</p>
             <ul className="mt-2 space-y-1 text-zinc-500">
-              <li><Link href="/flash-sales">Flash Sale</Link></li>
-              <li><Link href="/products">Sản phẩm</Link></li>
-              <li><Link href="/cart">Giỏ hàng</Link></li>
+              <li><Link href="/flash-sales">{tNav("flashSale")}</Link></li>
+              <li><Link href="/products">{tNav("products")}</Link></li>
+              <li>
+                <Link href="/cart">
+                  {tHeader("cart", { defaultMessage: "Giỏ hàng" })}
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
-            <p className="font-medium">Tài khoản</p>
+            <p className="font-medium">{t("account")}</p>
             <ul className="mt-2 space-y-1 text-zinc-500">
-              <li><Link href="/profile">Hồ sơ</Link></li>
-              <li><Link href="/orders">Đơn hàng</Link></li>
-              <li><Link href="/addresses">Sổ địa chỉ</Link></li>
+              <li>
+                <Link href="/profile">
+                  {t("profile", { defaultMessage: "Hồ sơ" })}
+                </Link>
+              </li>
+              <li><Link href="/orders">{tNav("orders")}</Link></li>
+              <li>
+                <Link href="/addresses">
+                  {t("addresses", { defaultMessage: "Sổ địa chỉ" })}
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
-            <p className="font-medium">Hỗ trợ</p>
+            <p className="font-medium">{t("support")}</p>
             <ul className="mt-2 space-y-1 text-zinc-500">
-              <li>Liên hệ: support@flashsale.utc2</li>
-              <li>© 2026 UTC2</li>
+              <li>{t("supportEmail")}</li>
+              <li>{t("copyright")}</li>
             </ul>
           </div>
         </div>
