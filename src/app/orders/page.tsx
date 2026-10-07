@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Header, Footer } from "@/components/layout";
 import { OrderCard } from "@/components/order";
 import { orderApi } from "@/lib/api";
@@ -12,6 +13,7 @@ import { useAuthStore } from "@/stores/auth.store";
 export default function OrdersPage() {
   const router = useRouter();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const t = useTranslations();
 
   useEffect(() => {
     if (!accessToken) router.replace("/login?next=/orders");
@@ -29,14 +31,14 @@ export default function OrdersPage() {
     <>
       <Header />
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-bold">Đơn hàng của tôi</h1>
+        <h1 className="mb-4 text-2xl font-bold">{t("order.list.title")}</h1>
         {orders.isLoading ? (
-          <p className="text-sm text-zinc-500">Đang tải...</p>
+          <p className="text-sm text-zinc-500">{t("common.loading")}</p>
         ) : orders.data?.items.length === 0 ? (
           <p className="text-sm text-zinc-500">
-            Bạn chưa có đơn hàng nào.{" "}
+            {t("order.list.empty")}{" "}
             <Link href="/products" className="text-red-600 underline">
-              Mua sắm ngay
+              {t("common.goShopping")}
             </Link>
           </p>
         ) : (

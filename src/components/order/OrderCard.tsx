@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui";
-import { ORDER_STATUS_LABEL } from "@/lib/constants";
 import { formatVND } from "@/lib/decimal";
 import { formatDate } from "@/lib/utils";
 import type { OrderResponse, OrderStatus } from "@/types";
@@ -26,6 +26,7 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
+  const t = useTranslations();
   return (
     <Link
       href={`/orders/${order.id}`}
@@ -39,13 +40,13 @@ export function OrderCard({ order }: OrderCardProps) {
           </p>
         </div>
         <Badge variant={badgeVariantMap[order.status]}>
-          {ORDER_STATUS_LABEL[order.status]}
+          {t(`order.status.${order.status}`)}
         </Badge>
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3 text-sm dark:border-zinc-800">
         <span className="text-zinc-500">
-          {order.items.length} sản phẩm
+          {t("order.card.items", { count: order.items.length })}
         </span>
         <span className="font-bold text-red-600">
           {formatVND(order.totalAmount)}

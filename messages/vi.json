@@ -203,7 +203,8 @@
       "amount": "Số tiền",
       "cancel": "Hủy đơn",
       "cancelSuccess": "Đã hủy đơn",
-      "cancelError": "Hủy thất bại"
+      "cancelError": "Hủy thất bại",
+      "paymentStatusLabel": "Trạng thái: {status}"
     },
     "status": {
       "PENDING_PAYMENT": "Chờ thanh toán",

@@ -203,7 +203,8 @@
       "amount": "Amount",
       "cancel": "Cancel order",
       "cancelSuccess": "Order cancelled",
-      "cancelError": "Cancel failed"
+      "cancelError": "Cancel failed",
+      "paymentStatusLabel": "Status: {status}"
     },
     "status": {
       "PENDING_PAYMENT": "Awaiting payment",
