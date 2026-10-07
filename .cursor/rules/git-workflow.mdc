@@ -36,6 +36,26 @@ docs/<shorter-desc>       # vd: docs/sync-flashsale-endpoint
 
 `shorter-desc` phải mô tả đúng tính năng. Không dùng tên chung chung `feature/new`, `fix/bug`.
 
+## Pre-commit checklist (BẮT BUỘC)
+
+Trước khi chạy `git commit`, agent **PHẢI** verify tất cả mục dưới. Không đạt → KHÔNG commit:
+
+```text
+□ Test đỏ đã viết trước khi sửa code (xem workflow-process.mdc Bước 5 + testing-required.mdc)
+□ Đã chạy test: npm run test (hoặc npm run test -- <path> cho 1 file)
+□ Tất cả test PASS — không có FAIL, không có test bị .skip / .todo
+□ Mỗi file logic thay đổi có file .test.ts(x) đi kèm (theo scope testing-required.mdc)
+□ npm run lint pass (nếu có)
+□ Commit message tiếng Anh + Conventional Commit format
+□ Commit CHỈ chứa file đã thay đổi trong task (git status review)
+```
+
+**Quy tắc cứng**:
+- Không có test đỏ trước = không được commit.
+- Có test FAIL → fix code trước, KHÔNG commit code lỗi.
+- Test bị `.skip` / `.todo` / xoá assertion để pass = KHÔNG hợp lệ.
+- Bugfix mà không có reproduction test trước = KHÔNG hợp lệ.
+
 ## Commit message (Conventional Commit, tiếng Anh)
 
 ```text

@@ -302,6 +302,26 @@ Thực hiện theo plan, **không mở rộng scope** ngoài câu hỏi đã h�
 - Sau mỗi batch tool call → verify output bằng `Read` hoặc shell `cat` trước khi đi tiếp.
 - Khi sửa nhiều file: dùng `StrReplace` từng file (atomic), KHÔNG dùng loop `-replace` PowerShell với count param (xem Notes).
 
+### Test-Driven Workflow (BẮT BUỘC khi có sửa code logic)
+
+**Mọi task code (feat / fix / refactor) PHẢI đi theo TDD. KHÔNG viết code trước khi có test đỏ.**
+
+```text
+1. RED    — viết test cho behavior/hàm/bug cần sửa (đặt cạnh file, .test.ts(x))
+2. RUN    — chạy test (npm run test -- <path>), xác nhận nó FAIL
+3. GREEN  — sửa code tối thiểu để test PASS
+4. RUN    — chạy lại test, xác nhận PASS + không break test khác (npm run test)
+5. REFACTOR — clean code (giữ test xanh)
+6. COMMIT — chỉ commit khi tất cả test pass
+```
+
+**Quy tắc cứng**:
+- Test FAIL phải vì **đúng lý do** (assertion đúng) — không phải import sai, typo, hoặc thiếu mock.
+- Sau khi fix code → test phải chuyển FAIL → PASS, không vô hiệu hoá test (`it.skip`, xoá assertion).
+- Bugfix → reproduction test viết **TRƯỚC** khi sửa (test phải FAIL trên code hiện tại). Nếu test PASS ngay khi viết → bug đã không còn → dừng, báo cáo.
+- Ngoại lệ: chỉnh sửa thuần UI (color/spacing/copy không có logic), đổi tên biến, thêm export constant. User **ghi rõ** mới được miễn.
+- Xem `testing-required.mdc` section "TDD Workflow" cho chi tiết + scope đầy đủ.
+
 ## Bước 6 — Review
 
 Báo cáo user theo format trong `AGENTS.md` mục "Báo cáo sau khi hoàn thành task":

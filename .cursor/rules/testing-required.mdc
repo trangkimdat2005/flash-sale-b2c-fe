@@ -6,6 +6,27 @@ alwaysApply: true
 
 # Testing — Bắt Buộc Mỗi Lần Thay Đổi
 
+## TDD Workflow (BẮT BUỘC — Red → Green → Refactor)
+
+**Mọi task code (feat, fix, refactor) PHẢI theo TDD. KHÔNG được viết code trước khi có test đỏ.**
+
+```text
+1. RED    — viết test cho behavior/hàm/bug cần sửa
+2. RUN    — chạy test, xác nhận nó FAIL (đỏ) trên code hiện tại
+3. GREEN  — sửa code tối thiểu để test PASS (xanh)
+4. RUN    — chạy lại test, xác nhận PASS + không break test khác
+5. REFACTOR — clean code (giữ nguyên test xanh)
+6. COMMIT — chỉ commit khi tất cả test pass
+```
+
+**Quy tắc cứng**:
+- Không có test đỏ trước = không được sửa code (trừ khi user **rõ ràng** miễn trừ).
+- Test phải FAIL vì **đúng lý do** (assertion đúng, không phải import sai / typo).
+- Sau khi fix code → test phải chuyển từ FAIL → PASS, không phải vô hiệu hoá test.
+- TDD áp dụng cho mọi layer: `lib/`, `hooks/`, `stores/`, `components/`, `features/`, `app/` (route handlers), `api/`.
+
+**Ngoại lệ (chỉ khi user ghi rõ)**: chỉnh sửa thuần tuý UI (chỉ color, spacing, copy không có logic), thêm export constant không có logic, đổi tên biến.
+
 ## Nguyên tắc cốt lõi
 
 **Mọi thay đổi code phải đi kèm test. Tuyệt đối KHÔNG được bỏ qua.**
