@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Button, Badge } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { productApi, cartApi } from "@/lib/api";
@@ -18,6 +19,8 @@ export function ProductDetailClient({ productId }: Props) {
   const router = useRouter();
   const toast = useToast();
   const qc = useQueryClient();
+  const t = useTranslations("product.detail");
+  const tCommon = useTranslations("common");
   const isAuth = useAuthStore((s) => s.accessToken != null);
   const [variantId, setVariantId] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
@@ -31,15 +34,15 @@ export function ProductDetailClient({ productId }: Props) {
     mutationFn: cartApi.addItem,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cart"] });
-      toast.success("Đã thêm vào giỏ hàng");
+      toast.success(t("addSuccess"));
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Thêm giỏ hàng thất bại");
+      toast.error(err instanceof ApiError ? err.message : t("addError"));
     },
   });
 
-  if (isLoading) return <p className="text-sm text-zinc-500">Đang tải...</p>;
-  if (!product) return <p>Không tìm thấy sản phẩm.</p>;
+  if (isLoading) return <p className="text-sm text-zinc-500">{tCommon("loading")}</p>;
+  if (!product) return <p>{t("notFound")}</p>;
 
   const selected = product.variants.find((v) => v.id === variantId) ?? product.variants[0];
 
@@ -61,7 +64,7 @@ export function ProductDetailClient({ productId }: Props) {
         </div>
 
         <div className="mt-5">
-          <h3 className="text-sm font-semibold">Phiên bản</h3>
+          <h3 className="text-sm font-semibold">{t("variants")}</h3>
           <div className="mt-2 flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <button
@@ -111,12 +114,12 @@ export function ProductDetailClient({ productId }: Props) {
               });
             }}
           >
-            {selected && selected.stockQuantity <= 0 ? "Hết hàng" : "Thêm vào giỏ"}
+            {selected && selected.stockQuantity <= 0 ? t("outOfStock") : t("addToCart")}
           </Button>
         </div>
 
         <p className="mt-3 text-xs text-zinc-500">
-          Kho: {selected?.stockQuantity ?? 0}
+          {t("stock", { count: selected?.stockQuantity ?? 0 })}
         </p>
       </div>
     </div>

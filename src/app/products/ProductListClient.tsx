@@ -3,12 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Input as InputField } from "@/components/ui";
 import { productApi, categoryApi } from "@/lib/api";
 import { formatVND } from "@/lib/decimal";
 import type { ProductSummaryResponse } from "@/types";
 
 export function ProductListClient() {
+  const t = useTranslations("product.list");
+  const tCommon = useTranslations("common");
   const [keyword, setKeyword] = useState("");
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [page, setPage] = useState(0);
@@ -33,8 +36,8 @@ export function ProductListClient() {
     <div className="grid gap-6 md:grid-cols-[240px_1fr]">
       <aside className="space-y-4">
         <InputField
-          label="Tìm kiếm"
-          placeholder="Nhập tên sản phẩm..."
+          label={t("searchLabel")}
+          placeholder={t("searchPlaceholder")}
           value={keyword}
           onChange={(e) => {
             setKeyword(e.target.value);
@@ -42,7 +45,7 @@ export function ProductListClient() {
           }}
         />
         <div>
-          <h3 className="mb-2 text-sm font-semibold">Danh mục</h3>
+          <h3 className="mb-2 text-sm font-semibold">{t("categories")}</h3>
           <ul className="space-y-1">
             <li>
               <button
@@ -55,7 +58,7 @@ export function ProductListClient() {
                   !categoryId ? "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300" : ""
                 }`}
               >
-                Tất cả
+                {t("all")}
               </button>
             </li>
             {categories.data?.map((c) => (
@@ -80,9 +83,9 @@ export function ProductListClient() {
 
       <section>
         {products.isLoading ? (
-          <p className="text-sm text-zinc-500">Đang tải...</p>
+          <p className="text-sm text-zinc-500">{tCommon("loading")}</p>
         ) : products.data?.items.length === 0 ? (
-          <p className="text-sm text-zinc-500">Không có sản phẩm phù hợp.</p>
+          <p className="text-sm text-zinc-500">{t("empty")}</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {products.data?.items.map((p) => (
@@ -99,10 +102,10 @@ export function ProductListClient() {
               onClick={() => setPage((p) => p - 1)}
               className="rounded border px-3 py-1 text-sm disabled:opacity-50"
             >
-              Trước
+              {t("prev")}
             </button>
             <span className="text-sm text-zinc-500">
-              Trang {page + 1} / {products.data.totalPages}
+              {t("pageOf", { page: page + 1, total: products.data.totalPages })}
             </span>
             <button
               type="button"
@@ -110,7 +113,7 @@ export function ProductListClient() {
               onClick={() => setPage((p) => p + 1)}
               className="rounded border px-3 py-1 text-sm disabled:opacity-50"
             >
-              Sau
+              {t("next")}
             </button>
           </div>
         )}
