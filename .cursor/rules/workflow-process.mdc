@@ -1,0 +1,245 @@
+﻿---
+description: Quy tắc bắt buộc khi thêm hoặc sửa file trong .cursor/rules/ — xin phép trước, lập plan, đánh giá model, hỏi trước khi thực hiện.
+globs:
+  - .cursor/rules/*.mdc
+  - AGENTS.md
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Workflow — 6 Bước Bắt Buộc
+
+Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) phải qua 6 bước. Thay đổi nhỏ (sửa 1 dòng, format) có thể gộp bước 4+5.
+
+## Bước 0 — Xin phép
+
+**Trước khi vào Bước 1**, với mọi thay đổi **lớn** (theo bảng tiêu chí cuối file), phải **nói rõ** cho user biết:
+
+- Tôi định làm gì (1–2 dòng tóm tắt).
+- Bước nào sắp chạy (Plan / Song song / Model / Hỏi / Làm / Review).
+- Tại sao cần xin phép (thay đổi architecture / multi-file / sensitive).
+
+→ Dùng `AskQuestion` với các lựa chọn rõ ràng (đồng ý / chỉnh sửa / hủy).
+
+→ **Chờ user trả lời** trước khi chuyển sang Bước 1.
+
+### Quyết định BẮT BUỘC phải hỏi
+
+| Quyết định | Lý do |
+|---|---|
+| Duyệt **Plan** tổng thể (Bước 1) | User cần biết scope trước khi agent viết/sửa file |
+| Duyệt cách **chia task song song** (Bước 2) | User cần kiểm soát số subagent + phân chia |
+| Duyệt **format / scope** cho refactor lớn (Bước 4) | Quyết định genuinely của user (AGENTS.md) |
+| Duyệt thay đổi **sensitive** (auth/payment/deploy) | Quyết định có rủi ro cao |
+
+### KHÔNG cần hỏi (chạy thẳng)
+
+- **Sửa typo / format 1 dòng** — đã có trong bảng tiêu chí.
+- **Áp dụng rule rõ ràng đã chốt** (vd: stack version, commit format) — user đã duyệt từ trước.
+- **Bước 3 (Model)** tự đánh giá — không phải decision cần xin phép.
+- **Bước 5 (Làm)** đã có plan được duyệt ở Bước 0+1.
+- **Bước 6 (Review)** là báo cáo — user tự phản hồi.
+
+### Ví dụ
+
+| Tình huống | Hành động |
+|---|---|
+| User nói "thêm rule song song" | Bước 0: nói "Tôi sẽ thêm Bước 2 — Song song vào `workflow-process.mdc`. Hỏi 1 câu: tách thành bước riêng hay nhúng vào Plan?" → AskQuestion |
+| User nói "sửa typo trong file X" | Không hỏi — sửa luôn, báo cáo ở Bước 6 |
+| User nói "refactor cả folder `src/types/`" | Bước 0: nói scope + cách chia → AskQuestion → chờ duyệt → Plan → Song song → Hỏi format chi tiết → Làm |
+| User nói "thêm auth mới" | Bước 0: nói sensitive → AskQuestion → nếu đồng ý mới qua Plan |
+
+## Bước 0.5 — Worktree (khi 2 chat song song)
+
+> **Tách sang `git-worktree.mdc` (commit này)** — concern git workflow isolation, không phải process step. Rule mới chứa toàn bộ: khi nào trigger, quy tắc, format hỏi user, lệnh mẫu, ví dụ, lưu ý.
+>
+> Khi phát hiện ≥ 2 chat song song có khả năng conflict file → load `git-worktree.mdc` để xem chi tiết + dùng `AskQuestion` đề xuất worktree.
+
+## Bước 1 — Plan
+
+Viết ra:
+- Task cần làm (1–3 dòng).
+- File thay đổi (path + bản chất: tạo / sửa / xoá).
+- Nếu refactor nhiều file → list concern nhóm.
+
+## Bước 2 — Song song
+
+Sau khi liệt kê task ở Bước 1, **đánh giá khả năng chạy đồng thời** trước khi vào Bước 3 (Hỏi).
+
+### Khi nào SONG SONG
+
+Các task được coi là **độc lập (independent)** khi thỏa **tất cả** tiêu chí:
+
+- Khác file đích (hoặc file chung nhưng sửa phần khác nhau, không overlap).
+- Không phụ thuộc output của nhau (task B không cần kết quả task A).
+- Không cùng đọc/ghi 1 doc/import/file constant.
+- Có thể review từng phần một mà không cần hiểu phần còn lại.
+
+→ Nếu thỏa → **dispatch subagent làm đồng thời** (multi-call trong 1 response, theo skill `tllq-workflow:itz-dispatching-parallel-agents`).
+
+### Khi nào KHÔNG song song
+
+**Bắt buộc tuần tự** khi có ≥ 1 trong các dấu hiệu:
+
+- Cùng sửa 1 file (kể cả phần khác nhau).
+- Task sau cần output của task trước (vd: tạo type trước → viết component sau).
+- Cùng cập nhật 1 file docs/index (vd `AGENTS.md`, `docs/CLAUDE.md`).
+- Rule doc mới reference rule cũ chưa tồn tại.
+- Cùng thêm row vào 1 bảng (vd rule index).
+
+### Quy tắc 1 agent = 1 task
+
+Mỗi subagent phụ trách **đúng 1 task**, không gộp:
+
+```
+❌ 1 agent làm 3 file rule
+✅ 3 agent, mỗi agent 1 file rule
+```
+
+Lý do: context cô lập, kết quả rõ ràng, debug được từng phần.
+
+### Cách dispatch (multi-call trong 1 response)
+
+Đặt **tất cả subagent call trong cùng 1 response** (function_calls block) → chạy song song thật sự.
+
+Mỗi subagent phải nhận:
+- **Scope cụ thể**: 1 file path, 1 concern duy nhất.
+- **Context đầy đủ**: paste rule liên quan, format yêu cầu, mẫu nếu có.
+- **Model**: chọn theo bảng dưới (xem mục "Chọn model").
+- **Constraint**: KHÔNG sửa ngoài scope, KHÔNG push, KHÔNG mở rộng.
+- **Output kỳ vọng**: báo cáo theo format `AGENTS.md`.
+
+### Chọn model
+
+Mỗi task cần **đánh giá model phù hợp** trước khi dispatch. Không dùng model mạnh cho task đơn giản.
+
+#### Các model có sẵn
+
+| Model | Mô tả | Giá |
+|---|---|---|
+| `inherit` | Model mặc định — dùng khi không chỉ định | — |
+| `tsqq52ihtoijc7ivtviohmd` | Model cụ thể (xem model list trong context) | — |
+
+#### Bảng chọn model theo loại task
+
+| Loại task | Model khuyến nghị | Lý do |
+|---|---|---|
+| Tạo/sửa file rule `.mdc` | `inherit` | Cần tuân thủ format chặt chẽ, context rule có sẵn |
+| Tạo component UI đơn giản | `inherit` | Boilerplate, convention rõ |
+| Tạo file `.ts` logic/phân tích | `inherit` | Code pattern có sẵn |
+| Refactor kiến trúc lớn | `inherit` | Cần hiểu full context |
+| Fix bug đơn lẻ | `inherit` | Debug pattern có sẵn |
+| Tạo nhiều file cùng concern | `inherit` | 1 agent = 1 task, không cần model mạnh |
+| Task mới lạ, chưa có pattern | `inherit` | Để tôi tự quyết định model tối ưu |
+
+#### Hỏi user về model
+
+Sau khi đánh giá model cho từng task, trình bày theo format:
+
+```text
+## Đánh giá song song (Bước 2)
+
+Task độc lập: 3 task
+
+| # | Task | File | Model đề xuất | Lý do |
+|---|---|---|---|---|
+| 1 | Tạo rule i18n | `.cursor/rules/i18n.mdc` | inherit | Tuân format rule có sẵn |
+| 2 | Tạo rule features | `.cursor/rules/features.mdc` | inherit | Template giống rule khác |
+| 3 | Tạo rule error | `.cursor/rules/error.mdc` | inherit | Pattern có sẵn |
+
+→ **Câu hỏi**: Dùng 1 model cho tất cả hay theo đề xuất từng task?
+- Dùng `inherit` cho tất cả (Recommended)
+- Theo đề xuất từng task (bảng trên)
+- Model khác (chỉ định)
+```
+
+→ Dùng `AskQuestion` với 3 lựa chọn.
+
+### Sau khi subagent xong
+
+1. **Đọc từng summary** — xác nhận đúng scope, không lệch.
+2. **Verify tổng thể** — chạy build/lint, đọc các file mới xem có conflict không.
+3. **Đối chiếu plan** — task nào chưa xong, task nào dư.
+4. **Báo cáo user** theo format Bước 5.
+
+### Ví dụ
+
+| Task list | Phán đoán | Cách chạy |
+|---|---|---|
+| 3 file rule mới (i18n, features, error) | Độc lập — 3 file khác nhau, không import lẫn nhau | 3 subagent song song |
+| Tạo M1 (tách i18n) + M2 (features) + M5 (update AGENTS.md) | M5 sửa `AGENTS.md` tham chiếu M1+M2 → M5 phụ thuộc | M1, M2 song song → M5 tuần tự sau |
+| Restore 22 file `.mdc` | 22 file giống template, KHÔNG phụ thuộc nhau | 22 subagent song song (giới hạn thực tế: ≤ 8 / response) |
+| 4 fix bug ở 4 module khác nhau | Độc lập | 4 subagent song song |
+| Sửa 1 component React có 3 lỗi | 1 file → KHÔNG song song | 1 agent làm tuần tự |
+
+## Bước 3 — Model
+
+Đánh giá **mình có làm được không**:
+- **Tự làm** — sửa file đơn lẻ, scope < 1 file, đã biết rõ nội dung.
+- **Tự làm + review chéo** — refactor nhiều file cùng concern, thay đổi nội dung không sensitive.
+- **Cần user** — cần quyết định format/stack/scope, thay đổi sensitive (auth, payment, deploy).
+- **Subagent** — task đã xác định ở Bước 2 là song song, mỗi subagent phụ trách 1 task với scope + context đầy đủ. **Model**: đã chọn ở Bước 2 (hỏi user nếu chưa).
+
+## Bước 4 — Hỏi
+
+Dùng `AskQuestion` cho mọi quyết định **genuinely của user**:
+- Format (số dòng, cấu trúc, schema).
+- Stack (lib nào, version nào).
+- Scope (rule nào, file nào, bao nhiêu).
+- Khi có ≥ 2 approach hợp lý.
+
+**KHÔNG hỏi** khi:
+- Đã có rule rõ ràng (`stack-versions.mdc` đã chốt Next 16.3.8).
+- Thay đổi nhỏ không ảnh hưởng kiến trúc.
+- Có default hợp lý trong rule khác.
+
+## Bước 5 — Làm
+
+Thực hiện theo plan, **không mở rộng scope** ngoài câu hỏi đã hỏi.
+
+**Nguyên tắc**:
+- 1 commit = 1 concern (xem `git-workflow.mdc`).
+- KHÔNG batch nhiều concern vào 1 lần sửa PowerShell/Shell — bug khó truy.
+- Sau mỗi batch tool call → verify output bằng `Read` hoặc shell `cat` trước khi đi tiếp.
+- Khi sửa nhiều file: dùng `StrReplace` từng file (atomic), KHÔNG dùng loop `-replace` PowerShell với count param (xem Notes).
+
+## Bước 6 — Review
+
+Báo cáo user theo format trong `AGENTS.md` mục "Báo cáo sau khi hoàn thành task":
+
+```text
+## Changes
+- ...
+
+## Implementation
+- ...
+
+## API / WS (nếu có)
+- ...
+
+## Tests
+- Build: `npm run build` → pass / fail
+- Lint: `npm run lint` → pass / fail
+- Manual smoke: trang nào đã mở, status
+
+## Notes
+- ...
+```
+
+**Không tuyên bố** "perfect", "100% safe", "guaranteed". Mô tả đúng phạm vi đã kiểm tra.
+
+## Bảng tiêu chí — khi nào áp dụng
+
+| Loại thay đổi | Plan | Song song | Model | Hỏi | Làm | Review |
+|---|---|---|---|---|---|---|
+| Sửa typo / format 1 dòng | gộp | không | tự làm | không | ✅ | gộp |
+| Sửa 1 file đã biết rõ | ngắn | không | tự làm | không | ✅ | ngắn |
+| Tạo file mới trong scope đã chốt | ngắn | không | tự làm | không | ✅ | ngắn |
+| Sửa nhiều file cùng concern | đầy đủ | đánh giá | tự làm + review | tối thiểu | ✅ | đầy đủ |
+| Refactor kiến trúc | đầy đủ | đánh giá | cần user | format + scope | ✅ | đầy đủ |
+| Thay đổi auth/payment/deploy | đầy đủ | đánh giá | cần user | tất cả | ✅ | kỹ + test |
+
+## Notes
+
+- **PowerShell `-replace` không hỗ trợ 3 đối số** (pattern, replacement, count) — chỉ nhận 2. Nếu cần replace với count, dùng `[regex]::Replace(content, pattern, replacement)` thay thế. **Đã từng gây mất dữ liệu 22 file .mdc** trong session này — tránh lặp lại.
+- **Sửa nhiều file**: ưu tiên `StrReplace` từng file, không batch PowerShell. Khi cần batch, verify content trước khi `Set-Content`.

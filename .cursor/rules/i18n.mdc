@@ -1,0 +1,150 @@
+﻿---
+description: Quy ước i18n với next-intl — locale, namespace convention, format date/money/error, plural. Apply cho toàn bộ src/**, src/i18n/**, messages/**, middleware.ts.
+globs:
+  - src/**/*.{ts,tsx}
+  - src/i18n/**
+  - messages/**
+  - src/middleware.ts
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# i18n — next-intl (Policy)
+
+> File này chỉ chứa **policy** (quy tắc). Data tham chiếu (namespace list, messages JSON mẫu, error key mapping, plural syntax) ở `docs/i18n-convention.md`.
+
+## 1. Stack & locale
+
+- Dùng `next-intl` (App Router middleware + Server Component compatible).
+- Locale bắt buộc: `vi` (mặc định) + `en`.
+- URL giữ **tiếng Anh không dấu** (`/login`, `/products`, `/orders/123`).
+- UI text là `vi` (mặc định) + `en` qua locale switcher.
+
+## 2. Cấu hình
+
+```
+src/i18n/
+├── request.ts          # getRequestConfig
+├── routing.ts          # routing definition
+└── navigation.ts       # navigation helpers
+
+messages/
+├── vi.json
+└── en.json
+```
+
+```ts
+// src/i18n/routing.ts
+import { defineRouting } from 'next-intl/routing';
+import { createNavigation } from 'next-intl/navigation';
+
+export const routing = defineRouting({
+  locales: ['vi', 'en'],
+  defaultLocale: 'vi',
+  localePrefix: 'never', // URL không có /vi/ hay /en/
+});
+
+export const { Link, redirect, usePathname, useRouter } = createNavigation(routing);
+```
+
+```ts
+// src/middleware.ts
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+
+export default createMiddleware(routing);
+```
+
+## 3. Component sử dụng
+
+```tsx
+'use client';
+import { useTranslations } from 'next-intl';
+
+export function LoginForm() {
+  const t = useTranslations('auth.login');
+  return (
+    <form>
+      <h1>{t('title')}</h1>
+      <label>{t('email')}</label>
+      <input placeholder={t('emailPlaceholder')} />
+      <button>{t('submit')}</button>
+    </form>
+  );
+}
+```
+
+## 4. Server Component
+
+```tsx
+import { getTranslations } from 'next-intl/server';
+
+export default async function Page() {
+  const t = await getTranslations('home');
+  return <h1>{t('title')}</h1>;
+}
+```
+
+## 5. Error message (từ ApiError.code)
+
+```tsx
+import { useTranslations } from 'next-intl';
+
+const t = useTranslations('error');
+
+if (err instanceof ApiError) {
+  toast.error(t(err.code)); // key trùng với code
+}
+```
+
+Chi tiết mapping code → message ở `docs/i18n-convention.md` mục 4. Khi backend thêm code mới → thêm key vào `vi.json` + `en.json` (xem `docs/i18n-convention.md` mục 7 checklist).
+
+## 6. Date / Time / Money
+
+```tsx
+import { useFormatter } from 'next-intl';
+
+const format = useFormatter();
+
+// Date
+format.dateTime(new Date(), { dateStyle: 'short', timeStyle: 'short' });
+// vi: "07/10/2026 20:00"
+// en: "10/7/2026, 8:00 PM"
+
+// Money (VND)
+format.number(1290000, { style: 'currency', currency: 'VND' });
+// vi: "1.290.000 ₫"
+// en: "₫1,290,000"
+```
+
+→ Format tự động theo locale. KHÔNG tự format.
+
+## 7. Enum labels
+
+Xem `enum-labels.mdc` — pattern tương tự, namespace `order.status`, `payment.status`, ...
+
+## 8. Plural
+
+→ Xem syntax đầy đủ ở `docs/i18n-convention.md` mục 6.
+
+```tsx
+t('cart.items', { count: items.length });
+```
+
+## 9. Khi nào đọc `docs/i18n-convention.md`
+
+| Cần | Đọc ở đâu |
+|---|---|
+| Namespace của component hiện có | `docs/i18n-convention.md` mục 1 |
+| Mẫu messages JSON (vi/en) | `docs/i18n-convention.md` mục 2, 3 |
+| Error key mapping | `docs/i18n-convention.md` mục 4 |
+| Plural syntax | `docs/i18n-convention.md` mục 6 |
+| Checklist khi thêm key mới | `docs/i18n-convention.md` mục 7 |
+
+## 10. KHÔNG
+
+- KHÔNG hard-code text tiếng Việt/Anh trong component.
+- KHÔNG cài lib i18n khác (react-i18next, lingui, formatjs).
+- KHÔNG dùng `/vi/` hay `/en/` trong URL.
+- KHÔNG để placeholder text tiếng Anh nếu locale là `vi`.
+- KHÔNG skip key khi thêm vào `messages/vi.json` mà quên `messages/en.json`.

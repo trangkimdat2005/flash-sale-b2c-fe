@@ -1,0 +1,159 @@
+﻿---
+description: BẮT BUỘC viết test mỗi lần thay đổi code. KHÔNG được bỏ qua. Mọi logic change đều cần test. Apply mọi task có sửa file logic.
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Testing — Bắt Buộc Mỗi Lần Thay Đổi
+
+## Nguyên tắc cốt lõi
+
+**Mọi thay đổi code phải đi kèm test. Tuyệt đối KHÔNG được bỏ qua.**
+
+> **Áp dụng cho MỌI file logic**: `src/**/*.{ts,tsx}`, `tests/**`, `**/*.test.{ts,tsx}`, `**/*.spec.{ts,tsx}`, `__tests__/**`. Mọi file khớp các glob trên đều thuộc scope bắt buộc test — không có ngoại lệ theo folder.
+
+- Test là phần của Definition of Done — không phải nice-to-have.
+- Agent không được phép commit code thay đổi mà chưa có test (trừ khi user **rõ ràng** bỏ qua).
+- Nếu user bỏ qua → ghi rõ trong báo cáo, không tự ý skip.
+
+## Scope — khi nào BẮT BUỘC viết test
+
+| Loại thay đổi | Yêu cầu |
+|---|---|
+| Tính năng mới (feat) | **BẮT BUỘC** — unit test + integration test + component/hook test |
+| Bugfix (fix) | **BẮT BUỘC** — reproduction test (test phải FAIL trước khi sửa) |
+| Refactor lớn (refactor) | **BẮT BUỘC** — test cũ vẫn pass + test cho function mới extract |
+| Sửa UI nhỏ (style, copy) | **BẮT BUỘC nếu có logic** — vd đổi validation message, thêm regex, đổi text confirm |
+| Sửa UI thuần (chỉ color, spacing) | Khuyến nghị — không cần test |
+| Update docs / comment / format | Không cần test |
+
+## Stack test
+
+| Layer | Tool |
+|---|---|
+| Unit test | **Vitest** (`npm run test`) |
+| Component / Hook test | **Vitest** + **@testing-library/react** + **@testing-library/user-event** |
+| E2E | **KHÔNG** set up trong scope đồ án (xem `no-overengineering.mdc`) — manual test đủ |
+| Coverage | **Vitest** + `@vitest/coverage-v8`, threshold mặc định 70% |
+| Mock API | **MSW (Mock Service Worker)** — file mock ở `src/mocks/handlers.ts` |
+| Mock fetch | **vitest-fetch-mock** hoặc `vi.spyOn(global, 'fetch')` |
+
+## Cấu trúc file test
+
+```
+src/
+  features/
+    cart/
+      Cart.tsx
+      Cart.test.tsx           # component test đặt cạnh
+      useCart.ts
+      useCart.test.ts         # hook test đặt cạnh
+  lib/
+    decimal.ts
+    decimal.test.ts
+tests/                        # integration test phức tạp (nếu cần)
+  api/
+    flash-sale.integration.test.ts
+```
+
+- Test đặt **cạnh file** (kèm `.test.ts(x)`) theo convention Vitest.
+- Test tích hợp nhiều module → đặt ở `tests/`.
+- Mỗi test file = 1 module/component. Tách nhỏ nếu > 1 concern.
+
+## Pattern bắt buộc
+
+### 1. RHF + Zod validation
+
+```ts
+import { renderHook } from '@testing-library/react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema } from './login.schema';
+
+test('loginSchema rejects empty email', async () => {
+  const { result } = renderHook(() =>
+    useForm({ resolver: zodResolver(loginSchema) })
+  );
+  await act(async () => {
+    await result.current.handleSubmit(() => {}, (e) => {
+      expect(e.email?.message).toBeDefined();
+    })();
+  });
+});
+```
+
+### 2. Zustand store
+
+```ts
+import { useCartStore } from './cart.store';
+
+beforeEach(() => useCartStore.setState({ items: [] }));
+
+test('addItem increments count', () => {
+  useCartStore.getState().addItem({ id: '1', qty: 1 });
+  expect(useCartStore.getState().items).toHaveLength(1);
+});
+```
+
+### 3. TanStack Query hook
+
+```ts
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useProducts } from './useProducts';
+
+const wrapper = ({ children }) => (
+  <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    {children}
+  </QueryClientProvider>
+);
+
+test('useProducts returns data', async () => {
+  const { result } = renderHook(() => useProducts(), { wrapper });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+});
+```
+
+## Bugfix workflow (BẮT BUỘC)
+
+1. Viết reproduction test — test phải **FAIL** trên code hiện tại.
+2. Sửa code.
+3. Re-run test — phải **PASS**.
+4. Add regression test nếu bug nằm trong area đã có test khác.
+
+→ Không có reproduction test = bugfix không hợp lệ.
+
+## Coverage mục tiêu
+
+| Layer | Threshold |
+|---|---|
+| `src/lib/decimal.ts`, `src/lib/utils.ts` | ≥ 90% |
+| `src/lib/validators/**` | ≥ 90% |
+| `src/stores/**` (business logic) | ≥ 80% |
+| `src/hooks/**` | ≥ 70% |
+| `src/components/**` (complex) | ≥ 70% |
+| `src/components/ui/**` (primitives) | không bắt buộc |
+
+## Câu lệnh
+
+```bash
+npm run test              # chạy tất cả test
+npm run test -- --watch   # watch mode
+npm run test -- --coverage
+npm run test -- <path>    # chạy 1 file
+```
+
+## Khi user muốn bỏ qua test
+
+- Ghi rõ trong báo cáo: "User yêu cầu bỏ qua test cho <X> vì <lý do>".
+- KHÔNG tự ý skip.
+- Vẫn list file đã thay đổi trong Changes để user tự review.
+
+## Khi nào KHÔNG cần test
+
+- File `.md` (docs).
+- File `.mdc` (rule).
+- File config `*.config.{ts,js}` không chứa logic (chỉ export constant).
+- File `*.d.ts` (type-only).
+
+Nếu không chắc → viết test. An toàn hơn bỏ sót.

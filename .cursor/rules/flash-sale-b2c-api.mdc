@@ -1,0 +1,97 @@
+﻿---
+description: Backend Flash Sale B2C API contract (Swagger) — conventions, response shape, error codes, auth, WebSocket. Cross-ref docs/api-document.md (gốc 1.358 dòng) + docs/api-reference.md (module 791 dòng). Apply when working on API, hooks, stores, or features touching backend endpoints.
+globs:
+  - src/lib/api/**
+  - src/lib/validators/**
+  - src/hooks/**
+  - src/stores/**
+  - src/types/**
+  - src/features/**/api.ts
+  - src/features/**/hooks.ts
+  - src/features/**/types.ts
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# API Contract — Flash Sale B2C Backend
+
+Tài liệu này tóm tắt convention khi tích hợp API với backend `flash-sale-b2c-UTC2` (Spring Boot).
+
+> Chi tiết từng endpoint xem `docs/api-reference.md` hoặc Swagger UI: `http://180.93.137.28/swagger-ui/index.html#/`
+
+## 1. Base & transport
+
+- Base URL: đọc từ `process.env.NEXT_PUBLIC_API_BASE_URL`.
+- Tất cả request đi qua `src/lib/api/client.ts` (`apiFetch`). **KHÔNG** gọi `fetch` trực tiếp trong component/hook.
+- Headers mặc định: `Content-Type: application/json`, `Accept: application/json`, `Accept-Language: <locale>`.
+- Auth: `Authorization: Bearer <access_token>` đọc từ `localStorage` key `"fs_access_token"`.
+
+## 2. Response shape (envelope chuẩn)
+
+```ts
+// Success
+{ data: T, message?: string, timestamp: string }
+
+// Error
+{ error: { code: string, message: string, details?: unknown }, timestamp: string }
+```
+
+- Tất cả response phải được unwrap qua `apiFetch` → trả về `T` trực tiếp.
+- **KHÔNG** unwrap 2 lần. Nếu backend trả `{ data: { data: T } }` → báo user, không tự fix.
+
+## 3. Error codes (từ backend)
+
+Các `code` phổ biến (xem đầy đủ trong `docs/api-reference.md`):
+
+| Code | Ý nghĩa | FE xử lý |
+|---|---|---|
+| `AUTH_001` | Token expired | Refresh qua `refresh_token`, retry 1 lần |
+| `AUTH_002` | Refresh failed | Logout, redirect `/login` |
+| `VALIDATION_ERROR` | Body sai | Trả error cho form (không toast) |
+| `NOT_FOUND` | Resource không tồn tại | 404 page hoặc empty state |
+| `CONFLICT` | State conflict (vd: stock = 0) | Disable button, hiện message |
+| `RATE_LIMIT` | Spam quá nhiều | Debounce/throttle phía client |
+| `INTERNAL_ERROR` | Lỗi server | Generic toast "Lỗi hệ thống, thử lại sau" |
+
+→ Mapping code → message i18n ở `messages/<locale>.json` key `error.<CODE>` (xem `i18n.mdc` mục 8).
+
+## 4. Idempotency
+
+- Endpoint **mutation** (POST/PUT/PATCH/DELETE): gửi header `Idempotency-Key: <uuid>`.
+- Generate UUID bằng `uuid` lib (xem `stack-versions.mdc`).
+- Backend cache theo key trong 24h — client KHÔNG tự retry khi đã có response.
+
+## 5. Auth lifecycle
+
+1. Login → lưu `access_token` + `refresh_token` vào `localStorage` (key `fs_access_token`, `fs_refresh_token`).
+2. Cookie `access_token` (httpOnly) set bởi `SessionCookieBridge` để Server Component đọc được.
+3. Token hết hạn → `apiFetch` tự refresh 1 lần; lần 2 fail → logout.
+4. Logout → clear cả `localStorage` lẫn cookie, gọi `auth.store.ts` reset.
+
+Chi tiết xem `auth-jwt.mdc`.
+
+## 6. WebSocket (realtime)
+
+- Backend push qua STOMP endpoint `/ws/flash-sale`.
+- Mount qua `WsConnectionProvider` ở root (xem `websocket-realtime.mdc`).
+- WS chỉ là **notification** — KHÔNG quyết định logic mua hàng. Khi nhận event → refetch query, không tự update UI state trực tiếp.
+
+## 7. Type safety
+
+- Mỗi endpoint có type ở `src/types/<module>.ts` hoặc `src/features/<module>/types.ts`.
+- KHÔNG dùng `any` cho response — nếu backend thiếu field, báo user.
+- DTO dùng `interface` (không `type`) để dễ extend.
+
+## 8. Khi nào báo user
+
+- Backend trả field khác expectation.
+- Error code mới chưa có trong mapping.
+- Endpoint cần nhưng chưa có ở `docs/api-document.md`.
+- Response time > 3s → báo user (có thể backend quá tải, FE nên có skeleton).
+
+## 9. KHÔNG
+
+- KHÔNG gọi `fetch` trực tiếp.
+- KHÔNG unwrap response 2 lần.
+- KHÔNG skip `Idempotency-Key` cho mutation.
+- KHÔNG cache response nhạy cảm (token, password) trong TanStack Query.

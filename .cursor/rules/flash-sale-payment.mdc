@@ -1,0 +1,142 @@
+﻿---
+description: Quy ước đặc thù cho flash-sale + payment flow — reservation, idempotency, payment callback. Apply cho flash-sale components, checkout, Countdown, flash-sale API.
+globs:
+  - src/components/flash-sale/**
+  - src/components/common/Countdown.tsx
+  - src/lib/api/flash-sale.api.ts
+  - src/features/flash-sale/**
+  - src/features/checkout/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Flash Sale + Payment
+
+## 1. Flash sale flow tổng quan
+
+```
+[Browse slot] → [Select item] → [Reserve (hold 10 phút)] → [Checkout] → [Pay] → [Order]
+                                          ↓ WS notification
+                                     [STOCK_UPDATED / SOLD_OUT]
+```
+
+- Reservation chỉ là **giữ chỗ** trong 10 phút — chưa phải mua.
+- Sau khi pay → backend tạo order, giảm stock chính thức.
+- Nếu hết 10 phút không pay → reservation expire, stock trả lại.
+
+## 2. Reservation
+
+### API
+
+```
+POST /api/v1/flash-sales/reservations
+Body: { slotId: string, productId: string, qty: number }
+Header: Idempotency-Key: <uuid>
+→ { reservation: Reservation }
+```
+
+### Client
+
+- Idempotency: dùng `Idempotency-Key` để tránh double-reserve khi user double-click.
+- Hiển thị countdown 10 phút sau khi reserve thành công.
+- Khi countdown gần hết (1 phút) → cảnh báo "Sắp hết hạn, hoàn tất thanh toán".
+- Khi hết hạn → clear reservation, refetch slot.
+
+### Optimistic UI
+
+- **KHÔNG** optimistic reserve — nếu sai, user mất slot. Luôn chờ response.
+- Disable button ngay khi click (chống double-click).
+
+## 3. Stock hiển thị
+
+- `remaining` từ API → hiển thị progress bar (xem `StockProgressBar`).
+- Update qua WS `STOCK_UPDATED` event → refetch query.
+- KHÔNG tự update `remaining` từ WS payload.
+
+## 4. SOLD_OUT
+
+- Khi `remaining = 0` → button "Mua ngay" → "Hết hàng", disabled.
+- Khi nhận WS `SOLD_OUT` → refetch + update UI.
+- Hiển thị message "Đã hết, vui lòng chọn slot khác".
+
+## 5. Slot lifecycle
+
+| State | Time | UI |
+|---|---|---|
+| UPCOMING | Trước `startAt` | Countdown "Bắt đầu sau HH:MM:SS" |
+| ACTIVE | Trong `[startAt, endAt]` | Button "Mua ngay" enabled |
+| ENDED | Sau `endAt` | "Đã kết thúc" |
+
+- State dựa trên `now()` so với `startAt`/`endAt` từ server.
+- Dùng server time qua header `Date` (hoặc 1 endpoint `/now` nếu backend cung cấp) — KHÔNG dùng `Date.now()` local.
+
+## 6. Countdown component
+
+```tsx
+// src/components/flash-sale/Countdown.tsx
+interface CountdownProps {
+  targetAt: string; // ISO
+  onExpire?: () => void;
+  variant?: 'default' | 'warning'; // warning khi < 1 phút
+}
+```
+
+- Re-render mỗi giây (dùng `useCountdown` hook — tối ưu qua `setInterval`).
+- Cleanup interval khi unmount.
+- Pause interval khi tab không visible (`document.visibilityState`).
+
+## 7. Payment flow
+
+```
+[Reservation] → [Click "Thanh toán"] → [Create payment intent]
+                                          ↓
+                                   [Redirect / Modal QR]
+                                          ↓
+                              [User thanh toán (VNPay/MoMo/ZaloPay)]
+                                          ↓
+                                   [Callback → backend]
+                                          ↓
+                              [WS push payment status]
+                                          ↓
+                              [Order created → show success]
+```
+
+### Payment method (VNPay, MoMo, ZaloPay)
+
+- Tạo payment intent qua backend → nhận `paymentUrl` hoặc `qrCode`.
+- Redirect user đến URL hoặc hiện QR.
+- KHÔNG tự verify payment client-side — backend nhận callback từ provider.
+
+### Idempotency
+
+- Create payment intent: `Idempotency-Key` để tránh tạo 2 intent khi user click 2 lần.
+
+### QR Code
+
+- Dùng `qrcode.react` (xem `stack-versions.mdc`).
+- Hiển thị trong modal riêng.
+- Polling status mỗi 3s (hoặc qua WS nếu backend support).
+
+## 8. Race conditions
+
+| Tình huống | Cách xử lý |
+|---|---|
+| User click "Mua" 2 lần nhanh | Disable button ngay khi click, dùng `Idempotency-Key` |
+| Backend confirm sold-out trước WS | Refetch trước khi reserve, check response 409 |
+| Reservation expire trong lúc pay | Backend trả 410 GONE, FE redirect về slot page |
+| Payment success nhưng WS miss | Polling 1 lần sau 10s, refetch order |
+
+## 9. Testing
+
+- Mock WS events qua `vi.mock('@stomp/stompjs')`.
+- Test countdown edge case: 0 giây, giây âm (do clock skew).
+- Test reservation flow: success, sold-out, expired, idempotent.
+- Test payment: success, failed, timeout.
+
+## 10. KHÔNG
+
+- KHÔNG tự update `remaining` từ WS — luôn refetch.
+- KHÔNG trust client clock cho slot lifecycle.
+- KHÔNG skip `Idempotency-Key` cho reserve/pay.
+- KHÔNG optimistic reserve.
+- KHÔNG tự verify payment (chờ backend callback).

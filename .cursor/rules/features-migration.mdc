@@ -1,0 +1,338 @@
+---
+description: Quy trình + full template khi tạo feature module trong src/features/. Áp dụng khi tách logic từ lib/, hooks/, components/ thành 1 feature độc lập.
+globs:
+  - src/features/**
+  - src/lib/api/**
+  - src/lib/validators/**
+  - src/hooks/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Features Migration — Tạo Feature Module
+
+## 1. Khi nào tạo feature module
+
+Tạo `src/features/<module>/` khi có ≥ 1 trong các điều kiện:
+
+- Có ≥ 1 trang/feature độc lập (vd `cart`, `order`, `flash-sale`, `checkout`).
+- Có logic business riêng (state machine, validation phức tạp, nhiều API calls liên quan).
+- Có component lớn hơn 1 file và có logic riêng (vd `LoginForm`, `CheckoutForm`).
+- Muốn cô lập để test, mock, refactor dễ.
+
+**KHÔNG** tạo feature module khi:
+
+- Chỉ là 1 utility đơn lẻ → `src/lib/`.
+- Chỉ là 1 hook chia sẻ → `src/hooks/`.
+- Chỉ là 1 component UI primitive → `src/components/ui/`.
+
+## 2. Cấu trúc folder — Full Template
+
+```
+src/features/<module>/
+├── README.md              # Mô tả module + API summary (optional)
+├── api.ts                 # Per-module API wrapper (TanStack Query hooks)
+├── api-helpers.ts         # Pure API functions (gọi từ api.ts) — nếu cần
+├── hooks.ts               # Custom hooks (useXxx, useXxxMutation)
+├── types.ts               # DTOs / interfaces
+├── schemas.ts             # Zod schemas + inferred types
+├── mock.ts                # Mock data cho MSW handlers
+├── components/            # Feature-specific components
+│   ├── <Component>.tsx
+│   ├── <Component>.test.tsx
+│   └── index.ts           # barrel (optional)
+├── store.ts               # Zustand store riêng (nếu cần) — optional
+└── index.ts               # Public API: export những gì bên ngoài dùng
+```
+
+### Quy ước đặt tên file trong feature
+
+| File | Convention | Bắt buộc? |
+|---|---|---|
+| `api.ts` | wrapper TanStack Query hook + query keys | BẮT BUỘC nếu có API call |
+| `hooks.ts` | custom hooks khác ngoài useQuery/useMutation | BẮT BUỘC nếu có local logic |
+| `types.ts` | DTOs | BẮT BUỘC nếu có API |
+| `schemas.ts` | Zod schemas + inferred types | BẮT BUỘC nếu có form |
+| `mock.ts` | mock data | BẮT BUỘC khi chưa integrate backend |
+| `components/` | feature-specific components | Optional |
+| `store.ts` | Zustand store riêng | Optional |
+
+### `index.ts` — public API
+
+```ts
+// src/features/cart/index.ts
+export { useCart, useAddCartItem, useUpdateCartItem, useRemoveCartItem, cartKeys } from './hooks';
+export type { Cart, CartItem } from './types';
+export { cartApi } from './api-helpers';
+
+// KHÔNG export: schemas (nội bộ form), mock (chỉ MSW), store nội bộ
+```
+
+→ Bên ngoài chỉ import qua `import { useCart } from '@/features/cart'` — KHÔNG `@/features/cart/api`.
+
+## 3. Template — `types.ts`
+
+```ts
+// src/features/<module>/types.ts
+
+// DTOs từ backend (1:1 với Swagger)
+export interface <Entity> {
+  id: string;
+  // ... fields
+}
+
+// Request types
+export interface Create<Entity>Request {
+  // ...
+}
+
+// Response wrapper (nếu backend cần)
+export interface List<Entity>Response {
+  data: <Entity>[];
+  total: number;
+}
+
+// Filter / query params
+export interface <Entity>Filter {
+  page?: number;
+  limit?: number;
+  search?: string;
+  // ...
+}
+```
+
+## 4. Template — `api-helpers.ts`
+
+Pure API functions (gọi từ `api.ts` qua TanStack Query):
+
+```ts
+// src/features/<module>/api-helpers.ts
+import { apiFetch } from '@/lib/api/client';
+import { ENDPOINTS } from '@/lib/api/endpoints';
+import type { <Entity>, Create<Entity>Request, List<Entity>Response, <Entity>Filter } from './types';
+
+export const <module>Api = {
+  list: (filter?: <Entity>Filter) =>
+    apiFetch<<Entity>[]>(ENDPOINTS.<module>.list, {
+      method: 'GET',
+      // query params qua URLSearchParams hoặc query string
+    }),
+
+  detail: (id: string) =>
+    apiFetch<<Entity>>(ENDPOINTS.<module>.detail(id)),
+
+  create: (body: Create<Entity>Request) =>
+    apiFetch<<Entity>>(ENDPOINTS.<module>.create, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  update: (id: string, body: Partial<<Entity>>) =>
+    apiFetch<<Entity>>(ENDPOINTS.<module>.update(id), {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+
+  remove: (id: string) =>
+    apiFetch<void>(ENDPOINTS.<module>.remove(id), { method: 'DELETE' }),
+};
+```
+
+> **Tại sao tách `api-helpers.ts` (pure) và `api.ts` (hook)**: dễ test riêng (mock `apiFetch`), dễ reuse giữa nhiều hook, không gắn với React lifecycle.
+
+## 5. Template — `api.ts`
+
+```ts
+// src/features/<module>/api.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { <module>Api } from './api-helpers';
+
+// Query key factory
+export const <module>Keys = {
+  all: ['<module>'] as const,
+  list: (filter?: object) => `<const>[...<module>Keys.all, 'list', filter] as` as const,
+  detail: (id: string) => [...<module>Keys.all, 'detail', id] as const,
+};
+
+// Query hooks
+export function use<Module>List(filter?: object) {
+  return useQuery({
+    queryKey: <module>Keys.list(filter),
+    queryFn: () => <module>Api.list(filter),
+  });
+}
+
+export function use<Module>Detail(id: string) {
+  return useQuery({
+    queryKey: <module>Keys.detail(id),
+    queryFn: () => <module>Api.detail(id),
+    enabled: !!id,
+  });
+}
+
+// Mutation hooks
+export function useCreate<Module>() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: <module>Api.create,
+    onSuccess: () => qc.invalidateQueries({ queryKey: <module>Keys.all }),
+  });
+}
+
+export function useUpdate<Module>() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: any }) => <module>Api.update(id, body),
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: <module>Keys.detail(vars.id) }),
+  });
+}
+```
+
+## 6. Template — `hooks.ts`
+
+```ts
+// src/features/<module>/hooks.ts
+import { useState } from 'react';
+import { useCreate<Module> } from './api';
+import type { Create<Entity>Request } from './types';
+
+export function use<Module>Form() {
+  const create = useCreate<Module>();
+  const [step, setStep] = useState(1);
+  // ... custom hook logic
+  return { step, setStep, create };
+}
+```
+
+## 7. Template — `schemas.ts`
+
+```ts
+// src/features/<module>/schemas.ts
+import { z } from 'zod';
+
+export const create<Module>Schema = z.object({
+  field1: z.string().min(1, 'Vui lòng nhập ...'),
+  field2: z.number().int().positive('Phải là số dương'),
+});
+
+export type Create<Module>Input = z.infer<typeof create<Module>Schema>;
+```
+
+## 8. Template — `mock.ts`
+
+```ts
+// src/features/<module>/mock.ts
+import type { <Entity> } from './types';
+
+export const mock<Entity>s: <Entity>[] = [
+  // ...
+];
+
+export const mock<Entity>: <Entity> = {
+  // ...
+};
+```
+
+→ Wire vào MSW handler ở `src/mocks/handlers.ts`:
+```ts
+// src/mocks/handlers.ts
+import { http, HttpResponse } from 'msw';
+import { mock<Entity>s } from '@/features/<module>/mock';
+
+export const handlers = [
+  http.get('/api/v1/<module>', () => HttpResponse.json(mock<Entity>s)),
+  // ...
+];
+```
+
+## 9. Template — Form component trong feature
+
+```
+src/features/<module>/components/
+├── Create<Entity>Form.tsx
+├── Create<Entity>Form.test.tsx        # component test đặt cạnh
+└── index.ts                          # barrel
+```
+
+```tsx
+// src/features/<module>/components/Create<Entity>Form.tsx
+'use client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { create<Module>Schema, type Create<Module>Input } from '../schemas';
+import { useCreate<Module> } from '../api';
+
+export function Create<Entity>Form() {
+  const t = useTranslations('<module>');
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Create<Module>Input>({
+    resolver: zodResolver(create<Module>Schema),
+  });
+  const create = useCreate<Module>();
+
+  const onSubmit = (data: Create<Module>Input) => {
+    create.mutate(data, {
+      onSuccess: () => toast.success(t('createSuccess')),
+      onError: (err) => toast.error(t(`error.${err.code}`)),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      {/* fields */}
+      <button type="submit" disabled={isSubmitting}>{t('submit')}</button>
+    </form>
+  );
+}
+```
+
+## 10. Quy trình migration (lib → features)
+
+```
+Bước 1: Tạo folder src/features/<module>/ với file types.ts trước
+Bước 2: Copy DTO từ src/types/<module>.ts → src/features/<module>/types.ts
+        (giữ re-export từ src/types/index.ts để tương thích ngược)
+Bước 3: Copy Zod schema từ src/lib/validators/<module>.validator.ts → schemas.ts
+Bước 4: Copy pure API từ src/lib/api/<module>.api.ts → api-helpers.ts
+Bước 5: Tạo api.ts với TanStack Query hooks + query key factory
+Bước 6: Tạo hooks.ts nếu có custom hook
+Bước 7: Tạo mock.ts nếu chưa có backend
+Bước 8: Tạo components/<Component>.tsx cho UI phức tạp
+Bước 9: Tạo index.ts với public API
+Bước 10: Update import toàn project:
+        @/lib/api/<module>.api → @/features/<module> (chỉ dùng hook)
+        @/lib/validators/<module>.validator → @/features/<module>/schemas (chỉ trong feature)
+        @/types/<module> → @/features/<module> (nếu re-export)
+Bước 11: Test build + lint + chạy app, đảm bảo không có import nào broken
+Bước 12: Xoá file cũ ở lib/ + types/ + components/ (chỉ khi đã verify không còn import)
+```
+
+## 11. Khi KHÔNG nên migrate sang feature
+
+| Tình huống | Lý do |
+|---|---|
+| Module < 100 LOC total | Overhead folder > lợi ích |
+| Chỉ là 1 utility (vd format date) | Thuộc `src/lib/` |
+| Component shared giữa nhiều feature (vd Button) | Thuộc `src/components/ui/` |
+| Logic global (vd auth) | Thuộc `src/stores/` + `src/hooks/` |
+
+## 12. Anti-pattern
+
+❌ **Không** tạo `src/features/<module>/index.ts` export tất cả trong đó.
+→ Chỉ export public API.
+
+❌ **Không** gọi `apiFetch` trực tiếp trong component.
+→ Luôn qua hook.
+
+❌ **Không** đặt `<module>.api.ts` ở `lib/api/` mà hook ở `features/<module>/hooks.ts`.
+→ Hoặc cả 2 ở feature, hoặc cả 2 ở lib (theo giai đoạn migrate).
+
+❌ **Không** tạo `useEffect` để fetch data trong feature component.
+→ Dùng `useQuery` từ `api.ts`.
+
+## 13. KHÔNG
+
+- KHÔNG tạo feature module cho utility đơn lẻ.
+- KHÔNG export schema + mock + internal store ra `index.ts`.
+- KHÔNG duplicate types giữa `src/types/` và `src/features/<module>/types.ts`.
+- KHÔNG split 1 feature thành nhiều feature folder con (vd `features/cart/header/`, `features/cart/items/`).

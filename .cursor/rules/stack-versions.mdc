@@ -1,0 +1,38 @@
+﻿---
+description: Stack & version bắt buộc cho Flash Sale B2C FE. Apply mọi task.
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Stack & Versions
+
+| Layer | Tech | Version |
+|---|---|---|
+| Runtime | Node LTS | 20.x hoặc 22.x |
+| Framework | Next.js (App Router) | **16.3.8** |
+| UI | React | **19.2.x** |
+| Language | TypeScript (`strict: true`) | 5.x |
+| Styling | Tailwind CSS (`@tailwindcss/postcss`) | **4.x** |
+| UI primitives | shadcn/ui (Radix + cva) + `lucide-react` | latest (copy về `components/ui`) |
+| Server state | TanStack Query | 5.x |
+| Client state | Zustand | 5.x |
+| Forms | React Hook Form + Zod + `@hookform/resolvers` | 7.x + 3.x |
+| Realtime | `@stomp/stompjs` + `sockjs-client` | 7.x + 1.x |
+| i18n | `next-intl` (App Router middleware + Server Component) | latest (4.x+) |
+| Ngày giờ | `date-fns` (locale `vi`) | latest |
+| Biểu đồ | Recharts | latest (chỉ ở Dashboard Seller/Admin) |
+| Ảnh | `next/image` (built-in) | — |
+| QR | `qrcode.react` | 4.x |
+| Decimal | `decimal.js` | 10.x |
+| UUID | `uuid` | 10.x |
+| Lint | ESLint + `eslint-config-next` | 9.x + 16.3.8 |
+
+**Rules:**
+- **KHÔNG bump version** khi không có lý do — đọc breaking changes trong `node_modules/next/dist/docs/` trước.
+- Path alias `@/*` → repo root (đã cấu hình).
+- Lockfile: `package-lock.json` — không xóa, không convert sang pnpm/yarn.
+- Thêm dep mới → báo user, list lý do + alternative đã xét.
+- Design tokens khai báo trong `tailwind.config.ts` (`theme.extend.colors`, `theme.extend.fontFamily.sans`) — Tailwind 4 vẫn đọc được từ đó. `src/app/globals.css` chỉ `@import "tailwindcss";` + minimal CSS reset.
+- Font: `Be Vietnam Pro` qua `next/font/google`, subset `vietnamese`, weight `400/500/600` — xem `component-pattern.mdc` mục 4 và `design-system.mdc` mục 4.
+- shadcn/ui: chạy `npx shadcn@latest init` + `npx shadcn@latest add <component>`. **KHÔNG** cài bộ UI khác (Antd, MUI, Chakra, ...).
+- i18n: cài `next-intl`. Locale bắt buộc `vi` + `en`. Default locale `vi`. URL giữ **tiếng Anh không dấu**, UI text là `vi` (mặc định) + `en`. Xem `i18n.mdc`.

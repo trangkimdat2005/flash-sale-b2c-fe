@@ -1,0 +1,103 @@
+﻿---
+description: Quy ước tổ chức layer src/ — lib, stores, providers, hooks, components, app, features. Áp dụng mọi file trong src/.
+globs:
+  - src/lib/**
+  - src/stores/**
+  - src/providers/**
+  - src/hooks/**
+  - src/components/**
+  - src/app/**
+  - src/features/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Layer Convention — Tổ chức src/
+
+Bản đồ source hiện tại vs mục tiêu khi migrate xong.
+
+## 1. Tổng quan layer
+
+```
+src/
+├── app/                    # Next 16 App Router (route segments)
+│   ├── (auth)/             # group: /login, /register
+│   ├── (buyer)/            # group: /, /products, /cart, /checkout, /orders
+│   ├── (seller)/           # group: /seller/**
+│   ├── (admin)/            # group: /admin/**
+│   ├── api/                # ❌ KHÔNG tạo (xem no-overengineering.mdc)
+│   ├── globals.css
+│   └── layout.tsx
+├── components/             # Shared UI
+│   ├── ui/                 # shadcn/ui primitives (button, input, modal, badge, skeleton, toast)
+│   ├── flash-sale/         # Countdown, StockProgressBar, v.v.
+│   └── layout/             # Header, Footer, SessionCookieBridge
+├── features/               # Feature module (mục tiêu khi migrate)
+│   └── <module>/
+│       ├── api.ts          # API call (TanStack Query hooks)
+│       ├── hooks.ts        # local hooks
+│       ├── types.ts        # DTOs
+│       ├── schemas.ts      # Zod schemas
+│       ├── mock.ts         # mock data cho dev/test
+│       └── components/
+├── hooks/                  # Global hooks (useAuth, useCountdown, useToast, useFlashSaleWs)
+├── lib/                    # Pure helpers + API client
+│   ├── api/                # apiFetch + per-module api files
+│   ├── validators/         # Zod schemas (hiện tại, sẽ chuyển sang features/)
+│   ├── decimal.ts
+│   ├── utils.ts
+│   ├── constants.ts
+│   └── auth-guard.ts       # Server Component guard
+├── stores/                 # Zustand stores (auth, flash-sale, ui)
+├── providers/              # React Context (Providers, WsConnectionProvider)
+├── types/                  # Global DTOs (Address, Auth, Cart, Order, Product, Voucher, ...)
+├── i18n/                   # next-intl config
+└── middleware.ts           # Route guards (khi migrate)
+```
+
+## 2. Quy tắc phụ thuộc (dependency direction)
+
+```
+app/  →  features/  →  hooks/  →  lib/  →  types/
+                  ↘  stores/
+                  ↘  components/
+```
+
+- `lib/` KHÔNG được import từ `features/`, `components/`, `stores/`, `app/`.
+- `types/` KHÔNG được import từ bất cứ layer nào (pure type).
+- `features/` được phép import từ `lib/`, `hooks/`, `stores/`, `types/`, `components/`.
+- `components/` KHÔNG được import từ `features/` (chỉ dùng `components/ui/`, `hooks/`, `lib/`).
+- `app/` có thể import mọi layer, nhưng **ưu tiên dùng qua `features/`**.
+
+## 3. Hiện tại vs mục tiêu
+
+| Hiện tại | Mục tiêu | Lý do |
+|---|---|---|
+| `src/lib/validators/<module>.validator.ts` | `src/features/<module>/schemas.ts` | Khi feature có nhiều file, gom lại 1 folder |
+| `src/lib/api/<module>.api.ts` | `src/features/<module>/api.ts` | Tương tự |
+| `src/hooks/useAuth.ts` | `src/features/auth/hooks.ts` | Auth là feature, không phải global hook |
+| Schema viết inline trong `*Form.tsx` | `src/features/<module>/schemas.ts` | Tách logic ra khỏi JSX |
+| Mock data inline trong component | `src/features/<module>/mock.ts` | Dễ test, dễ xoá khi integrate API |
+
+→ Khi migrate: tạo folder feature, copy file, xoá file cũ ở `lib/` hoặc `hooks/`, cập nhật import.
+
+## 4. Quy tắc đặt tên file
+
+| Layer | Convention | Ví dụ |
+|---|---|---|
+| Component | `PascalCase.tsx` | `Cart.tsx`, `StockProgressBar.tsx` |
+| Hook | `useCamelCase.ts` | `useAuth.ts`, `useFlashSaleWs.ts` |
+| Store | `camelCase.store.ts` | `auth.store.ts`, `flash-sale.store.ts` |
+| API | `camelCase.api.ts` | `flash-sale.api.ts`, `order.api.ts` |
+| Validator (cũ) | `camelCase.validator.ts` | `auth.validator.ts` |
+| Schema (mới) | `camelCase.schema.ts` hoặc `schemas.ts` | `cart.schemas.ts` |
+| Type | `camelCase.ts` | `auth.ts`, `order.ts` |
+| Util | `camelCase.ts` | `decimal.ts`, `utils.ts` |
+
+## 5. KHÔNG
+
+- KHÔNG tạo `src/api/`, `src/services/`, `src/utils/` (đã có `lib/`).
+- KHÔNG tạo `src/app/api/**` (xem `no-overengineering.mdc`).
+- KHÔNG tạo `src/pages/**` (App Router, không dùng Pages Router).
+- KHÔNG tạo `src/components/common/` (chia theo concern: `ui/`, `flash-sale/`, `layout/`).
+- KHÔNG barrel file (`index.ts`) trừ khi thật cần (vd `src/components/ui/index.ts` cho shadcn).

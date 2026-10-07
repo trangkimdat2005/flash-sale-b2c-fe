@@ -1,0 +1,77 @@
+﻿---
+description: Quy ước git workflow — branching model (base từ dev), commit convention, push policy (xin phép user trước khi push). Apply mọi task tạo commit hoặc merge.
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Git Workflow
+
+## Branching model
+
+```text
+main       # production-ready, chỉ merge qua PR
+dev        # integration branch, base cho mọi branch mới
+feature/<shorter-desc>    # vd: feature/order-module
+fix/<shorter-desc>        # vd: fix/auth-401-loop
+hotfix/<shorter-desc>     # khẩn cấp, branch từ main, merge vào main + dev
+refactor/<shorter-desc>   # vd: refactor/extract-product-card
+chore/<shorter-desc>      # vd: chore/bump-react-19
+docs/<shorter-desc>       # vd: docs/sync-flashsale-endpoint
+```
+
+- `fix/<x>` — bug thường, branch từ `dev`, merge vào `dev`.
+- `hotfix/<x>` — khẩn cấp trên production, branch từ `main`, merge vào `main` rồi cherry-pick/merge ngược về `dev`.
+
+## Quy trình BẮT BUỘC
+
+```text
+1. git checkout dev
+2. git pull origin dev
+3. git checkout -b <type>/<shorter-desc>
+4. ... làm task ...
+5. git add .
+6. git commit -m "<type>: <mô tả ngắn>"
+7. DỪNG — KHÔNG push
+```
+
+`shorter-desc` phải mô tả đúng tính năng. Không dùng tên chung chung `feature/new`, `fix/bug`.
+
+## Commit message (Conventional Commit, tiếng Anh)
+
+```text
+feat: implement flash sale reservation flow
+fix: prevent infinite loop on 401 refresh
+chore: bump @tanstack/react-query to 5.105
+refactor: extract useApiError toast hook
+docs: sync flash sale endpoint contract
+hotfix: patch payment callback signature mismatch
+```
+
+- 1 commit = 1 concern.
+- Reference issue/task ID nếu có (`feat: implement cart (#12)`).
+- Dùng `git add .` — KHÔNG `git add <file>` thủ công.
+- Commit CHỈ file đã thực sự thay đổi trong task.
+
+## Push policy (xin phép trước khi push)
+
+- Agent **KHÔNG tự ý** `git push` — phải xin phép user trước khi push.
+- Mỗi lần push → báo cáo trước (remote URL, branch, số commit) → chờ user duyệt → mới push.
+- Sau push → báo cáo lại (kết quả push, hash, URL trên remote).
+- Trường hợp KHÔNG push: dry-run task, sensitive change (auth/payment/deploy), branch mà user chưa định nghĩa.
+- Nếu user chưa setup remote (`git remote -v` trống) → agent phải hỏi URL, không tự ý tạo remote.
+
+## Conflict resolution
+
+Khi `git pull`, `git merge`, `git rebase` xảy ra conflict:
+
+1. `git status` liệt kê file conflict.
+2. Agent **KHÔNG tự ý** resolve bằng `git checkout --theirs/--ours` / `git add` / sửa nội dung.
+3. Agent **đọc từng file**, tóm tắt cho user: dòng conflict, khác biệt local vs remote, hệ quả.
+4. Dùng `AskQuestion` để user chọn: giữ ours / giữ theirs / kết hợp thủ công.
+5. Sau user duyệt → mới sửa + `git add .` + commit.
+
+## Không commit
+
+- `.env`, `.env.local`, `.env.production`, `node_modules/`, `.next/`, `out/`, `build/`.
+- `*.tsbuildinfo`, `next-env.d.ts`.
+- IDE `.idea/`, `.vscode/`, `*.log`.

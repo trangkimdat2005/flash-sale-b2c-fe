@@ -1,0 +1,244 @@
+﻿---
+description: Quy ước routing + guard (URL convention, route group, middleware, server guard). Apply cho src/app/**, middleware.ts, src/lib/auth-guard.ts, src/i18n/**.
+globs:
+  - src/app/**
+  - src/middleware.ts
+  - src/lib/auth-guard.ts
+  - src/i18n/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Routing + Guards
+
+## 1. URL convention
+
+- **Tiếng Anh không dấu** cho path segment.
+- Kebab-case cho multi-word: `/flash-sale/abc-123`, `/order-detail/456`.
+- KHÔNG dấu, KHÔNG tiếng Việt trong URL: `/don-hang/123` → `/orders/123`.
+- Locale KHÔNG xuất hiện trong URL (xem `i18n.mdc` — `localePrefix: 'never'`).
+
+```
+✅ /login
+✅ /register
+✅ /products
+✅ /products/abc-123
+✅ /cart
+✅ /checkout
+✅ /orders
+✅ /orders/abc-123
+✅ /flash-sales
+✅ /flash-sales/slot-1
+✅ /seller/dashboard
+✅ /seller/products
+✅ /admin/dashboard
+
+❌ /đăng-nhập
+❌ /vi/login
+❌ /en/login
+❌ /order_detail
+```
+
+## 2. Route groups
+
+```
+src/app/
+├── layout.tsx              # root layout
+├── page.tsx                # homepage (/)
+├── (buyer)/                # group: buyer-facing, share layout
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── products/
+│   ├── cart/
+│   ├── checkout/
+│   └── orders/
+├── (auth)/                 # group: auth pages, no header
+│   ├── layout.tsx          # center, no header
+│   ├── login/page.tsx
+│   └── register/page.tsx
+├── (seller)/               # group: /seller/**
+│   ├── layout.tsx
+│   ├── seller/
+│   │   ├── dashboard/page.tsx
+│   │   ├── products/
+│   │   └── flash-sales/
+├── (admin)/                # group: /admin/**
+│   ├── layout.tsx
+│   └── admin/
+│       ├── dashboard/page.tsx
+│       └── stores/
+└── api/                    # ❌ KHÔNG tạo
+```
+
+- Route group `(name)` không ảnh hưởng URL — chỉ tổ chức layout.
+- Auth pages: group `(auth)` có layout riêng (center card, không header/footer).
+
+## 3. Server Component guard (`src/lib/auth-guard.ts`)
+
+```ts
+// src/lib/auth-guard.ts
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+
+export async function requireAuth() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('access_token')?.value;
+  if (!token) redirect('/login');
+  // verify token (qua API hoặc decode JWT)
+  const user = await verifyToken(token);
+  if (!user) redirect('/login');
+  return { user };
+}
+
+export async function requireRole(role: 'SELLER' | 'ADMIN') {
+  const { user } = await requireAuth();
+  if (user.role !== role) redirect('/');
+  return { user };
+}
+```
+
+```tsx
+// app/(seller)/seller/dashboard/page.tsx
+import { requireRole } from '@/lib/auth-guard';
+
+export default async function SellerDashboard() {
+  const { user } = await requireRole('SELLER');
+  return <Dashboard user={user} />;
+}
+```
+
+## 4. middleware.ts (khi migrate)
+
+```ts
+// src/middleware.ts
+import { NextResponse, type NextRequest } from 'next/server';
+import createIntlMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+
+const intlMiddleware = createIntlMiddleware(routing);
+
+const SELLER_PREFIX = '/seller';
+const ADMIN_PREFIX = '/admin';
+const AUTH_PREFIX = '/(auth)';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const token = request.cookies.get('access_token')?.value;
+
+  // Seller/Admin pages — chỉ check sự tồn tại cookie, full verify ở Server Component
+  if (pathname.startsWith(SELLER_PREFIX) || pathname.startsWith(ADMIN_PREFIX)) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
+  // Auth pages (login/register) — nếu đã login thì redirect
+  if (pathname === '/login' || pathname === '/register') {
+    if (token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
+  return intlMiddleware(request);
+}
+
+export const config = {
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
+};
+```
+
+- Middleware **chỉ check sự tồn tại cookie**, KHÔNG verify JWT signature (edge runtime giới hạn).
+- Verify đầy đủ ở Server Component qua `auth-guard.ts`.
+
+## 5. Redirect after login
+
+```ts
+// Sau khi login thành công
+const redirectTo = new URL(searchParams.get('callbackUrl') || '/', request.url);
+NextResponse.redirect(redirectTo);
+```
+
+- Lưu URL ban đầu vào `?callbackUrl=` khi middleware redirect.
+- Login page đọc `callbackUrl` để redirect sau khi auth thành công.
+
+## 6. Error pages
+
+- `app/not-found.tsx` — 404.
+- `app/error.tsx` — 500 (Client Component).
+- `app/global-error.tsx` — fatal error ở root layout.
+
+```tsx
+// app/not-found.tsx
+export default function NotFound() {
+  return (
+    <div>
+      <h1>404</h1>
+      <p>{t('common.notFound')}</p>
+      <Link href="/">{t('common.backToHome')}</Link>
+    </div>
+  );
+}
+```
+
+## 7. Loading + Suspense
+
+```tsx
+// app/(buyer)/products/page.tsx
+import { Suspense } from 'react';
+import { ProductListSkeleton } from './loading';
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<ProductListSkeleton />}>
+      <ProductList />
+    </Suspense>
+  );
+}
+```
+
+- Dùng `<Suspense>` cho Server Component async.
+- Loading state qua `loading.tsx` ở cùng folder (Next 16 streaming).
+
+## 8. Metadata
+
+```tsx
+// app/(buyer)/page.tsx
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('home');
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
+```
+
+## 9. Dynamic params (Next 16 async)
+
+```tsx
+// app/(buyer)/products/[id]/page.tsx
+export default async function ProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { id } = await params;
+  const { q } = await searchParams;
+  return <ProductDetail id={id} query={q} />;
+}
+```
+
+- `params` và `searchParams` là **Promise** (async) trong Next 16 — KHÔNG sync.
+- Xem docs trong `node_modules/next/dist/docs/`.
+
+## 10. KHÔNG
+
+- KHÔNG dùng Pages Router (`pages/`).
+- KHÔNG tạo `app/api/**` (xem `no-overengineering.mdc`).
+- KHÔNG hard-code redirect URL — lấy từ `callbackUrl` hoặc default `/`.
+- KHÔNG verify JWT signature trong middleware.
+- KHÔNG bỏ qua `await params` (Next 16 async).

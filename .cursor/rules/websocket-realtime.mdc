@@ -1,0 +1,98 @@
+﻿---
+description: Quy ước WebSocket realtime (STOMP) — connection, lifecycle, event handling, fallback. Apply cho useFlashSaleWs, WsConnectionProvider, flash-sale store, components/flash-sale.
+globs:
+  - src/hooks/useFlashSaleWs.ts
+  - src/providers/WsConnectionProvider.tsx
+  - src/stores/flash-sale.store.ts
+  - src/components/flash-sale/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# WebSocket Realtime
+
+## 1. Stack
+
+- `@stomp/stompjs` 7.x + `sockjs-client` 1.x (xem `stack-versions.mdc`).
+- Endpoint: `/ws/flash-sale` qua SockJS.
+- Mount qua `WsConnectionProvider` ở root layout, KHÔNG mount trong từng page.
+
+## 2. Connection lifecycle
+
+```text
+Idle → Connecting → Connected → (Disconnected) → Reconnecting
+```
+
+- **Connecting**: retry mỗi 3s, tối đa 5 lần.
+- **Reconnecting**: exponential backoff (3s, 6s, 12s, max 30s).
+- **Disconnected**: sau 3 lần fail liên tiếp → fallback polling 10s (chỉ các endpoint critical: `/flash-sales/active`).
+- **Cleanup**: khi `WsConnectionProvider` unmount → `client.deactivate()`.
+
+## 3. Subscribe pattern
+
+```ts
+// useFlashSaleWs.ts (pseudo)
+useEffect(() => {
+  const sub = client.subscribe('/topic/flash-sale/<slotId>', (msg) => {
+    const event = JSON.parse(msg.body);
+    onEvent(event);
+  });
+  return () => sub.unsubscribe();
+}, [slotId]);
+```
+
+- Subscribe **per slot** — không subscribe tất cả 1 lúc (overload).
+- Unsubscribe khi component unmount.
+
+## 4. Event types (từ backend)
+
+| Event | Topic | Payload | FE xử lý |
+|---|---|---|---|
+| `STOCK_UPDATED` | `/topic/flash-sale/<slotId>` | `{ remaining: number }` | Refetch slot detail |
+| `SOLD_OUT` | `/topic/flash-sale/<slotId>` | `{}` | Disable button, show "Hết hàng" |
+| `SLOT_STARTED` | `/topic/flash-sale/<slotId>` | `{ startAt: string }` | Refetch + bật countdown |
+| `SLOT_ENDED` | `/topic/flash-sale/<slotId>` | `{}` | Disable button, show "Đã kết thúc" |
+| `RESERVATION_CONFIRMED` | `/user/queue/reservation` | `{ reservation: Reservation }` | Update flash-sale.store |
+
+→ Event types ở `src/types/flash-sale.ts` (`WsEvent` union type).
+
+## 5. Nguyên tắc vàng: WS = notification, KHÔNG phải source of truth
+
+- Khi nhận event → **refetch** query tương ứng, KHÔNG tự update state trực tiếp.
+- Lý do: backend có thể đã skip event, hoặc client miss. Refetch đảm bảo consistency.
+- Ví dụ: nhận `STOCK_UPDATED` → `queryClient.invalidateQueries(['flash-sale', slotId])`.
+
+## 6. Flash-sale store (`src/stores/flash-sale.store.ts`)
+
+- Cache realtime: `slotIds: string[]`, `lastEventAt: Record<slotId, ISO>`.
+- KHÔNG cache stock value — đó là TanStack Query, không phải Zustand.
+- Dùng để track slot nào user đang "theo dõi" → gửi thông báo khi slot sắp bắt đầu.
+
+## 7. Auth cho WS
+
+- Khi connect: gửi `Authorization: Bearer <token>` qua STOMP CONNECT headers.
+- Backend verify token trong `ChannelInterceptor`.
+- Nếu 401 → disconnect + logout (xem `auth-jwt.mdc`).
+
+## 8. Error handling
+
+| Lỗi | Hành động |
+|---|---|
+| Connection failed | Retry theo backoff |
+| Subscribe failed | Unsubscribe cũ + retry 1 lần |
+| Parse JSON failed | Log error, skip event (không throw) |
+| Token expired | Disconnect, gọi refresh, reconnect |
+| Network offline | Tự detect `navigator.onLine`, pause reconnect |
+
+## 9. Dev/test
+
+- Dev: WS URL = `http://180.93.137.28/ws/flash-sale` (qua SockJS).
+- Test: mock STOMP client qua `vi.mock('@stomp/stompjs')` — không cần WS thật.
+- E2E: KHÔNG (xem `no-overengineering.mdc`).
+
+## 10. KHÔNG
+
+- KHÔNG subscribe trong component lifecycle ngắn (vd modal) — subscribe ở provider.
+- KHÔNG update state trực tiếp từ WS event — luôn refetch.
+- KHÔNG keep-alive WS khi user chưa login.
+- KHÔNG log payload nhạy cảm (vd reservation token) ra console.

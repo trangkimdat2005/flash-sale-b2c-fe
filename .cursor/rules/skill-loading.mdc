@@ -1,0 +1,34 @@
+﻿---
+description: Quy tắc load skill mỗi turn (check ~/.cursor/skills/ matching task) + bắt buộc dùng auto-gitignore khi Write/StrReplace tạo file. Apply mọi task.
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Skill Loading Rules
+
+Mỗi lần agent bắt đầu xử lý task, **LUÔN LUÔN** thực hiện checklist sau:
+
+## Checklist mỗi turn
+
+```
+Skill Checklist:
+- [ ] 1. Đọc SKILL.md của các skill trong ~/.cursor/skills/ có description liên quan đến task hiện tại
+- [ ] 2. Nếu có skill matching → áp dụng ngay (KHÔNG hỏi user)
+- [ ] 3. Đặc biệt với file creation: kiểm tra skill `auto-gitignore` có apply không
+```
+
+## Skill `auto-gitignore` (BẮT BUỘC)
+
+**Mỗi lần dùng tool `Write` hoặc `StrReplace` tạo file mới**, agent PHẢI:
+
+1. Lấy đường dẫn file vừa tạo.
+2. Check file có thuộc pattern cần gitignore không (xem chi tiết ở `~/.cursor/skills/auto-gitignore/SKILL.md` — đường dẫn user-level trên Windows thường là `C:\Users\<username>\.cursor\skills\auto-gitignore\SKILL.md`).
+3. Nếu match non-source pattern (`.env`, `*.local`, `.vscode/`, `dist/`, `*.log`, `.DS_`_, …) → append vào `.gitignore` ngay.
+4. Nếu là source code (`.ts`, `.tsx`, `.js`, `.py`, `.go`, `.java`, `.md`, `.json`, `.css`, `.html`, …) → **KHÔNG** gitignore.
+5. Báo cáo cho user: `✓ Created <file>` + (nếu có) `✓ Added "<pattern>" to .gitignore (<nhóm>)`.
+
+## Quy tắc chung
+
+- **Không** hỏi user "có nên dùng skill X không?" — nếu description của nó match task → dùng luôn.
+- **Không** bỏ qua skill có sẵn để tự code từ đầu — ưu tiên skill đã verified.
+- Nếu không có skill nào match task → tiếp tục bình thường, không cần báo.

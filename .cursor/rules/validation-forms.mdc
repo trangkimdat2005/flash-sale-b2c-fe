@@ -1,0 +1,211 @@
+﻿---
+description: Quy ước form + validation với React Hook Form + Zod. Apply cho *Form.tsx, *Modal.tsx, src/lib/validators/**, src/features/**/schemas.ts.
+globs:
+  - src/app/**/page.tsx
+  - 'src/**/*Form.tsx'
+  - 'src/**/*Modal.tsx'
+  - src/lib/validators/**
+  - src/features/**/schemas.ts
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Form + Validation
+
+## 1. Stack
+
+- **React Hook Form** 7.x — form state, performance.
+- **Zod** 3.x — schema validation, type-safe.
+- **`@hookform/resolvers/zod`** — bridge giữa RHF và Zod.
+- Message validation **tiếng Việt** (xem `i18n.mdc`).
+
+## 2. Schema location
+
+```
+src/lib/validators/<module>.validator.ts    # hiện tại
+src/features/<module>/schemas.ts            # mục tiêu
+```
+
+- Schema tách khỏi component → dễ test, dễ reuse.
+- Export cả schema (Zod) và type (infer từ schema).
+
+```ts
+// src/features/auth/schemas.ts (mục tiêu)
+import { z } from 'zod';
+
+export const loginSchema = z.object({
+  email: z.string().email('Email không hợp lệ').min(1('Vui lòng nhập email')),
+  password: z.string().min(6('Mật khẩu tối thiểu 6 ký tự')),
+  remember: z.boolean().optional(),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+```
+
+## 3. Form component
+
+```tsx
+// src/features/auth/LoginForm.tsx
+'use client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, type LoginInput } from './schemas';
+
+export function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '', remember: false },
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    // call API
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Input
+        {...register('email')}
+        label="Email"
+        error={errors.email?.message}
+      />
+      <Input
+        {...register('password')}
+        type="password"
+        label="Mật khẩu"
+        error={errors.password?.message}
+      />
+      <Button type="submit" loading={isSubmitting}>
+        Đăng nhập
+      </Button>
+    </form>
+  );
+}
+```
+
+## 4. Error message convention
+
+- Tiếng Việt, ngắn gọn, hướng dẫn user.
+- KHÔNG chỉ "Invalid" — nói rõ vì sao invalid.
+
+```ts
+// ✅ Tốt
+z.string().email('Email không hợp lệ')
+z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự')
+z.string().min(1, 'Vui lòng nhập họ tên')
+
+// ❌ Tránh
+z.string().email('Invalid')
+z.string().min(6, 'Too short')
+```
+
+## 5. Async validation
+
+- Check email đã tồn tại, check username, v.v.
+
+```ts
+export const registerSchema = z.object({
+  email: z.string().email().refine(
+    async (email) => {
+      const exists = await checkEmailExists(email);
+      return !exists;
+    },
+    { message: 'Email đã được sử dụng' }
+  ),
+});
+```
+
+- Dùng `z.string().refine(async ..., { message })` cho async check.
+- Khi dùng async refine → set `mode: 'onBlur'` để không gọi API mỗi keystroke.
+
+## 6. Cross-field validation
+
+```ts
+export const changePasswordSchema = z.object({
+  oldPassword: z.string().min(6),
+  newPassword: z.string().min(6),
+  confirmPassword: z.string().min(6),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Mật khẩu xác nhận không khớp',
+  path: ['confirmPassword'],
+});
+```
+
+- `path` chỉ field nào nhận error.
+
+## 7. Server-side error
+
+- Backend trả `VALIDATION_ERROR` với `details: { field: string, message: string }[]`.
+- Map vào RHF qua `setError`:
+
+```tsx
+const onSubmit = async (data: LoginInput) => {
+  try {
+    await loginApi(data);
+  } catch (err) {
+    if (err instanceof ApiError && err.code === 'VALIDATION_ERROR' && Array.isArray(err.details)) {
+      err.details.forEach((d) => {
+        setError(d.field as keyof LoginInput, { message: d.message });
+      });
+    } else {
+      toast.error(t(`error.${err.code}`));
+    }
+  }
+};
+```
+
+## 8. Form patterns
+
+### Login / Register
+
+- 1 schema, 1 form component.
+- Submit → API call, redirect.
+
+### Search / Filter
+
+- `useForm` với `defaultValues` từ `searchParams`.
+- Submit → `router.push(?<query>)`.
+
+### Multi-step (checkout)
+
+- 1 schema cho cả flow, hoặc schema riêng cho mỗi step.
+- State giữa steps: `useState` ở parent, hoặc Zustand (vd `checkout.store.ts`).
+
+### Modal form
+
+- Form bên trong modal.
+- `onSuccess` → close modal + invalidate query.
+
+## 9. Validation messages i18n (tùy chọn)
+
+Có 2 cách:
+
+### Cách 1: hard-code tiếng Việt trong schema (đơn giản, OK cho đồ án)
+
+```ts
+z.string().email('Email không hợp lệ')
+```
+
+### Cách 2: dùng key, dịch qua next-intl (chuẩn production)
+
+```ts
+// schema
+z.string().email({ message: 'validation.emailInvalid' })
+
+// component
+const t = useTranslations('validation');
+const { errors } = useForm({ resolver: zodResolver(schema) });
+// Hiển thị: t(errors.email.message.key)
+```
+
+→ Cho đồ án, dùng **Cách 1** (đơn giản, không cần dynamic translation).
+
+## 10. KHÔNG
+
+- KHÔNG dùng Formik / Redux Form.
+- KHÔNG validate bằng `if/else` thủ công trong component.
+- KHÔNG skip Zod — luôn có schema cho mỗi form.
+- KHÔNG hard-code error message tiếng Anh trong khi UI là tiếng Việt.

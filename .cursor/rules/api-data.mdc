@@ -1,0 +1,201 @@
+﻿---
+description: Quy ước về data layer — API client, TanStack Query hook, types, mock. Apply cho src/lib/api/**, src/features/**/api.ts, hooks.ts, types.ts, mock.ts.
+globs:
+  - src/lib/api/**
+  - src/lib/api-client.ts
+  - src/features/**/api.ts
+  - src/features/**/hooks.ts
+  - src/features/**/mock.ts
+  - src/features/**/types.ts
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# API + Data Layer
+
+## 1. Cấu trúc
+
+```
+src/lib/api/                    # hiện tại
+├── client.ts                   # apiFetch + interceptor
+├── endpoints.ts                # endpoint constants
+├── errors.ts                   # ApiError class
+├── auth.api.ts                 # auth endpoints
+├── cart.api.ts
+├── order.api.ts
+├── product.api.ts
+├── address.api.ts
+├── voucher.api.ts
+├── flash-sale.api.ts
+└── index.ts
+
+src/features/<module>/          # mục tiêu (xem layer-convention.mdc)
+├── api.ts                      # wrapper hook + query keys
+├── hooks.ts                    # useXxx() custom hooks
+├── types.ts                    # DTOs
+├── mock.ts                     # MSW handlers
+└── schemas.ts                  # Zod
+```
+
+## 2. apiFetch (`src/lib/api/client.ts`)
+
+- Wrapper quanh `fetch` với:
+  - Base URL từ `process.env.NEXT_PUBLIC_API_BASE_URL`.
+  - Auto attach `Authorization: Bearer <token>` từ `localStorage`.
+  - 401 → auto refresh 1 lần (xem `auth-jwt.mdc`).
+  - Unwrap response envelope `{ data: T }`.
+  - Throw `ApiError` nếu `error` field có.
+  - Retry idempotent 1 lần khi network error.
+
+```ts
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T>
+```
+
+## 3. ApiError class
+
+```ts
+export class ApiError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public status: number,
+    public details?: unknown
+  ) { super(message); }
+}
+```
+
+- `code` từ backend (`AUTH_001`, `VALIDATION_ERROR`, ...).
+- Mapping code → user message ở `i18n.mdc` mục 8.
+
+## 4. Endpoints constants
+
+```ts
+// src/lib/api/endpoints.ts
+export const ENDPOINTS = {
+  auth: {
+    login: '/api/v1/auth/login',
+    refresh: '/api/v1/auth/refresh',
+    logout: '/api/v1/auth/logout',
+  },
+  cart: {
+    list: '/api/v1/cart',
+    add: '/api/v1/cart/items',
+    update: (itemId: string) => `/api/v1/cart/items/${itemId}`,
+    remove: (itemId: string) => `/api/v1/cart/items/${itemId}`,
+  },
+  // ...
+} as const;
+```
+
+- Function cho endpoint có param (`update: (id) => ...`).
+- KHÔNG inline URL string trong component.
+
+## 5. Per-module API file
+
+```ts
+// src/lib/api/cart.api.ts (hiện tại)
+import { apiFetch } from './client';
+import { ENDPOINTS } from './endpoints';
+import type { Cart, AddCartItemRequest } from '@/types/cart';
+
+export const cartApi = {
+  list: () => apiFetch<Cart>(ENDPOINTS.cart.list),
+  add: (body: AddCartItemRequest) =>
+    apiFetch<Cart>(ENDPOINTS.cart.add, { method: 'POST', body: JSON.stringify(body) }),
+  update: (itemId: string, body: UpdateCartItemRequest) =>
+    apiFetch<Cart>(ENDPOINTS.cart.update(itemId), { method: 'PATCH', body: JSON.stringify(body) }),
+  remove: (itemId: string) =>
+    apiFetch<void>(ENDPOINTS.cart.remove(itemId), { method: 'DELETE' }),
+};
+```
+
+- `cartApi` là object, không class.
+- Mỗi method trả `Promise<T>` (T = response data, đã unwrap).
+
+## 6. TanStack Query hook
+
+```ts
+// src/features/cart/hooks.ts (mục tiêu)
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { cartApi } from '@/lib/api/cart.api';
+
+export const cartKeys = {
+  all: ['cart'] as const,
+  list: () => [...cartKeys.all, 'list'] as const,
+};
+
+export function useCart() {
+  return useQuery({
+    queryKey: cartKeys.list(),
+    queryFn: cartApi.list,
+  });
+}
+
+export function useAddCartItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: cartApi.add,
+    onSuccess: () => qc.invalidateQueries({ queryKey: cartKeys.all }),
+  });
+}
+```
+
+### Query key convention
+
+- Dùng **query key factory** (`cartKeys.all`, `cartKeys.list()`).
+- Lý do: dễ invalidate, dễ tìm query, tránh typo string.
+
+### Mutation side-effect
+
+- `onSuccess` → invalidate query liên quan.
+- KHÔNG setQueryData trực tiếp (dễ sai optimistic).
+
+## 7. Mock data (`src/features/<module>/mock.ts`)
+
+- Dùng MSW (Mock Service Worker) — handler ở `src/mocks/handlers.ts`.
+- Mock data gần giống response backend thật.
+- Bật mock ở dev khi `process.env.NEXT_PUBLIC_USE_MOCK === 'true'`.
+- Khi integrate API thật → tắt mock bằng cách xoá env var.
+
+## 8. Types (`src/features/<module>/types.ts`)
+
+- DTOs từ backend, 1:1 với Swagger schema.
+- Dùng `interface` (không `type`).
+- Enum → `as const` ở `constants.ts`, type derive (xem `enum-labels.mdc`).
+
+## 9. Idempotency
+
+- Mọi mutation (POST/PUT/PATCH/DELETE) → tự attach `Idempotency-Key: <uuid>` trong `apiFetch`.
+- Generate UUID bằng `uuid` lib.
+
+## 10. Error handling ở hook
+
+```ts
+export function useAddCartItem() {
+  return useMutation({
+    mutationFn: cartApi.add,
+    // KHÔNG catch ở đây — để component xử lý
+  });
+}
+
+// Component:
+const addItem = useAddCartItem();
+const onSubmit = () => {
+  addItem.mutate(data, {
+    onError: (err) => {
+      if (err instanceof ApiError) toast.error(t(`error.${err.code}`));
+    },
+  });
+};
+```
+
+## 11. KHÔNG
+
+- KHÔNG gọi `fetch`/`apiFetch` trực tiếp trong component — luôn qua hook.
+- KHÔNG inline endpoint string.
+- KHÔNG skip `Idempotency-Key` cho mutation.
+- KHÔNG dùng `any` cho response type.
+- KHÔNG `useEffect` để fetch data (dùng `useQuery`).

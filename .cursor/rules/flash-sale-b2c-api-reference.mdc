@@ -1,0 +1,51 @@
+﻿---
+description: Pointer đến docs/api-document.md (tài liệu gốc 1.358 dòng). Chi tiết từng module có ở docs/api-reference.md (791 dòng). Áp dụng khi tích hợp API cụ thể.
+globs:
+  - src/lib/api/**
+  - src/hooks/**
+  - src/stores/**
+  - src/types/**
+  - src/components/flash-sale/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# API Reference — Pointer
+
+> **File này chỉ là POINTER.** Toàn bộ reference chi tiết đã được tách ra 2 file docs:
+>
+> - **`docs/api-document.md`** (1.358 dòng) — **TÀI LIỆU GỐC**, tổng hợp tất cả REST API + WebSocket.
+> - **`docs/api-reference.md`** (791 dòng) — **TÁCH CHI TIẾT TỪNG MODULE** (line 5 tự tham chiếu gốc).
+>
+> **Cấm** tra cứu endpoint ở file `.mdc` này. Đọc `docs/api-document.md` hoặc Swagger UI: `http://180.93.137.28/swagger-ui/index.html#/`.
+
+## Cách dùng
+
+| Cần biết | Đọc ở đâu |
+|---|---|
+| Endpoint path + method | `docs/api-document.md` mục tương ứng |
+| Request body schema | `docs/api-document.md` (request schema) |
+| Response shape + field types | `docs/api-document.md` |
+| Error codes | `docs/api-document.md` |
+| Chi tiết từng module (auth, order, ...) | `docs/api-reference.md` |
+| Policy khi tích hợp (idempotency, retry, race condition) | `.cursor/rules/flash-sale-b2c-api.mdc` |
+
+## Khi nào load file docs
+
+- Đang implement 1 API call cụ thể (`useLogin`, `useCart`, `useFlashSaleReservation`...)
+- Cần verify field types hoặc error codes
+- Có conflict giữa frontend expectation và backend response
+
+**Không cần load** khi:
+
+- Đang sửa UI/layout/component
+- Đang sửa validation rule không liên quan API
+- Đọc code để hiểu context (đọc `src/lib/api/` thật nhanh hơn)
+
+## Cập nhật reference
+
+Khi backend đổi endpoint/contract:
+
+1. Sửa `docs/api-document.md` (data gốc) và/hoặc `docs/api-reference.md` (chi tiết).
+2. **KHÔNG** sửa file `.mdc` này trừ khi đổi policy (vd: thêm rule mới về cách tích hợp).
+3. Báo user trong review.

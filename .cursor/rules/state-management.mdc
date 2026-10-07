@@ -1,0 +1,184 @@
+﻿---
+description: Quy ước state management — TanStack Query (server), Zustand (client global), Context (UI), local (component). Apply cho src/stores/**, src/lib/**, src/hooks/**, src/providers/**.
+globs:
+  - src/stores/**
+  - src/lib/**
+  - src/hooks/**
+  - src/providers/**
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# State Management
+
+## 1. Phân cấp
+
+| Loại state | Tool | Khi nào |
+|---|---|---|
+| **Server state** | TanStack Query (RQ) | Data từ API (cart, order, product, flash-sale) |
+| **Client global** | Zustand | Auth user, UI state (modal, theme), realtime cache |
+| **UI provider** | React Context | Providers (QueryClient, WsConnection, Toast, Theme) |
+| **Component local** | `useState`, `useReducer` | Form field, toggle, hover state |
+| **URL state** | `useSearchParams` | Filter, pagination, sort |
+| **Form state** | React Hook Form | Form input + validation |
+
+## 2. TanStack Query (server state)
+
+- Dùng cho: cart, order, product, flash-sale slot, voucher, address, user profile.
+- Query key factory ở mỗi feature (`cartKeys.all`, `cartKeys.list()`).
+- `staleTime`: 30s cho data ít thay đổi (product list), 0 cho data realtime (flash-sale stock).
+- `gcTime` (cache): 5 phút.
+- `retry`: 1 lần (không retry 4xx).
+- `refetchOnWindowFocus`: `false` (mặc định), `true` cho data quan trọng (vd balance).
+
+```ts
+// providers/Providers.tsx
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30 * 1000,
+      gcTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+```
+
+## 3. Zustand (client global)
+
+### Stores
+
+```
+src/stores/
+├── auth.store.ts        # user, role, login, logout (persisted)
+├── flash-sale.store.ts  # realtime cache (in-memory)
+├── ui.store.ts          # modal, sidebar, theme (in-memory)
+└── index.ts             # barrel
+```
+
+### auth.store.ts (persisted)
+
+```ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface AuthState {
+  user: User | null;
+  role: 'BUYER' | 'SELLER' | 'ADMIN' | null;
+  isAuthenticated: boolean;
+  login: (token: string, refresh: string, user: User) => void;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      role: null,
+      isAuthenticated: false,
+      login: (token, refresh, user) => {
+        localStorage.setItem('fs_access_token', token);
+        localStorage.setItem('fs_refresh_token', refresh);
+        set({ user, role: user.role, isAuthenticated: true });
+      },
+      logout: () => {
+        localStorage.removeItem('fs_access_token');
+        localStorage.removeItem('fs_refresh_token');
+        set({ user: null, role: null, isAuthenticated: false });
+      },
+    }),
+    {
+      name: 'fs_auth', // localStorage key
+      partialize: (state) => ({ user: state.user, role: state.role, isAuthenticated: state.isAuthenticated }),
+    }
+  )
+);
+```
+
+- Persist key: `fs_auth`.
+- **KHÔNG** persist token (luôn đọc từ `localStorage` qua `apiFetch`).
+
+### flash-sale.store.ts (in-memory)
+
+```ts
+interface FlashSaleState {
+  watchingSlots: string[]; // slot IDs user đang theo dõi
+  lastEventAt: Record<string, string>; // slotId → ISO
+  addWatching: (slotId: string) => void;
+  removeWatching: (slotId: string) => void;
+  recordEvent: (slotId: string) => void;
+}
+```
+
+- KHÔNG persist.
+- Track slot nào user đang xem → trigger notification khi slot sắp bắt đầu.
+
+### ui.store.ts (in-memory)
+
+```ts
+interface UIState {
+  cartDrawerOpen: boolean;
+  searchModalOpen: boolean;
+  sidebarOpen: boolean;
+  toggleCartDrawer: () => void;
+  // ...
+}
+```
+
+- State UI transient.
+- Reset khi logout (nếu cần).
+
+## 4. React Context (UI provider)
+
+```tsx
+// src/providers/Providers.tsx
+'use client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { WsConnectionProvider } from './WsConnectionProvider';
+import { SessionCookieBridge } from '@/components/layout/SessionCookieBridge';
+import { ToastViewport } from '@/components/ui/Toast';
+
+const queryClient = new QueryClient({ /* config */ });
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <WsConnectionProvider>
+        <SessionCookieBridge />
+        {children}
+        <ToastViewport />
+      </WsConnectionProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+- Dùng Context cho: Theme, Toast, Modal root, i18n provider.
+- KHÔNG dùng Context cho state phức tạp (dùng Zustand).
+
+## 5. useState / useReducer (component local)
+
+- Form field (kết hợp với RHF).
+- Toggle (open/close dropdown, modal local).
+- Hover/focus state.
+- Optimistic state khi cần.
+
+## 6. useSearchParams (URL state)
+
+- Filter, pagination, sort → lưu URL.
+- Ví dụ: `/products?category=phone&sort=price&page=2`.
+
+```tsx
+const searchParams = useSearchParams();
+const category = searchParams.get('category') ?? 'all';
+const page = Number(searchParams.get('page') ?? 1);
+```
+
+## 7. KHÔNG
+
+- KHÔNG dùng Redux / Jotai (xem `no-overengineering.mdc`).
+- KHÔNG dùng Context cho state phức tạp (nhiều action, nhiều consumer) → Zustand.
+- KHÔNG dùng `useEffect` để fetch data → TanStack Query.
+- KHÔNG persist token trong Zustand.
+- KHÔNG lưu data từ API vào Zustand (đó là việc của RQ).

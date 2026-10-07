@@ -1,0 +1,93 @@
+---
+description: Quy trình tạo git worktree khi 2+ chat song song có khả năng conflict file. Load khi Bước 0.5 của workflow-process.mdc trigger.
+globs:
+  - .cursor/rules/*.mdc
+  - AGENTS.md
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Git Worktree — Khi 2 chat song song
+
+Quy trình tạo **git worktree** để cô lập 2+ chat chạy đồng thời trong cùng repo, tránh conflict khi merge. Tách từ `workflow-process.mdc` Bước 0.5 (concern git workflow isolation, không phải process step).
+
+## 1. Khi nào trigger
+
+Khi user **đồng thời** mở ≥ 2 đoạn chat cùng chạy trong repo, có khả năng ảnh hưởng lẫn nhau nếu:
+
+- Cùng sửa 1 file (kể cả phần khác nhau).
+- Cùng đọc/ghi 1 doc/import/file constant.
+- Có khả năng conflict khi merge (heuristic: overlap file, cùng section).
+
+→ **Agent tự đánh giá** dựa trên context (Bước 2 tiêu chí "độc lập" trong `workflow-process.mdc` là tham chiếu).
+
+## 2. Quy tắc
+
+1. **Phát hiện xung đột tiềm nă** → ngay **Bước 0** của `workflow-process.mdc`, dùng `AskQuestion` để đề xuất worktree.
+2. **Mỗi chat** được tạo **1 worktree riêng** (theo skill `tllq-workflow:itz-using-git-worktrees`):
+   ```bash
+   git worktree add ../flash-sale-b2c-fe-chat-<n> -b feat/<branch-name>
+   ```
+3. **Trong worktree**: làm việc cô lập, không ảnh hưởng worktree khác.
+4. **Khi merge lại**:
+   - **Không conflict → agent tự merge** vào branch chính.
+   - **Có conflict → dừng, hỏi user** xử lý trước.
+
+## 3. Format hỏi user (Bước 0 của workflow-process)
+
+```text
+## Phát hiện xung đột tiềm năng
+
+Bạn có 2 chat đang chạy:
+- Chat A: refactor `src/types/` (10 file)
+- Chat B (hiện tại): thêm rule `workflow-process.mdc`
+
+Có khả năng ảnh hưởng:
+- ❌ Chat B sửa `.cursor/rules/workflow-process.mdc`
+- ⚠️ Chat A có thể đụng `.cursor/rules/` (AGENTS.md tham chiếu)
+
+→ **Câu hỏi**: Tách ra worktree để cô lập?
+- Tạo worktree cho Chat B (Recommended)
+- Để cả 2 chat sửa trực tiếp (rủi ro conflict)
+- Hủy Chat B, chờ Chat A xong
+```
+
+## 4. Lệnh tạo worktree mẫu
+
+```bash
+# Từ root repo
+git fetch origin
+git worktree add ../flash-sale-b2c-fe-wt-<chat-id> -b feat/<short-name>
+cd ../flash-sale-b2c-fe-wt-<chat-id>
+npm install  # nếu cần
+```
+
+## 5. Sau khi merge xong
+
+```bash
+# Quay về worktree chính
+cd <repo chính>
+
+# Merge từ branch của chat
+git merge feat/<short-name> --no-ff
+
+# Nếu conflict → dừng, hỏi user
+git merge --abort  # nếu cần abort
+git worktree remove ../flash-sale-b2c-fe-wt-<chat-id>
+git branch -d feat/<short-name>  # nếu merge xong
+```
+
+## 6. Ví dụ
+
+| Tình huống | Hành động |
+|---|---|
+| 2 chat cùng sửa `AGENTS.md` | Phát hiện conflict → AskQuestion worktree → mỗi chat 1 worktree → merge xong agent tự merge |
+| Chat A sửa `src/types/`, Chat B sửa `src/lib/api/` | Không cần worktree — file khác nhau, không overlap |
+| Chat A đang sửa `src/types/`, Chat B thêm rule mới ref `src/types/` | Có ref chéo → AskQuestion worktree |
+| Chỉ 1 chat (user chỉ mở 1) | Bỏ qua — không áp dụng |
+
+## 7. Lưu ý
+
+- **KHÔNG tự tạo worktree** khi user chưa đồng ý.
+- **KHÔNG push** branch worktree lên origin (theo `git-workflow.mdc`).
+- **KHÔNG merge** khi chưa chạy build/lint ở cả 2 bên.

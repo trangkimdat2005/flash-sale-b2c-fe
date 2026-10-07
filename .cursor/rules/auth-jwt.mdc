@@ -1,0 +1,118 @@
+﻿---
+description: Quy ước auth + JWT (token storage, refresh, cookie bridge, hooks). Apply cho auth.store, api/client, useAuth, SessionCookieBridge, route (auth).
+globs:
+  - src/stores/auth.store.ts
+  - src/lib/api/client.ts
+  - src/hooks/useAuth.ts
+  - src/components/layout/SessionCookieBridge.tsx
+  - src/app/(auth)/**
+  - src/lib/auth-guard.ts
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Auth + JWT
+
+## 1. Token storage
+
+| Loại token | Nơi lưu | Key | Đọc bởi |
+|---|---|---|---|
+| `access_token` | `localStorage` | `fs_access_token` | Client (apiFetch) |
+| `refresh_token` | `localStorage` | `fs_refresh_token` | Client (refresh flow) |
+| `access_token` (httpOnly cookie) | Cookie | `access_token` | Server Component (auth-guard) |
+
+- `localStorage` dùng để `apiFetch` đính kèm `Authorization` header.
+- Cookie httpOnly set bởi `SessionCookieBridge` để Server Component đọc được (Next 16 cookies API async).
+- **KHÔNG** lưu token vào Zustand store (chỉ giữ state user, role).
+
+## 2. State shape (`src/stores/auth.store.ts`)
+
+```ts
+interface AuthState {
+  user: User | null;
+  role: 'BUYER' | 'SELLER' | 'ADMIN' | null;
+  isAuthenticated: boolean;
+  login: (token: string, refreshToken: string, user: User) => void;
+  logout: () => void;
+  refresh: () => Promise<void>;
+}
+```
+
+- Persist key: `"fs_auth"`.
+- Persist chỉ `user` + `role` — **KHÔNG persist token** (luôn đọc từ `localStorage` mỗi request).
+
+## 3. useAuth hook (`src/hooks/useAuth.ts`)
+
+```ts
+const { user, role, isAuthenticated, login, logout, refresh } = useAuth();
+```
+
+- Hook wrapper mỏng quanh `auth.store.ts` — để dễ swap store implementation.
+- KHÔNG thêm logic business vào hook (vd gọi API) — chỉ wrap state.
+
+## 4. apiFetch — auth header + refresh
+
+- `apiFetch` (ở `src/lib/api/client.ts`) tự:
+  1. Đính `Authorization: Bearer <access_token>` từ `localStorage`.
+  2. Nhận 401 → gọi `/auth/refresh` với `refresh_token`.
+  3. Nếu refresh thành công → retry request gốc 1 lần.
+  4. Nếu refresh fail → gọi `auth.store.logout()` + redirect `/login`.
+
+- **KHÔNG** retry 2 lần. Chỉ 1 lần.
+- Refresh chạy tuần tự, không parallel (dùng `mutex` đơn giản: 1 promise dùng chung).
+
+## 5. Server Component guard (`src/lib/auth-guard.ts`)
+
+- Đọc cookie `access_token` qua `cookies()` (async trong Next 16).
+- Verify JWT signature (cùng secret với backend hoặc qua API verify — chốt với user).
+- Trả về `{ user, role }` hoặc `redirect('/login')`.
+
+```ts
+// app/(buyer)/orders/page.tsx
+export default async function OrdersPage() {
+  const { user } = await requireAuth(); // throws redirect
+  return <OrderList userId={user.id} />;
+}
+```
+
+## 6. middleware.ts (khi migrate)
+
+- Khi thêm `middleware.ts` ở root → check role cho route `/seller/**`, `/admin/**`.
+- Middleware chỉ check **sự tồn tại** của cookie, KHÔNG verify JWT (vì edge runtime không có full crypto).
+- Verify đầy đủ ở Server Component qua `auth-guard.ts`.
+
+## 7. Login flow
+
+```
+1. POST /api/v1/auth/login → { accessToken, refreshToken, user }
+2. Lưu localStorage: fs_access_token, fs_refresh_token
+3. SessionCookieBridge set cookie access_token (httpOnly, sameSite=Lax)
+4. auth.store.login() → set user + role
+5. Redirect: BUYER → /, SELLER → /seller, ADMIN → /admin
+```
+
+## 8. Logout flow
+
+```
+1. POST /api/v1/auth/logout (invalidate refresh_token phía server)
+2. Clear localStorage: fs_access_token, fs_refresh_token
+3. Clear cookie: access_token
+4. auth.store.logout() → reset state
+5. Redirect /login
+```
+
+## 9. SessionCookieBridge (`src/components/layout/SessionCookieBridge.tsx`)
+
+- Component ẩn, mount 1 lần ở root layout.
+- Đồng bộ giữa `localStorage.access_token` ↔ `cookie access_token`:
+  - Khi `localStorage` đổi → update cookie (gọi API `/session/cookie`).
+  - Khi cookie bị xoá (vd expired) → clear `localStorage` + logout.
+- Dùng `useEffect` + listener `storage` event.
+
+## 10. KHÔNG
+
+- KHÔNG lưu token plaintext trong Zustand.
+- KHÔNG log token ra console.
+- KHÔNG để token vào URL (query string).
+- KHÔNG dùng `useEffect` trong component để check auth — dùng `middleware.ts` hoặc `auth-guard.ts`.
+- KHÔNG tự roll JWT verify riêng ngoài `auth-guard.ts` (xem `no-overengineering.mdc`).

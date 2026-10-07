@@ -1,0 +1,67 @@
+﻿---
+description: Quy định bảo vệ Source of Truth #1 (docs/CLAUDE.md) + quy trình đồng bộ khi rule thay đổi. Áp dụng mọi task có đụng đến docs/.
+globs:
+  - docs/**
+  - AGENTS.md
+alwaysApply: true
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Docs Sync — Bảo vệ Source of Truth
+
+## Thứ tự ưu tiên (Source of Truth)
+
+Theo `AGENTS.md` mục "Source of Truth":
+
+1. **`docs/CLAUDE.md`** — quy định UI chuẩn của dự án. **Source of Truth #1**.
+2. `.cursor/rules/` — convention cụ thể cho từng concern.
+3. `AGENTS.md` — overview ngắn.
+4. Code hiện tại trong repo.
+
+> **Quy tắc số 1**: `docs/CLAUDE.md` là read-only đối với agent. Agent **KHÔNG** tự ý sửa, xoá, rewrite file này dưới mọi hình thức.
+
+## Khi nào được phép cập nhật `docs/CLAUDE.md`
+
+| Tình huống | Quyền của agent |
+|---|---|
+| User yêu cầu **trực tiếp** "sửa mục X trong docs/CLAUDE.md" | ✅ Được phép — làm theo yêu cầu |
+| Rule mới ở `.cursor/rules/` **mâu thuẫn** với mục nào đó trong docs/CLAUDE.md | ⚠️ Báo user, KHÔNG tự sửa — hỏi user cách xử lý |
+| Phát hiện docs/CLAUDE.md sai so với code thật | ⚠️ Báo user, đính kèm bằng chứng — KHÔNG tự sửa |
+| Sau khi migrate xong (vd `tailwind.config.ts` đã có) và cần cập nhật ngôn ngữ từ "chưa có" → "đã có" | ⚠️ Báo user, đề xuất patch cụ thể — chờ duyệt |
+
+**Mọi cập nhật `docs/CLAUDE.md` phải qua user duyệt trước khi sửa.**
+
+## Quy trình đồng bộ khi `.cursor/rules/` thay đổi
+
+Khi có rule mới hoặc rule thay đổi lớn, kiểm tra 3 thứ:
+
+```
+1. docs/CLAUDE.md có mâu thuẫn với rule mới không?
+   → Nếu có: báo user, list conflict cụ thể, đề xuất cách giải.
+
+2. AGENTS.md rule index đã reference đầy đủ rule mới chưa?
+   → Nếu thiếu: cập nhật ngay (thuộc nhóm "tự làm", thêm row mới).
+
+3. Có rule nào bị thay thế/xoá cần xoá row khỏi AGENTS.md không?
+   → Nếu có: cập nhật ngay.
+```
+
+## Các file docs/ khác
+
+| File | Quyền của agent |
+|---|---|
+| `docs/api-document.md` | ✅ Đọc OK; sửa theo yêu cầu trực tiếp của user. Tài liệu gốc (1.358 dòng). |
+| `docs/api-reference.md` | ✅ Đọc OK; sửa theo yêu cầu trực tiếp. Bản tách chi tiết từng module (791 dòng) — khi sửa, đối chiếu với `docs/api-document.md` để tránh lệch. |
+| `docs/01_project_planning.md`, `docs/02_requirement_analysis.md`, `docs/03_system_design.md`, `docs/04_architecture_analysis.md` | ✅ Đọc OK; sửa theo yêu cầu trực tiếp. |
+| `docs/flashsale_order_contract.md` | ✅ Đọc OK; sửa theo yêu cầu trực tiếp. |
+| `docs/CLAUDE.md` | ❌ **Read-only** — xem bảng trên. |
+
+## Khi không chắc chắn
+
+- Không rõ user muốn sửa docs/CLAUDE.md hay chỉ đang muốn sửa rule → **hỏi trước**.
+- Thấy docs/CLAUDE.md đã stale so với code nhưng chưa được yêu cầu sửa → **báo cáo trong review**, không tự sửa.
+- User nói "update docs" mơ hồ → hỏi rõ: docs/CLAUDE.md hay file docs khác.
+
+---
+
+**Tóm tắt**: `docs/CLAUDE.md` là bất khả xâm phạm. Agent chỉ sửa khi user yêu cầu trực tiếp; mọi thay đổi khác phải báo cáo + chờ duyệt.

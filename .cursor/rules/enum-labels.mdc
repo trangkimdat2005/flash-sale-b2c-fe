@@ -1,0 +1,140 @@
+﻿---
+description: Mapping enum backend → nhãn đa ngôn ngữ (vi, en). Apply cho StatusBadge, Badge, lib/constants.ts, status enum types.
+globs:
+  - src/components/ui/Badge.tsx
+  - src/components/flash-sale/**
+  - src/lib/constants.ts
+  - src/types/order.ts
+  - src/types/payment.ts
+  - src/types/flash-sale.ts
+  - src/types/product.ts
+alwaysApply: false
+---
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Enum Labels — Đa Ngôn Ngữ
+
+## 1. Nguyên tắc
+
+- Enum từ backend (OrderStatus, PaymentStatus, v.v.) → nhãn hiển thị **KHÔNG hard-code** trong component.
+- Mapping enum → nhãn ở `messages/<locale>.json` (vd `order.status.PENDING`).
+- Component dùng hook `useTranslations('order.status')` + `t(status)` để lấy nhãn.
+
+## 2. Cấu trúc i18n
+
+```json
+// messages/vi.json
+{
+  "order": {
+    "status": {
+      "PENDING": "Chờ xác nhận",
+      "CONFIRMED": "Đã xác nhận",
+      "SHIPPING": "Đang giao",
+      "DELIVERED": "Đã giao",
+      "CANCELLED": "Đã huỷ"
+    }
+  },
+  "payment": {
+    "status": {
+      "PENDING": "Chờ thanh toán",
+      "PAID": "Đã thanh toán",
+      "FAILED": "Thanh toán thất bại",
+      "REFUNDED": "Đã hoàn tiền"
+    }
+  }
+}
+
+// messages/en.json
+{
+  "order": {
+    "status": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "SHIPPING": "Shipping",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled"
+    }
+  },
+  ...
+}
+```
+
+## 3. Constants (`src/lib/constants.ts`)
+
+```ts
+export const ORDER_STATUS = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  SHIPPING: 'SHIPPING',
+  DELIVERED: 'DELIVERED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export type OrderStatus = typeof ORDER_STATUS[keyof typeof ORDER_STATUS];
+
+export const PAYMENT_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+} as const;
+export type PaymentStatus = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];
+```
+
+- Enum backend → const + type ở `constants.ts`.
+- Type derive từ const → 1 nguồn, 2 mục đích.
+
+## 4. StatusBadge component
+
+```tsx
+// src/components/ui/StatusBadge.tsx
+import { useTranslations } from 'next-intl';
+import { Badge } from './Badge';
+
+type StatusNamespace = 'order.status' | 'payment.status' | 'flash-sale.status';
+
+interface StatusBadgeProps {
+  namespace: StatusNamespace;
+  status: string;
+  variant?: 'default' | 'success' | 'warning' | 'destructive';
+}
+
+export function StatusBadge({ namespace, status, variant = 'default' }: StatusBadgeProps) {
+  const t = useTranslations(namespace);
+  return <Badge variant={variant}>{t(status)}</Badge>;
+}
+```
+
+- Mapping status → variant có thể ở `constants.ts` (vd `ORDER_STATUS_VARIANT: Record<OrderStatus, BadgeVariant>`).
+
+## 5. Variant mapping
+
+```ts
+// src/lib/constants.ts
+export const ORDER_STATUS_VARIANT = {
+  PENDING: 'warning',
+  CONFIRMED: 'default',
+  SHIPPING: 'default',
+  DELIVERED: 'success',
+  CANCELLED: 'destructive',
+} as const satisfies Record<OrderStatus, BadgeVariant>;
+
+export const PAYMENT_STATUS_VARIANT = {
+  PENDING: 'warning',
+  PAID: 'success',
+  FAILED: 'destructive',
+  REFUNDED: 'default',
+} as const satisfies Record<PaymentStatus, BadgeVariant>;
+```
+
+## 6. Khi thêm status mới
+
+1. Backend thêm status mới → cập nhật `constants.ts` (type + const + variant map).
+2. Thêm key vào `messages/vi.json` + `messages/en.json` ở namespace tương ứng.
+3. Nếu variant mới → thêm vào Badge.
+4. Báo user trong review.
+
+## 7. KHÔNG
+
+- KHÔNG hard-code `"Chờ xác nhận"` trong component.
+- KHÔNG dùng `enum` của TypeScript (dùng `as const` + `type` derive — tốt hơn cho tree-shaking).
+- KHÔNG dùng `if/else` dài để map status → label.
