@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cartApi } from "@/lib/api";
 import { useUIStore } from "@/stores";
@@ -14,6 +15,7 @@ interface CartItemProps {
 }
 
 export function CartItemRow({ item }: CartItemProps) {
+  const t = useTranslations("cart.item");
   const queryClient = useQueryClient();
   const pushToast = useUIStore((s) => s.pushToast);
 
@@ -29,7 +31,7 @@ export function CartItemRow({ item }: CartItemProps) {
     mutationFn: () => cartApi.deleteItem(item.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      pushToast({ type: "success", message: "Đã xóa sản phẩm khỏi giỏ" });
+      pushToast({ type: "success", message: t("deleteSuccess") });
     },
     onError: (e: Error) => pushToast({ type: "error", message: e.message }),
   });
@@ -48,7 +50,7 @@ export function CartItemRow({ item }: CartItemProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-              No image
+              {t("noImage")}
             </div>
           )}
         </div>
@@ -92,7 +94,7 @@ export function CartItemRow({ item }: CartItemProps) {
               loading={deleteMutation.isPending}
               onClick={() => deleteMutation.mutate()}
             >
-              Xóa
+              {t("delete")}
             </Button>
           </div>
         </div>

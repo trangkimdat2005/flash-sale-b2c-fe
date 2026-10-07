@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cartApi } from "@/lib/api";
 import { CartItemRow } from "./CartItemRow";
@@ -8,6 +9,8 @@ import { Button, Skeleton } from "@/components/ui";
 import { formatVND } from "@/lib/decimal";
 
 export function CartView() {
+  const t = useTranslations("cart.view");
+  const tc = useTranslations("common");
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["cart"],
@@ -34,7 +37,7 @@ export function CartView() {
   if (error) {
     return (
       <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:bg-rose-950 dark:text-rose-100">
-        Không tải được giỏ hàng. Vui lòng thử lại.
+        {t("loadError")}
       </div>
     );
   }
@@ -42,12 +45,12 @@ export function CartView() {
   if (!data || data.storeGroups.length === 0) {
     return (
       <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="text-zinc-500">Giỏ hàng của bạn đang trống.</p>
+        <p className="text-zinc-500">{t("empty")}</p>
         <Link
           href="/products"
           className="mt-4 inline-block text-sm font-medium text-red-600 hover:underline"
         >
-          Tiếp tục mua sắm →
+          {tc("continueShopping")}
         </Link>
       </div>
     );
@@ -69,7 +72,7 @@ export function CartView() {
                 {group.storeName}
               </Link>
               <span className="text-sm text-zinc-500">
-                {group.items.length} sản phẩm
+                {t("items", { count: group.items.length })}
               </span>
             </div>
             <div>
@@ -78,7 +81,7 @@ export function CartView() {
               ))}
             </div>
             <div className="mt-3 flex justify-between border-t border-zinc-200 pt-3 text-sm font-medium dark:border-zinc-800">
-              <span>Tạm tính</span>
+              <span>{t("subtotal")}</span>
               <span className="font-semibold text-red-600">
                 {formatVND(group.storeSubtotal)}
               </span>
@@ -92,19 +95,19 @@ export function CartView() {
           disabled={clearMutation.isPending}
           className="text-sm text-zinc-500 hover:underline"
         >
-          Xóa toàn bộ giỏ hàng
+          {t("clearAll")}
         </button>
       </div>
 
       <aside className="h-fit rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-        <h2 className="text-lg font-semibold">Tổng giỏ hàng</h2>
+        <h2 className="text-lg font-semibold">{t("summary")}</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between">
-            <dt className="text-zinc-500">Số lượng</dt>
+            <dt className="text-zinc-500">{t("items", { count: data.totalItems })}</dt>
             <dd className="font-medium">{data.totalItems}</dd>
           </div>
           <div className="flex justify-between border-t border-zinc-200 pt-2 text-base dark:border-zinc-800">
-            <dt className="font-medium">Tổng cộng</dt>
+            <dt className="font-medium">{t("total")}</dt>
             <dd className="font-bold text-red-600">
               {formatVND(data.grandTotal)}
             </dd>
@@ -112,11 +115,11 @@ export function CartView() {
         </dl>
         <Link href="/checkout" className="mt-4 block">
           <Button fullWidth size="lg" variant="primary">
-            Tiến hành thanh toán
+            {t("checkout")}
           </Button>
         </Link>
         <p className="mt-3 text-xs text-zinc-500">
-          Đơn hàng sẽ được tách theo từng gian hàng khi thanh toán.
+          {t("splitNote", { count: data.storeGroups.length })}
         </p>
       </aside>
     </div>
