@@ -1,21 +1,35 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Header, Footer } from "@/components/layout";
 import { Badge } from "@/components/ui";
 import { flashSaleApi } from "@/lib/api";
-import { SLOT_STATUS_LABEL } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { Countdown } from "@/components/flash-sale";
 
-export const metadata = { title: "Flash Sale - Sản phẩm giá sốc" };
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "flash-sale.list" });
+  return {
+    title: `${t("title")} - FlashSale B2C`,
+  };
+}
 
 export default async function FlashSalesPage() {
+  const t = await getTranslations("flash-sale.list");
+  const tStatus = await getTranslations("flash-sale.status");
+  const tSlot = await getTranslations("flash-sale.slot");
   const slots = await flashSaleApi.listSlots();
 
   return (
     <>
       <Header />
       <main className="mx-auto max-w-7xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-bold">Tất cả Flash Sale</h1>
+        <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {slots.map((slot) => (
             <Link
@@ -33,13 +47,13 @@ export default async function FlashSalesPage() {
                         : "default"
                   }
                 >
-                  {SLOT_STATUS_LABEL[slot.status]}
+                  {tStatus(slot.status)}
                 </Badge>
                 {slot.status === "UPCOMING" && (
-                  <Countdown target={slot.startTime} label="Bắt đầu sau" />
+                  <Countdown target={slot.startTime} label={tSlot("startsIn")} />
                 )}
                 {slot.status === "ACTIVE" && (
-                  <Countdown target={slot.endTime} label="Kết thúc sau" />
+                  <Countdown target={slot.endTime} label={tSlot("endsIn")} />
                 )}
               </div>
               <h2 className="text-lg font-semibold">{slot.title}</h2>
@@ -47,7 +61,7 @@ export default async function FlashSalesPage() {
                 {formatDate(slot.startTime)} → {formatDate(slot.endTime)}
               </p>
               <p className="mt-2 text-xs text-zinc-400">
-                {slot.items.length} sản phẩm
+                {t("items", { count: slot.items.length })}
               </p>
             </Link>
           ))}

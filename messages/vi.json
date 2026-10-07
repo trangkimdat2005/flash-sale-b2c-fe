@@ -150,6 +150,7 @@
       "setDefault": "Đặt mặc định",
       "edit": "Sửa",
       "delete": "Xóa",
+      "deleteError": "Có lỗi xảy ra",
       "deleteSuccess": "Đã xóa địa chỉ",
       "setDefaultSuccess": "Đã đặt làm mặc định",
       "saveSuccess": "Đã lưu địa chỉ"

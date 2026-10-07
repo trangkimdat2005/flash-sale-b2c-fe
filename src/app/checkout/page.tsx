@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Header, Footer } from "@/components/layout";
 import { Button, Input as InputField } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { cartApi, orderApi, voucherApi, addressApi } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
-import { money, formatVND } from "@/lib/decimal";
+import { formatVND } from "@/lib/decimal";
 import { ApiError } from "@/lib/api/errors";
 import type { AddressResponse, CartStoreGroup as CartGroup } from "@/types";
 
@@ -16,6 +17,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const toast = useToast();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const t = useTranslations("checkout");
+  const tCommon = useTranslations("common");
 
   const [addressId, setAddressId] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"ZALOPAY" | "COD">("ZALOPAY");
@@ -35,24 +38,27 @@ export default function CheckoutPage() {
   const checkoutMutation = useMutation({
     mutationFn: orderApi.checkout,
     onSuccess: (orders) => {
-      toast.success(`Đã tạo ${orders.length} đơn hàng`);
+      toast.success(t("createdOrders", { count: orders.length }));
       router.push(`/orders/${orders[0].orderCode}`);
     },
     onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Thanh toán thất bại");
+      toast.error(err instanceof ApiError ? err.message : t("paymentFailed"));
     },
   });
 
   if (!accessToken) return null;
   if (cart.isLoading) {
-    return <main className="p-10 text-center text-sm">Đang tải...</main>;
+    return <main className="p-10 text-center text-sm">{t("loading")}</main>;
   }
   if (!cart.data || cart.data.storeGroups.length === 0) {
     return (
       <>
         <Header />
         <main className="p-10 text-center text-sm text-zinc-500">
-          Giỏ hàng trống. <a href="/products" className="text-red-600 underline">Mua sắm ngay</a>
+          {t("emptyCart")}{" "}
+          <a href="/products" className="text-red-600 underline">
+            {tCommon("goShopping")}
+          </a>
         </main>
         <Footer />
       </>
@@ -63,7 +69,7 @@ export default function CheckoutPage() {
 
   const submit = async () => {
     if (!addressId) {
-      toast.warning("Vui lòng chọn địa chỉ giao hàng");
+      toast.warning(t("selectAddress"));
       return;
     }
     const storeOrders = groups.map((g: CartGroup) => ({
@@ -83,13 +89,13 @@ export default function CheckoutPage() {
     <>
       <Header />
       <main className="mx-auto max-w-5xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-bold">Thanh toán</h1>
+        <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
 
-        <Section title="Địa chỉ giao hàng">
+        <Section title={t("addressSection")}>
           <AddressSelector selectedId={addressId} onSelect={setAddressId} />
         </Section>
 
-        <Section title="Phương thức thanh toán">
+        <Section title={t("paymentSection")}>
           <div className="flex gap-3">
             {(["ZALOPAY", "COD"] as const).map((m) => (
               <button
@@ -102,13 +108,13 @@ export default function CheckoutPage() {
                     : "border-zinc-300 dark:border-zinc-700"
                 }`}
               >
-                {m === "ZALOPAY" ? "ZaloPay QR" : "Thanh toán khi nhận (COD)"}
+                {m === "ZALOPAY" ? t("zaloPay") : t("cod")}
               </button>
             ))}
           </div>
         </Section>
 
-        <Section title="Đơn hàng theo cửa hàng">
+        <Section title={t("storesSection")}>
           <div className="space-y-4">
             {groups.map((g) => (
               <div key={g.storeId} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
@@ -123,12 +129,12 @@ export default function CheckoutPage() {
                 </ul>
                 <div className="mt-3 flex items-end gap-2">
                   <InputField
-                    label="Mã giảm giá"
+                    label={t("voucherLabel")}
                     value={voucherCode[g.storeId] ?? ""}
                     onChange={(e) =>
                       setVoucherCode((p) => ({ ...p, [g.storeId]: e.target.value }))
                     }
-                    placeholder="VD: SALE10"
+                    placeholder={t("voucherPlaceholder")}
                   />
                   <Button
                     variant="outline"
@@ -142,18 +148,18 @@ export default function CheckoutPage() {
                           subtotalAmount: g.items.reduce((s, i) => s + Number(i.price) * i.quantity, 0),
                         });
                         setVoucherDiscount((p) => ({ ...p, [g.storeId]: res.discountAmount }));
-                        toast.success(`Giảm ${formatVND(res.discountAmount)}`);
+                        toast.success(t("voucherDiscount", { amount: formatVND(res.discountAmount) }));
                       } catch (err) {
-                        toast.error(err instanceof ApiError ? err.message : "Mã không hợp lệ");
+                        toast.error(err instanceof ApiError ? err.message : t("voucherInvalid"));
                       }
                     }}
                   >
-                    Áp dụng
+                    {t("voucherApply")}
                   </Button>
                 </div>
                 {voucherDiscount[g.storeId] ? (
                   <p className="mt-1 text-xs text-emerald-600">
-                    Đã giảm: -{formatVND(voucherDiscount[g.storeId])}
+                    {t("voucherDiscount", { amount: formatVND(voucherDiscount[g.storeId]) })}
                   </p>
                 ) : null}
               </div>
@@ -167,7 +173,7 @@ export default function CheckoutPage() {
             onClick={submit}
             loading={checkoutMutation.isPending}
           >
-            Đặt hàng
+            {t("submit")}
           </Button>
         </div>
       </main>
@@ -192,6 +198,7 @@ function AddressSelector({
   selectedId: number | null;
   onSelect: (id: number) => void;
 }) {
+  const t = useTranslations("checkout");
   const { data: addresses } = useQuery<AddressResponse[]>({
     queryKey: ["addresses"],
     queryFn: () => addressApi.list(),
@@ -200,7 +207,10 @@ function AddressSelector({
   if (!addresses || addresses.length === 0) {
     return (
       <p className="text-sm text-zinc-500">
-        Bạn chưa có địa chỉ. <a href="/addresses" className="text-red-600 underline">Thêm địa chỉ</a>
+        {t("noAddress")}{" "}
+        <a href="/addresses" className="text-red-600 underline">
+          {t("addAddress")}
+        </a>
       </p>
     );
   }
@@ -208,27 +218,27 @@ function AddressSelector({
   return (
     <div className="space-y-2">
       {addresses.map((a) => (
-<label
-        key={a.id}
-        className={`block rounded-md border p-3 text-sm cursor-pointer ${
-          selectedId === a.id
-            ? "border-red-500 bg-red-50 dark:bg-red-950"
-            : "border-zinc-300 dark:border-zinc-700"
-        }`}
-      >
-        <input
-          type="radio"
-          name="address"
-          className="mr-2"
-          checked={selectedId === a.id}
-          onChange={() => onSelect(a.id)}
-        />
-        <strong>{a.contactName}</strong> · {a.phone}
-        <br />
-        <span className="text-zinc-500">
-          {a.detailAddress}, {a.ward}, {a.district}, {a.province}
-        </span>
-      </label>
+        <label
+          key={a.id}
+          className={`block rounded-md border p-3 text-sm cursor-pointer ${
+            selectedId === a.id
+              ? "border-red-500 bg-red-50 dark:bg-red-950"
+              : "border-zinc-300 dark:border-zinc-700"
+          }`}
+        >
+          <input
+            type="radio"
+            name="address"
+            className="mr-2"
+            checked={selectedId === a.id}
+            onChange={() => onSelect(a.id)}
+          />
+          <strong>{a.contactName}</strong> · {a.phone}
+          <br />
+          <span className="text-zinc-500">
+            {a.detailAddress}, {a.ward}, {a.district}, {a.province}
+          </span>
+        </label>
       ))}
     </div>
   );

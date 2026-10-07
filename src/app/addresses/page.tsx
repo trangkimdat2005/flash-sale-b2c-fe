@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Header, Footer } from "@/components/layout";
 import { Button, Input as InputField } from "@/components/ui";
 import { useToast } from "@/hooks";
@@ -18,6 +19,8 @@ export default function AddressesPage() {
   const toast = useToast();
   const qc = useQueryClient();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const t = useTranslations("address.list");
+  const tCommon = useTranslations("common");
 
   const [editing, setEditing] = useState<AddressResponse | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -36,16 +39,16 @@ export default function AddressesPage() {
     mutationFn: addressApi.delete,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Đã xóa địa chỉ");
+      toast.success(t("deleteSuccess"));
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Lỗi"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("deleteError")),
   });
 
   const setDefault = useMutation({
     mutationFn: addressApi.setDefault,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["addresses"] });
-      toast.success("Đã đặt làm mặc định");
+      toast.success(t("setDefaultSuccess"));
     },
   });
 
@@ -56,16 +59,16 @@ export default function AddressesPage() {
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Sổ địa chỉ</h1>
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
           <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-            + Thêm địa chỉ
+            {t("add")}
           </Button>
         </div>
 
         {addresses.isLoading ? (
-          <p className="text-sm text-zinc-500">Đang tải...</p>
+          <p className="text-sm text-zinc-500">{tCommon("loading")}</p>
         ) : addresses.data?.length === 0 ? (
-          <p className="text-sm text-zinc-500">Bạn chưa có địa chỉ nào.</p>
+          <p className="text-sm text-zinc-500">{t("empty")}</p>
         ) : (
           <div className="space-y-3">
             {addresses.data?.map((a) => (
@@ -82,21 +85,21 @@ export default function AddressesPage() {
                   </p>
                   {a.isDefault && (
                     <span className="mt-1 inline-block rounded bg-red-50 px-2 py-0.5 text-xs text-red-700">
-                      Mặc định
+                      {t("default")}
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
                   {!a.isDefault && (
                     <Button size="sm" variant="outline" onClick={() => setDefault.mutate(a.id)}>
-                      Đặt mặc định
+                      {t("setDefault")}
                     </Button>
                   )}
                   <Button size="sm" variant="outline" onClick={() => { setEditing(a); setFormOpen(true); }}>
-                    Sửa
+                    {t("edit")}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => del.mutate(a.id)}>
-                    Xóa
+                    {t("delete")}
                   </Button>
                 </div>
               </div>
@@ -130,6 +133,9 @@ function AddressForm({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const tList = useTranslations("address.list");
+  const tForm = useTranslations("address.form");
+  const tCommon = useTranslations("common");
   const [form, setForm] = useState({
     contactName: initial?.contactName ?? "",
     phone: initial?.phone ?? "",
@@ -156,12 +162,12 @@ function AddressForm({
       return addressApi.create({ ...parsed, isDefault: form.isDefault });
     },
     onSuccess: () => {
-      toast.success("Đã lưu địa chỉ");
+      toast.success(tList("saveSuccess"));
       onSaved();
     },
     onError: (err) => {
       if (err instanceof ApiError) toast.error(err.message);
-      else toast.error("Vui lòng kiểm tra thông tin");
+      else toast.error(tForm("validationError"));
     },
   });
 
@@ -169,44 +175,44 @@ function AddressForm({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-zinc-900">
         <h2 className="mb-4 text-lg font-semibold">
-          {initial ? "Sửa địa chỉ" : "Thêm địa chỉ mới"}
+          {initial ? tForm("editTitle") : tForm("addTitle")}
         </h2>
         <div className="space-y-3">
           <InputField
-            label="Người nhận"
+            label={tForm("contactName")}
             value={form.contactName}
             onChange={(e) => setForm((p) => ({ ...p, contactName: e.target.value }))}
           />
           <InputField
-            label="Số điện thoại"
+            label={tForm("phone")}
             value={form.phone}
             onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
           />
           <label className="block">
-            <span className="mb-1 block text-sm">Tỉnh/Thành</span>
+            <span className="mb-1 block text-sm">{tForm("province")}</span>
             <select
               value={form.province}
               onChange={(e) => setForm((p) => ({ ...p, province: e.target.value }))}
               className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
             >
-              <option value="">-- Chọn --</option>
+              <option value="">{tForm("selectPlaceholder")}</option>
               {VIETNAM_PROVINCES.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
             </select>
           </label>
           <InputField
-            label="Quận/Huyện"
+            label={tForm("district")}
             value={form.district}
             onChange={(e) => setForm((p) => ({ ...p, district: e.target.value }))}
           />
           <InputField
-            label="Phường/Xã"
+            label={tForm("ward")}
             value={form.ward}
             onChange={(e) => setForm((p) => ({ ...p, ward: e.target.value }))}
           />
           <InputField
-            label="Địa chỉ chi tiết (số nhà, đường)"
+            label={tForm("detail")}
             value={form.detailAddress}
             onChange={(e) => setForm((p) => ({ ...p, detailAddress: e.target.value }))}
           />
@@ -216,13 +222,13 @@ function AddressForm({
               checked={form.isDefault}
               onChange={(e) => setForm((p) => ({ ...p, isDefault: e.target.checked }))}
             />
-            Đặt làm mặc định
+            {tForm("isDefault")}
           </label>
         </div>
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Hủy</Button>
+          <Button variant="outline" onClick={onClose}>{tCommon("cancel")}</Button>
           <Button onClick={() => save.mutate()} loading={save.isPending}>
-            Lưu
+            {tCommon("save")}
           </Button>
         </div>
       </div>

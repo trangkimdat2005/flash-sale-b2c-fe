@@ -150,6 +150,7 @@
       "setDefault": "Set as default",
       "edit": "Edit",
       "delete": "Delete",
+      "deleteError": "Something went wrong",
       "deleteSuccess": "Address removed",
       "setDefaultSuccess": "Set as default",
       "saveSuccess": "Address saved"

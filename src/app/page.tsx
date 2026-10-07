@@ -1,14 +1,31 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Header, Footer } from "@/components/layout";
 import { Button, Badge } from "@/components/ui";
 import { flashSaleApi } from "@/lib/api";
-import { SLOT_STATUS_LABEL } from "@/lib/constants";
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "home.hero" });
+  return {
+    title: `${t("title")} - FlashSale B2C`,
+  };
+}
 
 /**
  * Trang chủ: Hero + danh sách Flash Sale đang/sắp diễn ra.
  * Đây là Server Component — fetch trực tiếp qua apiFetch().
  */
 export default async function HomePage() {
+  const t = await getTranslations("home");
+  const tHero = await getTranslations("home.hero");
+  const tStatus = await getTranslations("flash-sale.status");
+
   let slots: Awaited<ReturnType<typeof flashSaleApi.listSlots>> = [];
   let loadError = false;
 
@@ -26,18 +43,17 @@ export default async function HomePage() {
       <Header />
       <main className="mx-auto max-w-7xl px-4 py-6">
         <section className="rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-orange-500 p-8 text-white">
-          <Badge variant="warning">HOT</Badge>
+          <Badge variant="warning">{tHero("badge")}</Badge>
           <h1 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
-            Flash Sale giờ vàng - giá sốc mỗi ngày
+            {tHero("title")}
           </h1>
           <p className="mt-2 max-w-xl text-sm opacity-90">
-            Đặt chỗ kho trong 5 phút, thanh toán QR ZaloPay hoặc COD.
-            Hàng nghìn người cùng lúc nhấn Mua ngay - không lo hết hàng.
+            {tHero("subtitle")}
           </p>
           <div className="mt-5 flex gap-3">
             <Link href="/flash-sales">
               <Button variant="secondary" size="lg">
-                Xem tất cả Flash Sale
+                {tHero("viewAll")}
               </Button>
             </Link>
             <Link href="/products">
@@ -46,7 +62,7 @@ export default async function HomePage() {
                 size="lg"
                 className="border-white/40 bg-white/10 text-white"
               >
-                Sản phẩm thường
+                {tHero("browseProducts")}
               </Button>
             </Link>
           </div>
@@ -54,14 +70,14 @@ export default async function HomePage() {
 
         {loadError ? (
           <div className="mt-8 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-            Không tải được danh sách Flash Sale. Vui lòng kiểm tra kết nối tới backend.
+            {t("loadError")}
           </div>
         ) : (
           <>
             {active && (
               <section className="mt-8">
                 <div className="mb-3 flex items-center gap-2">
-                  <Badge variant="danger">ĐANG DIỄN RA</Badge>
+                  <Badge variant="danger">{t("activeSection")}</Badge>
                   <h2 className="text-xl font-bold">{active.title}</h2>
                 </div>
                 <Link
@@ -72,7 +88,7 @@ export default async function HomePage() {
                     {active.items[0]?.productName} - {active.items[0]?.variantName}
                   </p>
                   <p className="text-xs text-zinc-500">
-                    {SLOT_STATUS_LABEL[active.status]} · {active.items.length} sản phẩm
+                    {tStatus(active.status)} · {t("productCount", { count: active.items.length })}
                   </p>
                 </Link>
               </section>
@@ -80,7 +96,7 @@ export default async function HomePage() {
 
             {upcoming.length > 0 && (
               <section className="mt-8">
-                <h2 className="mb-3 text-xl font-bold">Sắp diễn ra</h2>
+                <h2 className="mb-3 text-xl font-bold">{t("upcomingSection")}</h2>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   {upcoming.map((slot) => (
                     <Link
@@ -88,10 +104,10 @@ export default async function HomePage() {
                       href={`/flash-sales/${slot.id}`}
                       className="rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
                     >
-                      <Badge variant="info">{SLOT_STATUS_LABEL[slot.status]}</Badge>
+                      <Badge variant="info">{tStatus(slot.status)}</Badge>
                       <h3 className="mt-2 font-semibold">{slot.title}</h3>
                       <p className="text-xs text-zinc-500">
-                        {slot.items.length} sản phẩm
+                        {t("productCount", { count: slot.items.length })}
                       </p>
                     </Link>
                   ))}

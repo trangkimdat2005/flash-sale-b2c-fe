@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { Header, Footer } from "@/components/layout";
 import { Button, Input as InputField } from "@/components/ui";
 import { useToast } from "@/hooks";
@@ -16,6 +17,7 @@ export default function ProfilePage() {
   const toast = useToast();
   const accessToken = useAuthStore((s) => s.accessToken);
   const userProfile = useAuthStore((s) => s.user);
+  const t = useTranslations("profile");
 
   const [pwd, setPwd] = useState({ oldPassword: "", newPassword: "", confirm: "" });
 
@@ -32,10 +34,10 @@ export default function ProfilePage() {
   const changePwd = useMutation({
     mutationFn: authApi.changePassword,
     onSuccess: () => {
-      toast.success("Đổi mật khẩu thành công");
+      toast.success(t("success"));
       setPwd({ oldPassword: "", newPassword: "", confirm: "" });
     },
-    onError: (err) => toast.error(err instanceof ApiError ? err.message : "Lỗi"),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : t("confirmMismatch")),
   });
 
   const logout = () => {
@@ -51,36 +53,36 @@ export default function ProfilePage() {
     <>
       <Header />
       <main className="mx-auto max-w-2xl px-4 py-6">
-        <h1 className="mb-4 text-2xl font-bold">Tài khoản của tôi</h1>
+        <h1 className="mb-4 text-2xl font-bold">{t("title")}</h1>
 
         {profile && (
           <section className="mb-6 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="mb-3 font-semibold">Thông tin cá nhân</h2>
+            <h2 className="mb-3 font-semibold">{t("info")}</h2>
             <dl className="space-y-1 text-sm">
-              <Row label="Email" value={profile.email} />
-              <Row label="Họ tên" value={profile.fullName ?? "—"} />
-              <Row label="Số điện thoại" value={profile.phone ?? "—"} />
+              <Row label={t("email")} value={profile.email} />
+              <Row label={t("fullName")} value={profile.fullName ?? "—"} />
+              <Row label={t("phone")} value={profile.phone ?? "—"} />
             </dl>
           </section>
         )}
 
         <section className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="mb-3 font-semibold">Đổi mật khẩu</h2>
+          <h2 className="mb-3 font-semibold">{t("changePassword")}</h2>
           <div className="space-y-3">
             <InputField
-              label="Mật khẩu hiện tại"
+              label={t("oldPassword")}
               type="password"
               value={pwd.oldPassword}
               onChange={(e) => setPwd((p) => ({ ...p, oldPassword: e.target.value }))}
             />
             <InputField
-              label="Mật khẩu mới"
+              label={t("newPassword")}
               type="password"
               value={pwd.newPassword}
               onChange={(e) => setPwd((p) => ({ ...p, newPassword: e.target.value }))}
             />
             <InputField
-              label="Xác nhận mật khẩu mới"
+              label={t("confirmNew")}
               type="password"
               value={pwd.confirm}
               onChange={(e) => setPwd((p) => ({ ...p, confirm: e.target.value }))}
@@ -94,19 +96,19 @@ export default function ProfilePage() {
                     newPassword: parsed.newPassword,
                   });
                 } catch (e) {
-                  toast.error("Mật khẩu xác nhận không khớp");
+                  toast.error(t("confirmMismatch"));
                 }
               }}
               loading={changePwd.isPending}
             >
-              Đổi mật khẩu
+              {t("submit")}
             </Button>
           </div>
         </section>
 
         <div className="mt-6 flex justify-end">
           <Button variant="outline" onClick={logout}>
-            Đăng xuất
+            {t("logout")}
           </Button>
         </div>
       </main>
