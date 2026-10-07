@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useCountdown } from "@/hooks";
 import { Badge } from "@/components/ui";
 import { Countdown } from "./Countdown";
 import type { PublicFlashSaleSlotResponse } from "@/types";
-import { SLOT_STATUS_LABEL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface SlotCardProps {
@@ -13,6 +13,7 @@ interface SlotCardProps {
 }
 
 export function SlotCard({ slot }: SlotCardProps) {
+  const t = useTranslations("flash-sale");
   const target =
     slot.status === "UPCOMING"
       ? slot.startTime
@@ -22,10 +23,10 @@ export function SlotCard({ slot }: SlotCardProps) {
 
   const countdownLabel =
     slot.status === "UPCOMING"
-      ? "Bắt đầu sau"
+      ? t("slot.startsIn")
       : slot.status === "ACTIVE"
-      ? "Kết thúc sau"
-      : "Đã kết thúc";
+      ? t("slot.endsIn")
+      : t("slot.ended");
 
   const firstItem = slot.items[0];
 
@@ -41,7 +42,7 @@ export function SlotCard({ slot }: SlotCardProps) {
         <div className="absolute inset-0 flex items-end p-4 text-white">
           <div>
             <Badge variant={slot.status === "ACTIVE" ? "danger" : slot.status === "UPCOMING" ? "info" : "default"}>
-              {SLOT_STATUS_LABEL[slot.status]}
+              {t(`status.${slot.status}`)}
             </Badge>
             <h3 className="mt-2 text-lg font-semibold leading-tight line-clamp-2">
               {slot.title}
@@ -58,7 +59,7 @@ export function SlotCard({ slot }: SlotCardProps) {
             </p>
           )}
           <p className="mt-1 text-xs text-zinc-500">
-            {slot.items.length} sản phẩm
+            {t("list.items", { count: slot.items.length })}
           </p>
         </div>
         {target && slot.status !== "ENDED" && (

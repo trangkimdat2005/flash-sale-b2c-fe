@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface CountdownProps {
@@ -15,7 +16,9 @@ interface CountdownProps {
  * Hiển thị đếm ngược HH:MM:SS (hoặc MM:SS nếu dưới 1 giờ).
  * Tự động gọi `onExpire` khi hết thời gian.
  */
-export function Countdown({ target, onExpire, className, label = "Còn" }: CountdownProps) {
+export function Countdown({ target, onExpire, className, label }: CountdownProps) {
+  const t = useTranslations("flash-sale.countdown");
+  const resolvedLabel = label ?? t("defaultLabel");
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -39,7 +42,7 @@ export function Countdown({ target, onExpire, className, label = "Còn" }: Count
   return (
     <div className={cn("inline-flex flex-col items-center gap-1", className)}>
       <span className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-        {label}
+        {resolvedLabel}
       </span>
       <span className="font-mono text-2xl font-bold tabular-nums text-red-600">
         {formatted}

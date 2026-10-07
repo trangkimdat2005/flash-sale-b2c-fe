@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { QRCodeSVG } from "qrcode.react";
 import { Button, Badge } from "@/components/ui";
 import { Countdown } from "./Countdown";
 import type { OrderResponse, PaymentResponse } from "@/types";
-import { PAYMENT_STATUS_LABEL } from "@/lib/constants";
 import { formatVND } from "@/lib/decimal";
 import { formatDate } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ interface QrCardProps {
 }
 
 export function QrCard({ order, payment }: QrCardProps) {
+  const t = useTranslations("flash-sale");
+  const tPay = useTranslations("payment.status");
   // Backend trả về qr_code_data cho ZaloPay QR động.
   const qrValue =
     payment.qrCodeData ??
@@ -25,7 +27,7 @@ export function QrCard({ order, payment }: QrCardProps) {
       <div className="flex flex-col items-center gap-4">
         <div className="text-center">
           <p className="text-xs uppercase tracking-wide text-zinc-500">
-            Quét mã ZaloPay
+            {t("qr.scanInstruction")}
           </p>
           <p className="mt-1 font-mono text-sm font-bold">
             {order.orderCode}
@@ -47,7 +49,7 @@ export function QrCard({ order, payment }: QrCardProps) {
         {payment.status === "PENDING" && order.expiresAt && (
           <Countdown
             target={order.expiresAt}
-            label="Thanh toán trong"
+            label={t("countdown.paymentIn")}
             onExpire={() => {
               // Backend sẽ tự timeout. Trang sẽ tự reload khi WS báo event CANCELLED_TIMEOUT.
             }}
@@ -63,15 +65,15 @@ export function QrCard({ order, payment }: QrCardProps) {
               : "info"
           }
         >
-          {PAYMENT_STATUS_LABEL[payment.status]}
+          {tPay(payment.status)}
         </Badge>
 
         <div className="w-full space-y-2 border-t border-zinc-200 pt-4 text-sm dark:border-zinc-800">
-          <Row label="Đơn hàng" value={order.orderCode} />
-          <Row label="Phương thức" value="ZaloPay QR" />
-          <Row label="Số tiền" value={formatVND(order.totalAmount)} />
-          <Row label="Mã GD" value={payment.transactionCode} />
-          <Row label="Tạo lúc" value={formatDate(payment.createdAt)} />
+          <Row label={t("qr.order")} value={order.orderCode} />
+          <Row label={t("qr.method")} value={t("qr.methodZaloPay")} />
+          <Row label={t("qr.amount")} value={formatVND(order.totalAmount)} />
+          <Row label={t("qr.txCode")} value={payment.transactionCode} />
+          <Row label={t("qr.createdAt")} value={formatDate(payment.createdAt)} />
         </div>
 
         <Button
@@ -79,7 +81,7 @@ export function QrCard({ order, payment }: QrCardProps) {
           className="w-full"
           onClick={() => window.location.reload()}
         >
-          Làm mới trạng thái
+          {t("qr.refresh")}
         </Button>
       </div>
     </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Modal, Input } from "@/components/ui";
 import { Button } from "@/components/ui";
 import { flashSaleApi } from "@/lib/api";
@@ -18,6 +19,7 @@ interface BuyModalProps {
 
 export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
   const router = useRouter();
+  const t = useTranslations("flash-sale.buyModal");
   const pushToast = useUIStore((s) => s.pushToast);
   const [addressId, setAddressId] = useState<number | null>(
     addresses.find((a) => a.isDefault)?.id ?? null
@@ -31,11 +33,11 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
 
   const handleSubmit = async () => {
     if (!addressId) {
-      pushToast({ type: "error", message: "Vui lòng chọn địa chỉ nhận hàng" });
+      pushToast({ type: "error", message: t("selectAddressError") });
       return;
     }
     if (quantity > maxQuantity) {
-      pushToast({ type: "error", message: `Số lượng tối đa là ${maxQuantity}` });
+      pushToast({ type: "error", message: t("quantityError", { max: maxQuantity }) });
       return;
     }
     setSubmitting(true);
@@ -47,13 +49,13 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
       });
       pushToast({
         type: "success",
-        message: "Đặt hàng thành công! Chuyển sang trang thanh toán.",
+        message: t("success"),
       });
       onClose();
       router.push(`/orders/${res.orderCode}`);
     } catch (err) {
       const msg =
-        err instanceof ApiError ? err.message : "Đặt hàng thất bại, thử lại sau";
+        err instanceof ApiError ? err.message : t("errorGeneric");
       pushToast({ type: "error", message: msg });
     } finally {
       setSubmitting(false);
@@ -61,17 +63,17 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Mua ngay Flash Sale">
+    <Modal open={open} onClose={onClose} title={t("title")}>
       <div className="space-y-4">
         <div className="rounded-lg bg-red-50 p-3 text-sm dark:bg-red-950">
           <p className="font-medium text-zinc-900 dark:text-zinc-100">
             {item.productName}
           </p>
           <p className="text-xs text-zinc-600 dark:text-zinc-400">
-            SKU: {item.sku} · Còn {item.availableStock}/{item.allocatedStock}
+            {t("sku")}: {item.sku} · {t("stockOf", { available: item.availableStock, allocated: item.allocatedStock })}
           </p>
           <p className="mt-1 text-xs">
-            Giới hạn mua: {item.userPurchaseLimit} sản phẩm/khách
+            {t("purchaseLimit", { limit: item.userPurchaseLimit })}
           </p>
         </div>
 
@@ -84,7 +86,7 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
             onChange={(e) => setAddressId(Number(e.target.value))}
             className="block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           >
-            <option value="">-- Chọn địa chỉ --</option>
+            <option value="">{t("selectAddress")}</option>
             {addresses.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.contactName} - {a.phone} - {a.ward}, {a.district}
@@ -93,17 +95,17 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
           </select>
           {addresses.length === 0 && (
             <p className="mt-2 text-xs text-rose-600">
-              Bạn chưa có địa chỉ. Vui lòng vào{" "}
+              {t("noAddress")}{" "}
               <a href="/addresses" className="underline">
-                Sổ địa chỉ
+                {t("addressBook")}
               </a>{" "}
-              để thêm.
+              {t("toAdd")}
             </p>
           )}
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium">Số lượng</label>
+          <label className="mb-1.5 block text-sm font-medium">{t("quantity")}</label>
           <Input
             type="number"
             min={1}
@@ -112,7 +114,7 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
             onChange={(e) => setQuantity(Number(e.target.value) || 1)}
           />
           <p className="mt-1 text-xs text-zinc-500">
-            Tối đa {maxQuantity} sản phẩm
+            {t("maxQuantity", { max: maxQuantity })}
           </p>
         </div>
 
@@ -126,7 +128,7 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
             loading={submitting}
             disabled={!addressId || maxQuantity <= 0}
           >
-            Đặt giữ chỗ (5 phút)
+            {t("submit")}
           </Button>
         </div>
       </div>

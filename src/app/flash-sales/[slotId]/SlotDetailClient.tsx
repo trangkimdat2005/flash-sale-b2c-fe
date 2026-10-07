@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Badge } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { StockProgressBar, Countdown, BuyModal } from "@/components/flash-sale";
@@ -18,6 +19,8 @@ type Props = {
 };
 
 export function SlotDetailClient({ slot }: Props) {
+  const t = useTranslations("flash-sale");
+  const tDetail = useTranslations("flash-sale.slotDetail");
   const [selected, setSelected] = useState<PublicFlashSaleItemResponse | null>(null);
   const toast = useToast();
   const isAuth = useAuthStore((s) => s.accessToken) != null;
@@ -35,7 +38,7 @@ export function SlotDetailClient({ slot }: Props) {
           <Countdown
             target={slot.status === "UPCOMING" ? slot.startTime : slot.endTime}
             className="text-lg"
-            label={slot.status === "UPCOMING" ? "Bắt đầu sau" : "Kết thúc sau"}
+            label={slot.status === "UPCOMING" ? tDetail("startsIn") : tDetail("endsIn")}
           />
         </div>
       </div>
@@ -47,7 +50,7 @@ export function SlotDetailClient({ slot }: Props) {
             item={item}
             onBuy={() => {
               if (!isAuth) {
-                toast.warning("Vui lòng đăng nhập để mua");
+                toast.warning(t("buyModal.requireLogin"));
                 return;
               }
               setSelected(item);
@@ -75,6 +78,7 @@ function ItemCard({
   item: PublicFlashSaleItemResponse;
   onBuy: () => void;
 }) {
+  const t = useTranslations("flash-sale.buyModal");
   const stock = useFlashSaleStock(item.id, item.availableStock);
   const total = item.allocatedStock;
   const flashPrice = Number(item.flashSalePrice);
@@ -113,7 +117,7 @@ function ItemCard({
         disabled={stock <= 0 || item.status !== "APPROVED"}
         onClick={onBuy}
       >
-        {stock <= 0 ? "Hết hàng" : "Mua ngay"}
+        {stock <= 0 ? t("outOfStock") : t("buyNow")}
       </Button>
     </div>
   );
