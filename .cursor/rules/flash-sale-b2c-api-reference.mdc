@@ -1,5 +1,5 @@
 ---
-description: Pointer đến docs/api-document.md (tài liệu gốc 1.768 dòng). Chi tiết từng module có ở docs/api-reference.md (995 dòng). Áp dụng khi tích hợp API cụ thể.
+description: Pointer đến docs/api-document.md (tài liệu gốc 1.358 dòng). Chi tiết từng module có ở docs/api-reference.md (791 dòng). Áp dụng khi tích hợp API cụ thể.
 globs:
   - src/lib/api/**
   - src/hooks/**
@@ -14,8 +14,8 @@ alwaysApply: false
 
 > **File này chỉ là POINTER.** Toàn bộ reference chi tiết đã được tách ra 2 file docs:
 >
-> - **`docs/api-document.md`** (1.768 dòng) — **TÀI LIỆU GỐC**, tổng hợp tất cả REST API + WebSocket.
-> - **`docs/api-reference.md`** (995 dòng) — **TÁCH CHI TIẾT TỪNG MODULE** (line 5 tự tham chiếu gốc).
+> - **`docs/api-document.md`** (1.358 dòng) — **TÀI LIỆU GỐC**, tổng hợp tất cả REST API + WebSocket.
+> - **`docs/api-reference.md`** (791 dòng) — **TÁCH CHI TIẾT TỪNG MODULE** (line 5 tự tham chiếu gốc).
 >
 > **Cấm** tra cứu endpoint ở file `.mdc` này. Đọc `docs/api-document.md` hoặc Swagger UI: `http://180.93.137.28/swagger-ui/index.html#/`.
 

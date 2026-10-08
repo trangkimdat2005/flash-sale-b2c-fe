@@ -1,0 +1,35 @@
+# Force LF line endings for all text files (override Windows autocrlf).
+# This prevents corruption when IDE/PowerShell opens files and re-saves with CRLF.
+
+# Default: LF for all text
+* text=auto eol=lf
+
+# Explicit: these are text and must be LF
+*.md       text eol=lf
+*.mdc      text eol=lf
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.js       text eol=lf
+*.jsx      text eol=lf
+*.json     text eol=lf
+*.css      text eol=lf
+*.scss     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.html     text eol=lf
+*.env      text eol=lf
+*.example  text eol=lf
+*.txt      text eol=lf
+
+# Binary: keep as-is
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.webp     binary
+*.ico      binary
+*.woff     binary
+*.woff2    binary
+*.ttf      binary
+*.pdf      binary
+*.zip      binary

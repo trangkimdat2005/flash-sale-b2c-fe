@@ -1,25 +1,25 @@
 ---
-description: Quy ╞░ß╗¢c xß╗¡ l├╜ lß╗ùi ΓÇö ApiError class, toast vs throw vs return, console log, error boundary, 404/500/offline UI. ├üp dß╗Ñng cho mß╗ìi task.
+description: Quy ước xử lý lỗi — ApiError class, toast vs throw vs return, console log, error boundary, 404/500/offline UI. Áp dụng cho mọi task.
 alwaysApply: true
 ---
-> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 ┬╖ React 19.2 ┬╖ TS 5.x ┬╖ Tailwind 4.x
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
-# Error Handling ΓÇö Chuß║⌐n Xß╗¡ L├╜ Lß╗ùi
+# Error Handling — Chuẩn Xử Lý Lỗi
 
-## 1. Ph├ón cß║Ñp lß╗ùi
+## 1. Phân cấp lỗi
 
-| Loß║íi lß╗ùi | V├¡ dß╗Ñ | C├ích xß╗¡ l├╜ |
+| Loại lỗi | Ví dụ | Cách xử lý |
 |---|---|---|
-| **Validation** | Form input sai, body API sai | `setError` (RHF), KH├öNG toast |
-| **Business logic** | Stock = 0, slot ─æ├ú kß║┐t th├║c | Disable button + hiß╗çn message inline |
+| **Validation** | Form input sai, body API sai | `setError` (RHF), KHÔNG toast |
+| **Business logic** | Stock = 0, slot đã kết thúc | Disable button + hiện message inline |
 | **Auth** | 401 expired, refresh fail | Auto refresh, fallback logout (xem `auth-jwt.mdc`) |
 | **Network** | Offline, timeout, 5xx | Toast error, retry option |
 | **System** | 500, crash | Error Boundary + reload page |
-| **Not found** | 404, route kh├┤ng tß╗ôn tß║íi | Empty state page |
+| **Not found** | 404, route không tồn tại | Empty state page |
 
 ## 2. ApiError class (`src/lib/api/errors.ts`)
 
-─É├ú ─æß╗ïnh ngh─⌐a ΓÇö xem `api-data.mdc` mß╗Ñc 3.
+Đã định nghĩa — xem `api-data.mdc` mục 3.
 
 ```ts
 export class ApiError extends Error {
@@ -32,19 +32,19 @@ export class ApiError extends Error {
 }
 ```
 
-- `code` tß╗½ backend (`AUTH_001`, `VALIDATION_ERROR`, ...).
-- Mapping code ΓåÆ user message ß╗ƒ `messages/<locale>.json` key `error.<CODE>` (xem `i18n.mdc` mß╗Ñc 5).
+- `code` từ backend (`AUTH_001`, `VALIDATION_ERROR`, ...).
+- Mapping code → user message ở `messages/<locale>.json` key `error.<CODE>` (xem `i18n.mdc` mục 5).
 
-## 3. Khi n├áo THROW vs RETURN vs TOAST
+## 3. Khi nào THROW vs RETURN vs TOAST
 
 ### THROW (default cho API layer + hook layer)
 
-- `apiFetch` throw `ApiError` khi response kh├┤ng OK.
-- Pure API function trong `api-helpers.ts` kh├┤ng cß║ºn throw th├¬m (─æ├ú ─æ╞░ß╗úc `apiFetch` xß╗¡ l├╜).
-- Hook trong `api.ts` KH├öNG `try/catch` ΓÇö ─æß╗â error bubble l├¬n component.
+- `apiFetch` throw `ApiError` khi response không OK.
+- Pure API function trong `api-helpers.ts` không cần throw thêm (đã được `apiFetch` xử lý).
+- Hook trong `api.ts` KHÔNG `try/catch` — để error bubble lên component.
 
 ```ts
-// Γ£à apiFetch throw
+// ✅ apiFetch throw
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(...);
   if (!res.ok) throw parseError(res);
@@ -52,19 +52,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 }
 ```
 
-### CATCH (ß╗ƒ component hoß║╖c n╞íi cß║ºn user feedback)
+### CATCH (ở component hoặc nơi cần user feedback)
 
-- Component xß╗¡ l├╜ error trong `mutation.onError` hoß║╖c `query.isError`.
-- KH├öNG `try/catch` trong hook (─æß╗â component tß╗▒ quyß║┐t).
+- Component xử lý error trong `mutation.onError` hoặc `query.isError`.
+- KHÔNG `try/catch` trong hook (để component tự quyết).
 
 ```tsx
-// Γ£à Component
+// ✅ Component
 const addItem = useAddCartItem();
 addItem.mutate(data, {
   onError: (err) => {
     if (err instanceof ApiError) {
       if (err.code === 'VALIDATION_ERROR') {
-        // map details ΓåÆ form errors (xem validation-forms.mdc)
+        // map details → form errors (xem validation-forms.mdc)
       } else {
         toast.error(t(`error.${err.code}`));
       }
@@ -75,39 +75,39 @@ addItem.mutate(data, {
 });
 ```
 
-### RETURN error (khi cß║ºn pattern matching)
+### RETURN error (khi cần pattern matching)
 
-- Form c├│ thß╗â return error object thay v├¼ throw.
-- Custom hook c├│ thß╗â return `{ error, data }` khi cß║ºn explicit.
+- Form có thể return error object thay vì throw.
+- Custom hook có thể return `{ error, data }` khi cần explicit.
 
 ### TOAST
 
-- Chß╗ë d├╣ng khi user cß║ºn feedback ngay (vd: "Thanh to├ín thß║Ñt bß║íi").
-- KH├öNG toast validation error (hiß╗ân thß╗ï inline trong form).
+- Chỉ dùng khi user cần feedback ngay (vd: "Thanh toán thất bại").
+- KHÔNG toast validation error (hiển thị inline trong form).
 
 ## 4. Console log
 
-| Level | Khi n├áo | Format |
+| Level | Khi nào | Format |
 |---|---|---|
-| `console.error` | Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc, bug | `console.error('[<module>.<func>]', err)` |
-| `console.warn` | Edge case ─æ├ú handle nh╞░ng cß║ºn biß║┐t | `console.warn('[<module>.<func>]', { state })` |
-| `console.log` | Debug tß║ím, KH├öNG commit | Xo├í tr╞░ß╗¢c khi commit |
-| `console.info` | Hiß║┐m, th├┤ng tin kh├┤ng quan trß╗ìng | ΓÇö |
+| `console.error` | Lỗi không xử lý được, bug | `console.error('[<module>.<func>]', err)` |
+| `console.warn` | Edge case đã handle nhưng cần biết | `console.warn('[<module>.<func>]', { state })` |
+| `console.log` | Debug tạm, KHÔNG commit | Xoá trước khi commit |
+| `console.info` | Hiếm, thông tin không quan trọng | — |
 
-**KH├öNG log**:
+**KHÔNG log**:
 
 - Token (`access_token`, `refresh_token`).
 - Password, secret, API key.
-- PII (email, sß╗æ ─æiß╗çn thoß║íi, ─æß╗ïa chß╗ë) ΓÇö chß╗ë log khi cß║ºn thiß║┐t phß║úi debug.
+- PII (email, số điện thoại, địa chỉ) — chỉ log khi cần thiết phải debug.
 
-**Format chuß║⌐n**:
+**Format chuẩn**:
 
 ```ts
 console.error('[cart.useAddItem]', err);
 console.error('[cart.useAddItem] Invalid input', { data, validationErr });
 ```
 
-ΓåÆ Prefix `[<module>.<func>]` ─æß╗â dß╗à grep.
+→ Prefix `[<module>.<func>]` để dễ grep.
 
 ## 5. Error Boundary
 
@@ -119,8 +119,8 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
   return (
     <html>
       <body>
-        <h2>─É├ú c├│ lß╗ùi xß║úy ra</h2>
-        <button onClick={reset}>Thß╗¡ lß║íi</button>
+        <h2>Đã có lỗi xảy ra</h2>
+        <button onClick={reset}>Thử lại</button>
       </body>
     </html>
   );
@@ -148,9 +148,9 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
 }
 ```
 
-ΓåÆ Error Boundary KH├öNG catch ─æ╞░ß╗úc async error + Server Component error trong Next 16 d├╣ng `error.tsx`.
+→ Error Boundary KHÔNG catch được async error + Server Component error trong Next 16 dùng `error.tsx`.
 
-### Per-component error (t├╣y chß╗ìn, cho component quan trß╗ìng)
+### Per-component error (tùy chọn, cho component quan trọng)
 
 ```tsx
 import { ErrorBoundary } from 'react-error-boundary';
@@ -160,76 +160,76 @@ import { ErrorBoundary } from 'react-error-boundary';
 </ErrorBoundary>
 ```
 
-ΓåÆ D├╣ng cho widget quan trß╗ìng (vd: countdown timer, payment QR) ΓÇö kh├┤ng crash cß║ú page.
+→ Dùng cho widget quan trọng (vd: countdown timer, payment QR) — không crash cả page.
 
-## 6. Page lß╗ùi ─æß║╖c th├╣
+## 6. Page lỗi đặc thù
 
-| Trang | Khi n├áo | File |
+| Trang | Khi nào | File |
 |---|---|---|
-| 404 | Route kh├┤ng match | `src/app/not-found.tsx` |
+| 404 | Route không match | `src/app/not-found.tsx` |
 | 500 | Server Component throw | `src/app/error.tsx` |
 | Global crash | Root layout throw | `src/app/global-error.tsx` |
 | Network offline | `navigator.onLine === false` | `src/components/common/OfflineBanner.tsx` |
-| Empty state | Query trß║ú vß╗ü rß╗ùng | Inline trong component |
+| Empty state | Query trả về rỗng | Inline trong component |
 
 ### Empty state pattern
 
 ```tsx
 const { data, isLoading } = useCart();
 if (isLoading) return <Skeleton />;
-if (!data || data.items.length === 0) return <EmptyState icon="≡ƒ¢Æ" title={t('empty')} />;
+if (!data || data.items.length === 0) return <EmptyState icon="🛒" title={t('empty')} />;
 return <CartList items={data.items} />;
 ```
 
-ΓåÆ KH├öNG trß║ú vß╗ü `null` ΓÇö lu├┤n c├│ fallback UI.
+→ KHÔNG trả về `null` — luôn có fallback UI.
 
 ## 7. Race condition handling
 
-| T├¼nh huß╗æng | C├ích xß╗¡ l├╜ |
+| Tình huống | Cách xử lý |
 |---|---|
-| User click "Mua" 2 lß║ºn nhanh | Disable button ngay khi click, d├╣ng `Idempotency-Key` |
-| Backend confirm sold-out tr╞░ß╗¢c WS | Refetch tr╞░ß╗¢c khi mutate, check 409 |
-| Token expired trong l├║c fetch | `apiFetch` tß╗▒ refresh 1 lß║ºn (xem `auth-jwt.mdc`) |
-| Race giß╗»a mutation v├á refetch | TanStack Query tß╗▒ handle, nh╞░ng check `mutation.isPending` |
+| User click "Mua" 2 lần nhanh | Disable button ngay khi click, dùng `Idempotency-Key` |
+| Backend confirm sold-out trước WS | Refetch trước khi mutate, check 409 |
+| Token expired trong lúc fetch | `apiFetch` tự refresh 1 lần (xem `auth-jwt.mdc`) |
+| Race giữa mutation và refetch | TanStack Query tự handle, nhưng check `mutation.isPending` |
 
 ## 8. Retry strategy
 
-| Loß║íi error | Retry? |
+| Loại error | Retry? |
 |---|---|
-| Network error (timeout, offline) | Γ£à Retry 1 lß║ºn vß╗¢i exponential backoff |
-| 5xx server error | Γ£à Retry 1 lß║ºn |
-| 4xx client error | Γ¥î KH├öNG retry |
-| 401 (auth) | Refresh token ΓåÆ retry 1 lß║ºn |
-| 409 (conflict) | Γ¥î KH├öNG retry (state conflict) |
-| 429 (rate limit) | Retry sau `Retry-After` gi├óy |
+| Network error (timeout, offline) | ✅ Retry 1 lần với exponential backoff |
+| 5xx server error | ✅ Retry 1 lần |
+| 4xx client error | ❌ KHÔNG retry |
+| 401 (auth) | Refresh token → retry 1 lần |
+| 409 (conflict) | ❌ KHÔNG retry (state conflict) |
+| 429 (rate limit) | Retry sau `Retry-After` giây |
 
-## 9. Loading state (KH├öNG phß║úi lß╗ùi nh╞░ng li├¬n quan)
+## 9. Loading state (KHÔNG phải lỗi nhưng liên quan)
 
-- `isLoading` ban ─æß║ºu ΓåÆ Skeleton.
-- `isFetching` (refetch) ΓåÆ KH├öNG skeleton (giß╗» UI c┼⌐, optional spinner nhß╗Å).
-- `isPending` (mutation) ΓåÆ Disable button + spinner tr├¬n button.
+- `isLoading` ban đầu → Skeleton.
+- `isFetching` (refetch) → KHÔNG skeleton (giữ UI cũ, optional spinner nhỏ).
+- `isPending` (mutation) → Disable button + spinner trên button.
 
-## 10. Khi user gß║╖p lß╗ùi user-facing
+## 10. Khi user gặp lỗi user-facing
 
-- C├│ message r├╡ r├áng bß║▒ng tiß║┐ng Viß╗çt.
-- C├│ action ─æß╗â user thß╗¡ lß║íi (n├║t "Thß╗¡ lß║íi", "Quay lß║íi trang chß╗º").
-- KH├öNG hiß╗çn stack trace cho user cuß╗æi.
-- Log ─æß║ºy ─æß╗º stack trace ß╗ƒ console (chß╗ë dev).
+- Có message rõ ràng bằng tiếng Việt.
+- Có action để user thử lại (nút "Thử lại", "Quay lại trang chủ").
+- KHÔNG hiện stack trace cho user cuối.
+- Log đầy đủ stack trace ở console (chỉ dev).
 
-## 11. Khi n├áo b├ío user (trong agent context)
+## 11. Khi nào báo user (trong agent context)
 
-- Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc (bug thß║¡t).
-- Backend trß║ú field/code mß╗¢i kh├┤ng c├│ trong mapping.
-- Error k├⌐o d├ái > 5s (network chß║¡m).
-- Token kh├┤ng refresh ─æ╞░ß╗úc sau 2 lß║ºn.
+- Lỗi không xử lý được (bug thật).
+- Backend trả field/code mới không có trong mapping.
+- Error kéo dài > 5s (network chậm).
+- Token không refresh được sau 2 lần.
 
-## 12. KH├öNG
+## 12. KHÔNG
 
-- KH├öNG swallow error (`catch {}` rß╗ùng).
-- KH├öNG `try/catch` ß╗ƒ hook layer.
-- KH├öNG toast validation error.
-- KH├öNG log token/password/PII ra console.
-- KH├öNG `console.error(err)` kh├┤ng c├│ prefix module.
-- KH├öNG trß║ú `null` thay v├¼ empty state UI.
-- KH├öNG retry 4xx error.
-- KH├öNG ─æß╗â user thß║Ñy raw error.message tß╗½ backend.
+- KHÔNG swallow error (`catch {}` rỗng).
+- KHÔNG `try/catch` ở hook layer.
+- KHÔNG toast validation error.
+- KHÔNG log token/password/PII ra console.
+- KHÔNG `console.error(err)` không có prefix module.
+- KHÔNG trả `null` thay vì empty state UI.
+- KHÔNG retry 4xx error.
+- KHÔNG để user thấy raw error.message từ backend.
