@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Header, Footer } from "@/components/layout";
@@ -56,9 +57,9 @@ export default function CheckoutPage() {
         <Header />
         <main className="p-10 text-center text-sm text-zinc-500">
           {t("emptyCart")}{" "}
-          <a href="/products" className="text-red-600 underline">
+          <Link href="/products" className="text-red-600 underline">
             {tCommon("goShopping")}
-          </a>
+          </Link>
         </main>
         <Footer />
       </>
