@@ -1,0 +1,392 @@
+---
+description: Quy t?c b?t bu?c khi thêm ho?c s?a file trong .cursor/rules/ ? xin phép tr??c, l?p plan, ?ánh giá model, h?i tr??c khi th?c hi?n.
+globs:
+  - .cursor/rules/*.mdc
+  - AGENTS.md
+alwaysApply: true
+---
+> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Workflow ? 6 B??c B?t Bu?c
+
+M?i thay ??i **l?n** (s?a rule, t?o/s?a nhi?u file, refactor) ph?i qua 6 b??c. Thay ??i nh? (s?a 1 dòng, format) có th? g?p b??c 4+5.
+
+## B??c 0 ? Xin phép
+
+**Tr??c khi vào B??c 1**, v?i m?i thay ??i **l?n** (theo b?ng tiêu chí cu?i file), ph?i **nói rõ** cho user bi?t:
+
+- Tôi ??nh làm gì (1?2 dòng tóm t?t).
+- B??c nào s?p ch?y (Plan / Chia plan / Model / H?i / Làm / Review).
+- T?i sao c?n xin phép (thay ??i architecture / multi-file / sensitive).
+
+? Dùng `AskQuestion` v?i các l?a ch?n rõ ràng (??ng ý / ch?nh s?a / h?y).
+
+? **Ch? user tr? l?i** tr??c khi chuy?n sang B??c 1.
+
+### Quy?t ??nh B?T BU?C ph?i h?i
+
+| Quy?t ??nh | Lý do |
+|---|---|
+| Duy?t **Plan** t?ng th? (B??c 1) | User c?n bi?t scope tr??c khi agent vi?t/s?a file |
+| Duy?t cách **chia plan** (B??c 2) | User c?n ki?m soát s? subagent + cách phân chia subplan |
+| Duy?t **format / scope** cho refactor l?n (B??c 4) | Quy?t ??nh genuinely c?a user (AGENTS.md) |
+| Duy?t thay ??i **sensitive** (auth/payment/deploy) | Quy?t ??nh có r?i ro cao |
+
+### KHÔNG c?n h?i (ch?y th?ng)
+
+- **S?a typo / format 1 dòng** ? ?ã có trong b?ng tiêu chí.
+- **Áp d?ng rule rõ ràng ?ã ch?t** (vd: stack version, commit format) ? user ?ã duy?t t? tr??c.
+- **B??c 3 (Model)** t? ?ánh giá ? không ph?i decision c?n xin phép.
+- **B??c 5 (Làm)** ?ã có plan ???c duy?t ? B??c 0+1.
+- **B??c 6 (Review)** là báo cáo ? user t? ph?n h?i.
+
+### Ví d?
+
+| Tình hu?ng | Hành ??ng |
+|---|---|
+| User nói "thêm rule chia plan" | B??c 0: nói "Tôi s? thêm B??c 2 ? Chia plan vào `workflow-process.mdc`. H?i 1 câu: tách thành b??c riêng hay nhúng vào Plan?" ? AskQuestion |
+| User nói "s?a typo trong file X" | Không h?i ? s?a luôn, báo cáo ? B??c 6 |
+| User nói "refactor c? folder `src/types/`" | B??c 0: nói scope + cách chia ? AskQuestion ? ch? duy?t ? Plan ? Chia plan ? H?i format chi ti?t ? Làm |
+| User nói "thêm auth m?i" | B??c 0: nói sensitive ? AskQuestion ? n?u ??ng ý m?i qua Plan |
+
+## B??c 0.5 ? Worktree (khi 2 chat song song)
+
+> **Tách sang `git-worktree.mdc` (commit này)** ? concern git workflow isolation, không ph?i process step. Rule m?i ch?a toàn b?: khi nào trigger, quy t?c, format h?i user, l?nh m?u, ví d?, l?u ý.
+>
+> Khi phát hi?n ? 2 chat song song có kh? n?ng conflict file ? load `git-worktree.mdc` ?? xem chi ti?t + dùng `AskQuestion` ?? xu?t worktree.
+
+## B??c 1 ? Plan
+
+Vi?t ra:
+- Task c?n làm (1?3 dòng).
+- File thay ??i (path + b?n ch?t: t?o / s?a / xoá).
+- N?u refactor nhi?u file ? list concern nhóm.
+
+## B??c 2 ? Chia plan
+
+Sau khi vi?t Plan ? B??c 1, **phân rã plan thành các subplan ??c l?p** tr??c khi vào B??c 3 (H?i). M?i subplan ???c dispatch cho 1 subagent.
+
+### Phân c?p: Plan ? Subplan ? Task
+
+```text
+Plan      = m?c tiêu l?n (vd: "build cart module", "migrate sang i18n")
+Subplan   = ph?n ??c l?p theo concern/ownership (vd: "CartView UI", "CartStore logic", "Cart tests")
+Task      = công vi?c c? th? trong subplan (vd: "t?o CartItemRow.tsx", "thêm useCart.ts hook")
+```
+
+| C?p | Ph?m vi | Phân b? |
+|---|---|---|
+| **Plan** | Nhi?u subplan + nhi?u task (toàn b? work) | Coordinator (chính agent) |
+| **Subplan** | Nhi?u task related cùng concern/ownership | **1 subagent** (subplan owner) |
+| **Task** | 1 file c? th?, 1 hàm c? th? | Subagent t? x? lý trong subplan |
+
+### Quy t?c 1 subagent = 1 subplan
+
+M?i subagent ph? trách **?úng 1 subplan** (g?m nhi?u task related), không g?p nhi?u subplan:
+
+```
+? 1 agent làm toàn b? plan (4 module, 12 file)
+? 1 agent = 1 file (12 file ? 12 agent)
+? 1 plan có 4 subplan ? 4 subagent, m?i subagent 1 subplan (1 module, 3 file related)
+? 1 plan có 1 subplan ? 1 subagent (1 module, 3 file) ho?c coordinator t? làm
+```
+
+Lý do: **subplan owner hi?u sâu concern c?a mình**, context cô l?p gi?a các concern, debug theo concern, k?t qu? rõ ràng.
+
+### Tiêu chí CHIA plan thành subplan
+
+M?t subplan là **??c l?p (independent)** v?i subplan khác khi th?a **t?t c?** 4 tiêu chí:
+1. **Khác concern/ownership** ? module khác, feature khác, ho?c ph?n riêng bi?t trong cùng module (vd: UI vs logic vs tests).
+2. **Khác file ?ích g?c** ? không s?a cùng file. N?u 2 subplan cùng s?a 1 file ? g?p l?i thành 1 subplan.
+3. **Không ph? thu?c output** ? subplan B không c?n k?t qu? subplan A ?? ch?y. N?u ph? thu?c ? ?ánh d?u th? t?, ch?y tu?n t?.
+4. **Review ??c l?p** ? reviewer ??c 1 subplan có th? hi?u ???c mà không c?n ??c subplan khác.
+
+? N?u t?t c? subplan ??u ??c l?p ? dispatch song song trong 1 response.
+? N?u có subplan ph? thu?c ? gom nhóm ph? thu?c, ch?y theo th? t? gi?a các nhóm, song song trong t?ng nhóm.
+
+### Khi nào KHÔNG c?n subagent
+
+Coordinator t? làm khi:
+- **Plan ch? có 1 subplan** và subplan ?ó nh? (? 2 file, scope ?ã rõ) ? không c?n dispatch.
+- **Subplan quá l?n so v?i 1 subagent** (> 5 file, > 2 concern l?ng nhau) ? tách nh? subplan tr??c khi dispatch.
+- **T?t c? subplan ph? thu?c tu?n t?** (subplan B c?n output A) ? ch?y tu?n t?, có th? t? làm n?u ??n gi?n.
+
+### Cách dispatch (multi-call trong 1 response)
+
+??t **t?t c? subagent call trong cùng 1 response** (function_calls block) ? ch?y song song th?t s?.
+M?i subagent ph?i nh?n:
+- **Subplan c? th?**: concern + danh sách task (file) trong subplan, ranh gi?i v?i subplan khác.
+- **Context ??y ??**: paste rule liên quan, format yêu c?u, m?u n?u có, dependency t? subplan khác (n?u có).
+- **Model**: ch?n theo b?ng d??i.
+- **Constraint**: KHÔNG s?a ngoài subplan, KHÔNG push, KHÔNG m? r?ng sang subplan khác, KHÔNG t? ý t?o file ngoài scope.
+- **Output k? v?ng**: báo cáo theo format `AGENTS.md` (B??c 6).
+
+**Gi?i h?n th?c t?**: ? 8 subagent / response. N?u plan có > 8 subplan ??c l?p ? batch nhi?u response, m?i response ? 8.
+
+### Ch?n model
+
+M?i subplan c?n **?ánh giá model phù h?p** tr??c khi dispatch. Không dùng model m?nh cho subplan ??n gi?n.
+
+#### B?ng ch?n model theo lo?i subplan
+
+| Lo?i subplan | Model khuy?n ngh? | Lý do |
+|---|---|---|
+| Subplan t?o/s?a nhi?u file rule `.mdc` cùng concern | `inherit` | C?n tuân th? format ch?t ch?, context rule có s?n |
+| Subplan scaffold 1 module Next.js (UI + types + store + API) | `inherit` | Boilerplate, convention rõ trong `layer-convention.mdc` |
+| Subplan t?o 1 module logic/phân tích (services + tests) | `inherit` | Code pattern có s?n |
+| Subplan refactor ki?n trúc l?n (1 layer, nhi?u file) | `inherit` | C?n hi?u full context c?a layer ?ó |
+| Subplan fix bug theo module (nhi?u file liên quan) | `inherit` | Debug pattern có s?n |
+| Subplan tích h?p nhi?u concern m?i, ch?a có pattern | `inherit` | ?? coordinator t? quy?t ??nh model t?i ?u |
+
+#### H?i user v? model
+
+Sau khi ?ánh giá model cho t?ng subplan, trình bày theo format:
+
+```text
+## ?ánh giá chia plan (B??c 2)
+
+Plan: "Xây cart module" ? 4 subplan ??c l?p
+
+| # | Subplan | Task trong subplan | Model ?? xu?t | Lý do |
+|---|---|---|---|---|
+| 1 | CartView UI | CartView.tsx, CartItemRow.tsx, checkout/page.tsx | inherit | Boilerplate, convention rõ |
+| 2 | CartStore + hooks | stores/cart.store.ts, hooks/useCart.ts | inherit | Pattern có s?n (Zustand) |
+| 3 | Cart API + types | lib/api/cart.api.ts, types/cart.ts | inherit | Theo api/client.ts template |
+| 4 | Cart tests | cart.test.ts (4 file rule) | inherit | Snapshot tests, pattern c? |
+
+? Câu h?i: Dùng 1 model cho t?t c? hay theo ?? xu?t t?ng subplan?
+- Dùng inherit cho t?t c? (Recommended)
+- Theo ?? xu?t t?ng subplan (b?ng trên)
+- Model khác (ch? ??nh)
+```
+
+? Dùng `AskQuestion` v?i 3 l?a ch?n.
+
+### Sau khi subagent xong
+
+1. **??c t?ng summary** ? xác nh?n ?úng subplan, không l?ch sang subplan khác.
+2. **Verify t?ng th?** ? ch?y build/lint, ??c các file m?i xem có conflict gi?a các subplan không.
+3. **??i chi?u plan** ? subplan nào ch?a xong, subplan nào d?.
+4. **Báo cáo user** theo format B??c 6.
+
+### Ví d?
+
+| Plan | Phân rã subplan | Cách ch?y |
+|---|---|---|
+| **Build "cart module"** (4 concern) | SP1: CartView UI · SP2: CartStore + hooks · SP3: Cart API + types · SP4: Cart tests | 4 subagent song song, m?i agent 1 subplan |
+| **Migrate sang i18n** (3 phase) | SP1: Tách i18n provider · SP2: Migrate features · SP3: Update AGENTS.md | SP1 song song SP2 ? SP3 tu?n t? sau (SP3 c?p nh?t index reference SP1+SP2) |
+| **Scaffold 4 module** (auth, cart, product, order) | 4 subplan = 4 module | 4 subagent song song, m?i agent scaffold 1 module (4?5 file) |
+| **T?o 22 file rule `.mdc`** (rule docs) | 1 subplan = "all rule docs" (1 concern duy nh?t) | **Coordinator t? làm** ? 22 file cùng concern, không có subplan ??c l?p ?? tách |
+| **S?a 1 component có 3 l?i** (1 file) | 1 subplan = "fix component X" | **Coordinator t? làm** ? 1 file, không tách ???c |
+| **4 fix bug ? 4 module khác nhau** | 4 subplan = 4 module | 4 subagent song song |
+
+## B??c 3 ? Model
+
+?ánh giá **mình có làm ???c không**:
+- **T? làm** ? s?a file ??n l?, scope < 1 file, ?ã bi?t rõ n?i dung.
+- **T? làm + review chéo** ? refactor nhi?u file cùng concern, thay ??i n?i dung không sensitive.
+- **C?n user** ? c?n quy?t ??nh format/stack/scope, thay ??i sensitive (auth, payment, deploy).
+- **Subagent** ? subplan ?ã xác ??nh ? B??c 2 là ??c l?p, m?i subagent ph? trách 1 subplan (nhi?u task related) v?i scope + context ??y ??. **Model**: ?ã ch?n ? B??c 2 (h?i user n?u ch?a).
+
+## B??c 4 ? H?i
+
+Dùng `AskQuestion` cho m?i quy?t ??nh **genuinely c?a user**:
+- Format (s? dòng, c?u trúc, schema).
+- Stack (lib nào, version nào).
+- Scope (rule nào, file nào, bao nhiêu).
+- Khi có ? 2 approach h?p lý.
+
+**KHÔNG h?i** khi:
+- ?ã có rule rõ ràng (`stack-versions.mdc` ?ã ch?t Next 16.3.8).
+- Thay ??i nh? không ?nh h??ng ki?n trúc.
+- Có default h?p lý trong rule khác.
+
+### Thông tin B?T BU?C kèm theo câu h?i
+
+M?i l?n h?i user, **B?T BU?C** trình bày tr??c 3 kh?i thông tin ?? user n?m rõ context tr??c khi ch?n. Áp d?ng cho **m?i câu h?i** (B??c 0, B??c 2, B??c 4) ? không ch? B??c 4.
+
+| Kh?i | Câu h?i ph?i tr? l?i | N?i dung ví d? |
+|---|---|---|
+| **Scope** | Câu h?i này ?ang quy?t ??nh cái gì? Ph?m vi nào? | S?a rule `workflow-process.mdc` B??c 2; thêm 1 file `.mdc` m?i; refactor folder `src/types/` |
+| **Impact** | N?u user ch?n X, h? qu? là gì? S? file, concern, vùng ?nh h??ng? | 1 file rule; 4?5 module; UI component + store; sensitive = auth/payment |
+| **Risk** | R?i ro / ?i?m c?n cân nh?c? Có lock-in gì không? C?n rollback không? | Không reversible (rename); sensitive (auth); c?n test; breaking change API |
+
+**Format**: dùng **b?ng** (markdown table) ? không bullet, không free text ? ?? user scan nhanh.
+
+### Hai ch? ?? h?i
+
+M?i câu h?i ??u ph?i có **markdown text ??y ??** (Scope/Impact/Risk + b?ng ?áp án) tr??c. Sau ?ó tu? ng? c?nh ch?n 1 trong 2 ch? ??:
+
+| Ch? ?? | Khi nào dùng | ?u ?i?m |
+|---|---|---|
+| **A ? Popup UI (`AskQuestion`)** (m?c ??nh) | Câu h?i có ? 3 ?áp án, user click nhanh ???c | User click nhanh, ít gõ |
+| **B ? Markdown text thu?n (không UI)** | Câu h?i ph?c t?p (nhi?u options, c?n gi?i thích dài, ? 3 ?áp án) | ??c ??y ?? trong transcript, không b? che b?i popup |
+
+**Quy t?c**:
+- **Markdown text ??y ?? LUÔN ph?i có tr??c** ? b?t k? dùng ch? ?? A hay B. User ph?i ??c ???c full context trong chat.
+- **Ch? ?? A (popup UI) là m?c ??nh** ? ch? chuy?n sang B khi user yêu c?u rõ ("??a luôn thông tin lên câu h?i và ?áp án" ho?c câu h?i quá ph?c t?p ?? gói g?n trong popup).
+- **Không ???c g?i `AskQuestion` UI mà KHÔNG có markdown text ??y ?? ?i kèm tr??c** ? ?ây là l?i vi ph?m rule.
+
+#### Template m?u (ch? ?? A ? popup UI, m?c ??nh)
+
+```text
+Tr??c khi h?i, ?ây là context ??y ??:
+
+| Kh?i | N?i dung |
+|---|---|
+| **Scope** | [Câu h?i này quy?t ??nh cái gì, ph?m vi nào] |
+| **Impact** | [S? file, concern, vùng ?nh h??ng n?u user ch?n approach A/B/C] |
+| **Risk** | [R?i ro: không reversible / sensitive / c?n test / breaking change] |
+
+**?áp án (ch?n 1):**
+
+| # | L?a ch?n | Mô t? |
+|---|---|---|
+| **A** | [Tên option A] | [Mô t? ng?n] (Recommended) |
+| **B** | [Tên option B] | [Mô t? ng?n] |
+| **C** | [Tên option C] | [Mô t? ng?n] |
+
+B?n ch?n A, B, hay C?
+<g?i AskQuestion UI v?i 3 options t??ng ?ng>
+```
+
+#### Ví d? c? th? (ch? ?? A)
+
+```text
+Tr??c khi h?i, ?ây là context ??y ??:
+
+| Kh?i | N?i dung |
+|---|---|
+| **Scope** | Quy?t ??nh cách chia "build cart module" thành subplan (B??c 2) |
+| **Impact** | 4 module × ~5 file = ~20 file; 1 plan ? 1?4 subplan ? 1?4 subagent song song |
+| **Risk** | Không reversible n?u ?ã dispatch (subagent ?ã ??c context); sensitive = không (cart th??ng) |
+
+**?áp án (ch?n 1):**
+
+| # | L?a ch?n | Mô t? |
+|---|---|---|
+| **A** | 1 subplan = 1 module (4 subplan, 4 subagent song song) | (Recommended) |
+| **B** | 1 subplan = 1 layer (UI / API / store / tests ? ~12 subplan) | |
+| **C** | 1 subplan = toàn b? plan (1 subagent, tu?n t?) | |
+
+B?n ch?n A, B, hay C?
+<g?i AskQuestion UI v?i 3 options A/B/C>
+```
+
+#### Khi nào chuy?n sang ch? ?? B (markdown text thu?n)
+
+Ch? dùng khi:
+- Câu h?i có ? 4 ?áp án ph?c t?p, m?i ?áp án c?n gi?i thích dài h?n 1 dòng.
+- User yêu c?u rõ ràng ("??a luôn thông tin lên câu h?i và ?áp án", "không c?n popup", "tr? l?i trong chat").
+- Câu h?i c?n user gõ l?i câu tr? l?i dài (không phù h?p click nhanh).
+
+Cách làm: trình bày ??y ?? trong markdown, **KHÔNG** g?i `AskQuestion` UI. User s? t? tr? l?i trong transcript chat ti?p theo.
+
+#### Tr??ng h?p ??c bi?t
+- **Nhi?u câu h?i cùng lúc**: m?i câu trong `AskQuestion` ??u c?n Scope/Impact/Risk riêng (không g?p chung).
+- **Câu h?i nhanh (yes/no)**: v?n ph?i có Scope/Impact/Risk ? có th? g?n 1 dòng m?i kh?i.
+- **Sau khi user h?i ng??c "t?i sao?"**: tr? l?i th?ng vào kh?i Risk (?ó là lý do c?n h?i).
+
+## B??c 5 ? Làm
+
+Th?c hi?n theo plan, **không m? r?ng scope** ngoài câu h?i ?ã h?i.
+
+**Nguyên t?c**:
+- 1 commit = 1 concern (xem `git-workflow.mdc`).
+- KHÔNG batch nhi?u concern vào 1 l?n s?a PowerShell/Shell ? bug khó truy.
+- Sau m?i batch tool call ? verify output b?ng `Read` ho?c shell `cat` tr??c khi ?i ti?p.
+- Khi s?a nhi?u file: dùng `StrReplace` t?ng file (atomic), KHÔNG dùng loop `-replace` PowerShell v?i count param (xem Notes).
+
+### B??c 5.0 ? Audit file logic vs copy (B?T BU?C, ??t TR??C B??c 5.1)
+
+**Tr??c khi s?a B?T K? file nào**, agent PH?I:
+
+1. **Li?t kê t?ng file s? s?a** trong Plan (B??c 1) ? phân lo?i rõ ràng:
+   - **LOGIC**: có function/hàm x? lý, hook state, validation, regex, query key, store mutation, type guard, helper tính toán, i18n lookup helper.
+   - **COPY THU?N**: ch? ??i chu?i text hi?n th? (label, placeholder, error message i18n key), không có logic.
+
+2. **??i v?i file LOGIC** ? B?T BU?C vi?t test ?? tr??c (B??c 5.1).
+3. **??i v?i file COPY THU?N** ? ghi trong Plan: "X file copy thu?n, không c?n test kèm" và **list file c? th?** trong commit body.
+
+? **KHÔNG** t? ý phân lo?i toàn b? commit là "chore/cleanup" ?? skip audit. M?i file ??u ph?i ???c xét riêng.
+
+### B??c 5.1 ? Test-Driven Workflow (B?T BU?C khi có s?a code logic)
+
+**M?i task code (feat / fix / refactor) PH?I ?i theo TDD. KHÔNG vi?t code tr??c khi có test ??.**
+
+```text
+1. RED    ? vi?t test cho behavior/hàm/bug c?n s?a (??t c?nh file, .test.ts(x))
+2. RUN    ? ch?y test (npm run test -- <path>), xác nh?n nó FAIL
+3. GREEN  ? s?a code t?i thi?u ?? test PASS
+4. RUN    ? ch?y l?i test, xác nh?n PASS + không break test khác (npm run test)
+5. REFACTOR ? clean code (gi? test xanh)
+6. COMMIT ? ch? commit khi t?t c? test pass
+```
+
+**Quy t?c c?ng**:
+- Test FAIL ph?i vì **?úng lý do** (assertion ?úng) ? không ph?i import sai, typo, ho?c thi?u mock.
+- Sau khi fix code ? test ph?i chuy?n FAIL ? PASS, không vô hi?u hoá test (`it.skip`, xoá assertion).
+- Bugfix ? reproduction test vi?t **TR??C** khi s?a (test ph?i FAIL trên code hi?n t?i). N?u test PASS ngay khi vi?t ? bug ?ã không còn ? d?ng, báo cáo.
+- Ngo?i l?: ch?nh s?a thu?n UI (color/spacing/copy không có logic), ??i tên bi?n, thêm export constant. User **ghi rõ** m?i ???c mi?n.
+- Xem `testing-required.mdc` section "TDD Workflow" cho chi ti?t + scope ??y ??.
+
+### B??c 5.2 ? Hard Gate: c?m rationalization (TDD không có ngo?i l? ng?m)
+
+Agent **KHÔNG ???C** t? b?a ra các lý do sau ?? skip TDD. M?i lý do d??i ?ây ??u là **vi ph?m** rule, dù agent th?y "h?p lý":
+
+| Rationalization (B? C?M) | T?i sao sai | Cách x? lý ?úng |
+|---|---|---|
+| "?ây là **pre-existing bug** t? tr??c, không ph?i task m?i" | Bug nào c?ng c?n reproduction test. Có th? test = `tsc --noEmit` cho type bug, ho?c unit test cho logic bug. | Vi?t reproduction test (test FAIL trên code c?) ? fix ? test PASS |
+| "?ây là **post-cleanup** / rebase / stash-pop, code ?ã có s?n" | Commit m?i = thay ??i m?i trong git history. M?i file trong commit ph?i qua B??c 5.0 audit. | Audit t?ng file: logic ? vi?t test ?? tr??c; copy thu?n ? list trong commit body |
+| "File này ch? **copy/i18n string**, không có logic" | Có th? ?úng cho file copy thu?n, nh?ng agent t? phán không có c? s?. | Ph?i phân lo?i trong Plan (B??c 5.0) v?i b?ng ch?ng c? th? (vd: file ch? có 1 prop string, không có function/hook) |
+| "**Hot-fix nh?**, ch? 1 dòng, không ?áng vi?t test" | 1 dòng v?n có th? phá logic. BUGFIX B?T BU?C reproduction test, không có ngo?i l? size. | Vi?t test cho behavior b? ?nh h??ng. Test ph?i FAIL trên code c? |
+| "Code ?ã ch?y ?n ? **commit tr??c**, không c?n test l?i" | Commit m?i merge/rebase có th? t?o conflict logic m?i. | Test ph?i verify behavior SAU thay ??i, không ph?i tr??c |
+| "**User ?ã duy?t** r?i, không c?n test" | Duy?t plan ? duy?t skip TDD. User ch? mi?n TDD khi **ghi rõ trong chat** "b? qua test cho X vì Y". | Yêu c?u user xác nh?n rõ mi?n TDD cho file c? th?, ghi vào commit body |
+| "Vi?t test m?t th?i gian, **commit tr??c** r?i b? sung sau" | ?ây là anti-pattern: commit code không có test = vi ph?m pre-commit checklist (`git-workflow.mdc`). | **KHÔNG commit** code không có test kèm. Vi?t test ?? ? fix ? commit cùng lúc |
+
+**Quy t?c cu?i cùng**:
+- Nghi ng? file có logic hay không ? **m?c ??nh vi?t test**. An toàn h?n b? sót.
+- ?ã t?ng vi ph?m ? revert commit vi ph?m, làm l?i ?úng TDD, KHÔNG "gi? vì ?ã commit".
+
+## B??c 6 ? Review (B?T BU?C auto-commit tr??c khi báo cáo)
+
+**Tr??c khi báo cáo user** ? n?u task ch?a commit ? ch?y auto-commit theo `git-workflow.mdc` m?c "Auto-commit trigger". M?i subplan hoàn thành = 1 commit; n?u nhi?u concern l?n l?n ? t? tách commit theo concern (không h?i user).
+
+Sau khi commit xong, báo cáo user theo format trong `AGENTS.md` m?c "Báo cáo sau khi hoàn thành task":
+
+```text
+## Changes
+- ...
+
+## Implementation
+- ...
+
+## API / WS (n?u có)
+- ...
+
+## Tests
+- Build: `npm run build` ? pass / fail
+- Lint: `npm run lint` ? pass / fail
+- Manual smoke: trang nào ?ã m?, status
+
+## Notes
+- ...
+```
+
+**Không tuyên b?** "perfect", "100% safe", "guaranteed". Mô t? ?úng ph?m vi ?ã ki?m tra.
+
+## B?ng tiêu chí ? khi nào áp d?ng
+
+| Lo?i thay ??i | Plan | Chia plan | Model | H?i | Làm | Review |
+|---|---|---|---|---|---|---|
+| S?a typo / format 1 dòng | g?p | không | t? làm | không | ? | g?p |
+| S?a 1 file ?ã bi?t rõ | ng?n | không | t? làm | không | ? | ng?n |
+| T?o file m?i trong scope ?ã ch?t | ng?n | không | t? làm | không | ? | ng?n |
+| S?a nhi?u file cùng concern | ??y ?? | ?ánh giá | t? làm + review | t?i thi?u | ? | ??y ?? |
+| Refactor ki?n trúc | ??y ?? | ?ánh giá | c?n user | format + scope | ? | ??y ?? |
+| Thay ??i auth/payment/deploy | ??y ?? | ?ánh giá | c?n user | t?t c? | ? | k? + test |
+
+## Notes
+
+- **PowerShell `-replace` không h? tr? 3 ??i s?** (pattern, replacement, count) ? ch? nh?n 2. N?u c?n replace v?i count, dùng `[regex]::Replace(content, pattern, replacement)` thay th?. **?ã t?ng gây m?t d? li?u 22 file .mdc** trong session này ? tránh l?p l?i.
+- **S?a nhi?u file**: ?u tiên `StrReplace` t?ng file, không batch PowerShell. Khi c?n batch, verify content tr??c khi `Set-Content`.

@@ -1,26 +1,77 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* =========================================================
+ * Vibe Mart – Design tokens "Ocean Mint" (theo docs/CLAUDE.md)
+ * Tailwind v4: khai báo token qua @theme để dùng làm class
+ * CẤM viết mã màu hex trực tiếp trong component – chỉ dùng token.
+ * Chỉ light mode (rule §3).
+ * ========================================================= */
+@theme {
+  /* Brand (Storefront + nút chính Admin) */
+  --color-brand: #0284c7;
+  --color-brand-hover: #0369a1;
+  --color-brand-soft: #e0f2fe;
+
+  /* Seller Center */
+  --color-seller: #10b981;
+  --color-seller-hover: #059669;
+  --color-seller-soft: #d1fae5;
+
+  /* Admin Console */
+  --color-admin: #1e293b;
+  --color-admin-2: #334155;
+
+  /* Flash Sale (CHỈ dùng cho sale, giá giảm, badge -%, cảnh báo) */
+  --color-sale: #e11d48;
+  --color-sale-soft: #ffe4e6;
+
+  /* Nền + viền */
+  --color-page: #f8fafc;
+  --color-card: #ffffff;
+  --color-line: #e2e8f0;
+
+  /* Chữ */
+  --color-ink: #0f172a;
+  --color-ink-2: #64748b;
+  --color-ink-3: #94a3b8;
+
+  /* Trạng thái */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-info: #0284c7;
+  --color-star: #f59e0b;
+
+  /* Font (Be Vietnam Pro – load qua next/font, gán vào --font-be-vietnam) */
+  --font-sans: var(--font-be-vietnam), "Inter", system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus ring mặc định (rule §10) */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tắt smooth scroll mặc định cho người dùng motion-sensitive */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

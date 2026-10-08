@@ -1,0 +1,68 @@
+{
+  "common": {
+    "appName": "Vibe Mart",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "search": "Search",
+    "back": "Back"
+  },
+  "nav": {
+    "home": "Home",
+    "flashSale": "Flash Sale",
+    "category": "Categories",
+    "voucher": "Vouchers",
+    "cart": "Cart",
+    "orders": "Orders",
+    "account": "Account"
+  },
+  "footer": {
+    "about": "About Vibe Mart",
+    "support": "Support",
+    "legal": "Legal",
+    "intro": "About us",
+    "contact": "Contact",
+    "helpCenter": "Help center",
+    "sellOnVibe": "Sell on Vibe",
+    "terms": "Terms",
+    "privacy": "Privacy policy"
+  },
+  "order": {
+    "status": {
+      "PENDING_PAYMENT": "Pending payment",
+      "PAID": "Paid",
+      "CONFIRMED": "Confirmed",
+      "SHIPPING": "Shipping",
+      "COMPLETED": "Completed",
+      "CANCELLED_TIMEOUT": "Cancelled – payment timeout",
+      "CANCELLED_USER": "Cancelled"
+    }
+  },
+  "payment": {
+    "status": {
+      "PENDING": "Pending",
+      "SUCCESS": "Success",
+      "FAILED": "Failed",
+      "EXPIRED": "Expired",
+      "REFUNDED": "Refunded"
+    }
+  },
+  "slot": {
+    "status": {
+      "UPCOMING": "Upcoming",
+      "ACTIVE": "Active",
+      "ENDED": "Ended"
+    }
+  },
+  "error": {
+    "UNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "FORBIDDEN": "You don't have access to this area.",
+    "NOT_FOUND": "Data not found.",
+    "NETWORK_ERROR": "Network error. Please try again.",
+    "SERVER_ERROR": "Server is busy. Please try again later.",
+    "OUT_OF_STOCK": "Product is out of stock.",
+    "PURCHASE_LIMIT": "You've reached the purchase limit for this product.",
+    "SLOT_NOT_ACTIVE": "Flash sale slot is not active."
+  }
+}
