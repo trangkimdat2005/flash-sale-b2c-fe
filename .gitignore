@@ -54,3 +54,6 @@ test-results/
 
 # local scripts (debug/convert helpers)
 /scripts/
+
+# Scratch
+.scratch/
