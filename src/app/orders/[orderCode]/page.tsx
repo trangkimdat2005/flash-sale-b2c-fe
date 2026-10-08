@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Header, Footer } from "@/components/layout";
+import { Footer } from "@/components/layout";
 import { Button, Badge } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { QrCard } from "@/components/flash-sale";
@@ -56,18 +56,16 @@ export default function OrderDetailPage({
     },
   });
 
-  // Subscribe WS update cho order này
-  const wsRef = useRef<ReturnType<typeof useFlashSaleWs> | null>(null);
-  wsRef.current = useFlashSaleWs();
-  useEffect(() => {
-    if (!resolvedCode) return;
-    const ws = wsRef.current;
-    if (!ws) return;
-    const unsub = ws.subscribeOrderUpdates(resolvedCode, () => {
-      qc.invalidateQueries({ queryKey: ["order", resolvedCode] });
-    });
-    return () => unsub?.();
-  }, [resolvedCode, qc]);
+  // Subscribe WS update for this order. Call useFlashSaleWs() at top-level
+// (rules-of-hooks), then subscribe/unsubscribe per resolvedCode.
+const ws = useFlashSaleWs();
+useEffect(() => {
+  if (!resolvedCode) return;
+  const unsub = ws.subscribeOrderUpdates(resolvedCode, () => {
+    qc.invalidateQueries({ queryKey: ["order", resolvedCode] });
+  });
+  return () => unsub?.();
+}, [resolvedCode, qc, ws]);
 
   if (!accessToken || !resolvedCode) return null;
   if (order.isLoading) {
