@@ -115,7 +115,7 @@ Yêu cầu: **Authentication**. Tag: `User Profile`.
 
 ## Address Book Module `/api/v1/users/addresses`
 
-Yêu cầu: **Authentication**. Tag: `Address Book`. **Owner** = chá»‰ chủ s�x hữu address.
+Yêu cầu: **Authentication**. Tag: `Address Book`. **Owner** = chá»‰ chủ sở hữu address.
 
 | Method | Endpoint | Access |
 |---|---|---|
@@ -434,7 +434,7 @@ Idempotency-Key: <uuid-v4>          # bắt buá»™c Ä‘Ồ retry an toàn
 - `400 FS_400_IDEMPOTENCY_KEY_MISSING`, `409 FS_409_IDEMPOTENCY_CONFLICT`
 - `500 FS_500_ORDER_FAILED`
 
-> Sau reservation thành công â†’ Ä‘ơn �x `PENDING_PAYMENT` trong `expiresAt` (mặc Ä‘á»‹nh 300s). Hết hạn tự hủy + hoàn stock.
+> Sau reservation thành công â†’ Đơn hàng `PENDING_PAYMENT` trong `expiresAt` (mặc Ä‘á»‹nh 300s). Hết hạn tự hủy + hoàn stock.
 
 ---
 
@@ -736,7 +736,7 @@ stompClient.connect(
 );
 ```
 
-Server Ä‘ọc `token` từ query `?token=` �x handshake, validate và set Principal.
+Server Ä‘ọc `token` từ query `?token=` để handshake, validate và set Principal.
 
 ### Destinations (build qua `WsDestinations` Java class â€“ **không hard-code URL rải rác**)
 
@@ -876,7 +876,7 @@ stompClient.subscribe(
 | 400 | `STORE_400_INVALID_STATUS` | Trạng thái phê duyá»‡t gian hàng không hợp lá»‡ |
 | 400 | `STORE_400_NOT_APPROVED` | Gian hàng chưa Ä‘ược phê duyá»‡t hoặc Ä‘ang bá»‹ tạm khóa |
 | 403 | `STORE_403_ACCESS_DENIED` | Bạn không có quyền quản lý gian hàng này |
-| 403 | `STORE_403_ADDRESS_ACCESS_DENIED` | Đá»‹a chá»‰ kho không thuá»™c quyền s�x hữu của gian hàng này |
+| 403 | `STORE_403_ADDRESS_ACCESS_DENIED` | Đá»‹a chá»‰ kho không thuá»™c quyền sở hữu của gian hàng này |
 | 404 | `STORE_404_NOT_FOUND` | Không tìm thấy thông tin gian hàng |
 | 404 | `STORE_404_ADDRESS_NOT_FOUND` | Không tìm thấy Ä‘á»‹a chá»‰ kho của gian hàng |
 | 409 | `STORE_409_EXISTS` | Bạn Ä‘ã có gian hàng trên há»‡ thá»‘ng, không thỒ Ä‘Ēng ký thêm |
@@ -906,7 +906,7 @@ stompClient.subscribe(
 | 400 | `FS_400_SLOT_TIME_INVALID` | Thời gian bắt Ä‘ầu phải trưá»›c thời gian kết thúc |
 | 400 | `FS_400_SLOT_NOT_ACTIVE` | Khung giờ Flash Sale hiá»‡n không hoạt Ä‘á»™ng |
 | 400 | `FS_400_SLOT_ALREADY_ENDED` | Khung giờ Flash Sale Ä‘ã kết thúc |
-| 400 | `FS_400_ITEM_NOT_PENDING` | Mục Flash Sale không �x trạng thái chờ duyá»‡t |
+| 400 | `FS_400_ITEM_NOT_PENDING` | Mục Flash Sale không ở trạng thái chờ duyá»‡t |
 | 400 | `FS_400_INVALID_PRICE` | Giá Flash Sale phải lá»›n hơn 0 và nhỏ hơn giá gá»‘c của biến thỒ |
 | 400 | `FS_400_INVALID_ALLOCATED_STOCK` | Sá»‘ lượng tá»“n kho phân bá»• cho Flash Sale không hợp lá»‡ hoặc vượt quá tá»“n kho gá»‘c |
 | 400 | `FS_400_INVALID_PURCHASE_LIMIT` | Giá»›i hạn mua của người dùng phải lá»›n hơn 0 |
@@ -922,7 +922,7 @@ stompClient.subscribe(
 | 409 | `FS_409_OUT_OF_STOCK` | Sản phẩm Flash Sale Ä‘ã hết hàng tá»“n kho |
 | 409 | `FS_409_PURCHASE_LIMIT_EXCEEDED` | Bạn Ä‘ã vượt quá giá»›i hạn sá»‘ lượng mua cho sản phẩm này trong phiên Flash Sale |
 | 409 | `FS_409_IDEMPOTENCY_CONFLICT` | Yêu cầu vá»›i Idempotency-Key này Ä‘ang Ä‘ược xử lý, vui lòng không gửi lặp lại |
-| 500 | `FS_500_ORDER_FAILED` | Há»‡ thá»‘ng bận khi kh�xi tạo Ä‘ơn hàng Flash Sale |
+| 500 | `FS_500_ORDER_FAILED` | Há»‡ thá»‘ng bận khi khởi tạo Ä‘ơn hàng Flash Sale |
 
 ### Cart Errors
 | HTTP | Code | Message |
@@ -969,7 +969,7 @@ stompClient.subscribe(
 - `GET /stores/{id}`
 - `GET /flash-sales/slots`
 - `GET /vouchers/platform`, `/vouchers/store/{storeId}`
-- `WS /ws/**` (auth xử lý �x interceptor)
+- `WS /ws/**` (auth xử lý để interceptor)
 - `/swagger-ui.html`, `/swagger-ui/**`, `/v3/api-docs/**`
 
 ### Authenticated (cần JWT)
