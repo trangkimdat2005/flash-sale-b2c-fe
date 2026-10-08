@@ -1,12 +1,12 @@
-# Standardize Project Rules — Implementation Plan
+# Standardize Project Rules - Implementation Plan v2 (Optimized)
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use tllq-workflow:itz-subagent-driven-development (recommended) or tllq-workflow:itz-executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use tllq-workflow:itz-subagent-driven-development (recommended). This plan was revised after self-review to address 4 risks (D1-D4).
 
-**Goal:** Re-author toàn bộ rule surface (24 file `.mdc` + `AGENTS.md` + `docs/CLAUDE.md`) về UTF-8 sạch, header metadata chuẩn, gộp 1 cặp trùng scope, thêm meta-rule cho governance.
+**Goal:** Re-author toan bo rule surface (24 file `.mdc` + `AGENTS.md` + `docs/CLAUDE.md`) ve UTF-8 sach, header metadata chuan, gop 1 cap trung scope, them meta-rule cho governance.
 
-**Architecture:** 6 subplan tuần tự. Mỗi file re-author là 1 commit riêng để user diff/review dễ. Verify cuối cùng bằng script PowerShell tự động.
+**Architecture:** 2 dot (P0 + P1) voi snapshot tag rollback. Tong 12 commit thay vi 37 de review de hon. Verify script dung PowerShell native (Windows-compatible).
 
-**Tech Stack:** PowerShell 5+ (Windows), Git, Node 20+, pnpm 9+ (cho lint check YAML).
+**Tech Stack:** PowerShell 5+ (Windows), Git, Node 20+, pnpm 9+.
 
 **Spec:** `docs/superpowers/specs/2026-10-09-standardize-rules-design.md`
 
@@ -14,170 +14,119 @@
 
 ## Global Constraints
 
-- **Branch:** `docs/standardize-rules-utf8` (đã fork từ `dev`, KHÔNG tạo branch mới, KHÔNG rebase, KHÔNG push).
-- **Commit language:** Tiếng Anh, Conventional Commits, scope `rules`. ASCII-only trong body.
-- **Mỗi commit 1 file** (trừ SP3 commit gộp 2 file, SP4 commit gộp nội dung + xoá file cũ).
-- **Encoding:** Tất cả file output là UTF-8 (no BOM), kiểm tra bằng `file --mime-encoding`.
-- **Header metadata chuẩn** (xem spec §5.2): 5 key bắt buộc `description`, `globs`, `alwaysApply`, `owner`, `last_reviewed`.
-- **Không push lên remote.** Bước 6 chỉ auto-commit local.
-- **Không** sửa `package.json`, không `pnpm install`, không tạo file `pages/`, `app/api/**`.
+- **Branch:** `docs/standardize-rules-utf8` (da fork tu `dev`).
+- **Snapshot tag:** `baseline-before-utf8` tao o `dev` HEAD truoc khi bat dau re-author (rollback path).
+- **Commit language:** Tieng Anh, Conventional Commits, scope `rules`. ASCII-only trong body.
+- **2 dot thuc thi (theo workflow-process):**
+  - **Dot A (P0):** 4 commit, 30-60 phut. Audit + schema + top-level + snapshot test.
+  - **Dot B (P1):** 8 commit, 2-4 gio. Squash-re-author 24 file + meta-rule + verify.
+- **Squash strategy:** gom theo concern, khong 1 file = 1 commit (tru khi review cho phep).
+- **Encoding:** UTF-8 no BOM. Verify bang PowerShell native (KHONG dung `file` command).
+- **Header metadata chuan (5 key bat buoc):** `description`, `globs`, `alwaysApply`, `owner`, `last_reviewed`.
+- **Khong push.** Bước 6 workflow chỉ auto-commit local.
+- **Khong** sua `package.json`, khong `pnpm install`, khong tao `pages/`, `app/api/**`.
 
 ---
 
-## Task Structure Overview
+## Phan 1 - Dot A (P0): Nen tang
 
-| Subplan | Task count | Files touched |
-|---|---|---|
-| SP1 Audit & Inventory | 3 | 1 new |
-| SP2 Header schema + template | 2 | 2 new |
-| SP3 Re-author top-level files | 3 | 2 modified |
-| SP4 Re-author 24 `.mdc` files | 25 (24 modified + 1 deleted) | 24 modified, 1 deleted |
-| SP5 Meta-rule + Rule Index | 2 | 1 new + 1 modified |
-| SP6 Verify + auto-commit | 2 | 1 new + 0 modified |
-
-**Tổng commit tối đa: 37 commit** (mỗi file re-author = 1 commit, riêng SP4 cộng 1 commit xoá file cũ).
-
----
-
-### Task 1.1: Khảo sát git history cho mỗi file `.mdc`
+### Task A.1: Snapshot baseline (D2)
 
 **Files:**
-- Read-only: tất cả 24 file `.mdc` hiện tại
-- Read-only: git log + git show output
+- Create: git tag `baseline-before-utf8` (lightweight, local-only)
 
-**Step 1: Lấy danh sách file `.mdc` hiện tại**
+**Step 1:**
 
 ```powershell
 cd D:\code\ky_I_nam_4\Project\flash-sale-b2c-fe
-Get-ChildItem .cursor/rules/*.mdc | Select-Object Name, Length
+git tag baseline-before-utf8 dev
+git tag -l baseline-before-utf8
 ```
 
-Expected: 24 file.
+**Step 2: Ghi rollback procedure vao `docs/superpowers/specs/rollback-procedure.md`**
 
-**Step 2: Với mỗi file, tìm commit sạch cuối cùng**
+```markdown
+# Rollback Procedure
+
+If standardize-rules cause issues, rollback toan bo:
+
+\`\`\`bash
+git checkout docs/standardize-rules-utf8
+git reset --hard baseline-before-utf8
+git tag -d baseline-before-utf8
+\`\`\`
+
+Luu y: baseline tag chi luu local, khong push. Neu da push nhanh, dung `git revert` tung commit theo thu tu nguoc.
+```
+
+**Commit:**
+
+```bash
+git add docs/superpowers/specs/rollback-procedure.md
+git commit -m "docs(rules): add rollback procedure for standardize-rules branch"
+```
+
+---
+
+### Task A.2: Audit & dependency graph (SP1)
+
+**Files:**
+- Create: `docs/superpowers/specs/audit-inventory.md` (bang 24 file + encoding)
+- Create: `docs/superpowers/specs/rule-dependency-graph.md` (map phu thuoc)
+
+**Step 1: Audit tung file**
 
 ```powershell
-$files = Get-ChildItem .cursor/rules/*.mdc | ForEach-Object { $_.Name }
-foreach ($f in $files) {
-  Write-Host "=== $f ==="
-  git log --follow --oneline -- ".cursor/rules/$f" | Select-Object -First 10
+$files = Get-ChildItem .cursor/rules/*.mdc
+$results = foreach ($f in $files) {
+  $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
+  $hasBom = $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+  $hasNonAscii = $false
+  $corruptChars = 0
+  foreach ($b in $bytes) {
+    if ($b -gt 127) { $hasNonAscii = $true }
+  }
+  $content = [System.IO.File]::ReadAllText($f.FullName, [System.Text.UTF8Encoding]::new($false))
+  $corruptCount = ([regex]::Matches($content, '[┤╞╟╠═╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳㼿]')).Count
+  [PSCustomObject]@{
+    File = $f.Name
+    Size = $f.Length
+    HasBom = $hasBom
+    HasNonAscii = $hasNonAscii
+    CorruptCount = $corruptCount
+    LastCleanCommit = (git log --follow --oneline -- ".cursor/rules/$($f.Name)" | Select-Object -First 1)
+  }
 }
+$results | Format-Table -AutoSize
 ```
 
-Output: bảng `<filename> → <last clean commit hash>`.
+Expected: 24 rows. It nhat 1 file co `CorruptCount > 0` (la `AGENTS.md` hoac `docs/CLAUDE.md`).
 
-**Step 3: Ghi audit report**
+**Step 2: Dependency graph** — cho 24 file, list `depends_on` (nguoi viet se tu dien dua vao noi dung rule).
 
-Tạo `docs/superpowers/specs/audit-inventory.md` với format:
+**Step 3: Ghi file audit**
 
-```markdown
-# Audit Inventory — 2026-10-09
+Tao 2 file Markdown voi bang. Output dang:
 
-| File | Current encoding | Last clean commit | Note |
-|---|---|---|---|
-| skill-loading.mdc | utf-8 | <hash> | OK |
-| flash-sale-b2c-api.mdc | binary | <hash> | corrupt, re-author |
-| ... | ... | ... | ... |
+| File | Size | HasBom | HasNonAscii | CorruptCount | LastCleanCommit |
+|---|---|---|---|---|---|
 
-## Tổng kết
-- Tổng file: 24
-- Đã sạch: X
-- Cần re-author: Y
-- Cần gộp: 2 (flash-sale-b2c-api.mdc + flash-sale-b2c-api-reference.mdc)
-- File mới sau re-author: 24 (23 hiện tại - 1 gộp + 1 meta-rule mới)
-```
-
-**Step 4: Commit**
+**Commit:**
 
 ```bash
-git add docs/superpowers/specs/audit-inventory.md
-git commit -m "docs(rules): add audit inventory of 23 mdc files"
+git add docs/superpowers/specs/audit-inventory.md docs/superpowers/specs/rule-dependency-graph.md
+git commit -m "docs(rules): add audit inventory and dependency graph for 24 mdc files"
 ```
 
 ---
 
-### Task 1.2: Tạo dependency graph giữa các rule
+### Task A.3: Header schema + template (SP2)
 
 **Files:**
-- Create: `docs/superpowers/specs/rule-dependency-graph.md`
+- Create: `docs/superpowers/specs/header-schema.md` (spec ky thuat)
+- Create: `templates/rule-template.mdc` (template copy khi tao rule moi)
 
-**Step 1: Vẽ sơ đồ phụ thuộc**
-
-Quan sát cross-ref trong body từng rule + globs. Output file dạng:
-
-```markdown
-# Rule Dependency Graph — 2026-10-09
-
-| Rule | Depends on | Referenced by |
-|---|---|---|
-| workflow-process.mdc | — | (always) |
-| git-workflow.mdc | workflow-process.mdc | git-worktree.mdc |
-| layer-convention.mdc | stack-versions.mdc, design-system.mdc | component-pattern.mdc |
-| ... | ... | ... |
-
-**Tổng file: 24**
-```
-
-**Step 2: Commit**
-
-```bash
-git add docs/superpowers/specs/rule-dependency-graph.md
-git commit -m "docs(rules): map dependency graph between 23 rules"
-```
-
----
-
-### Task 1.3: Review + chốt scope re-author
-
-**Step 1: Mở `audit-inventory.md` + `rule-dependency-graph.md`, xác nhận:**
-
-- Số file cần re-author (mục tiêu: 24 file sau cùng — 23 re-author + 1 mới, sau khi gộp api + api-reference thành 1).
-- Thứ tự ưu tiên: luôn bắt đầu từ rule **không phụ thuộc ai** (workflow, stack, error-handling, skill-loading, no-overengineering, testing-required).
-
-**Step 2: Ghi chú thứ tự vào cuối `audit-inventory.md`**
-
-```markdown
-## Thứ tự re-author (SP4)
-1. skill-loading
-2. stack-versions
-3. workflow-process
-4. error-handling
-5. no-overengineering
-6. testing-required
-7. layer-convention
-8. design-system
-9. component-pattern
-10. state-management
-11. auth-jwt
-12. websocket-realtime
-13. enum-labels
-14. validation-forms
-15. routing-guards
-16. i18n
-17. api-data
-18. flash-sale-b2c-api (gộp từ api + api-reference, xoá api-reference)
-19. flash-sale-payment
-20. features-migration
-21. git-workflow
-22. git-worktree
-23. docs-sync
-```
-
-**Step 3: Commit**
-
-```bash
-git add docs/superpowers/specs/audit-inventory.md
-git commit -m "docs(rules): finalize re-author order in audit inventory"
-```
-
----
-
-### Task 2.1: Tạo template `.mdc` chuẩn
-
-**Files:**
-- Create: `templates/rule-template.mdc`
-
-**Step 1: Viết template**
+**Step 1: Viet template**
 
 ```markdown
 ---
@@ -193,812 +142,544 @@ last_reviewed: 2026-10-09
 version: 1
 ---
 > Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section <X> — <name>
+> Source-of-truth: docs/CLAUDE.md section <X> - <name>
 
 # <Rule Title in English>
 
-<Body in Vietnamese, UTF-8 clean, 1–4 sections>
+<Body in Vietnamese, UTF-8 clean, 1-4 sections>
 
 ## 1. <Section title>
 
 <Markdown body>
-
-## 2. <Section title>
-
-<Markdown body>
 ```
 
-**Step 2: Verify YAML frontmatter hợp lệ**
+**Step 2: Verify YAML frontmatter (PowerShell)**
 
 ```powershell
-# PowerShell: parse 30 dòng đầu, check có đủ ---
 $content = Get-Content "templates/rule-template.mdc" -TotalCount 30
 if ($content[0] -ne "---") { throw "Missing opening ---" }
-$endIndex = ($content | Select-String -Pattern "^---$" | Select-Object -Skip 1 -First 1).LineNumber
-if ($endIndex -lt 2) { throw "Missing closing ---" }
+$endIdx = ($content | Select-String -Pattern "^---$" | Select-Object -Skip 1 -First 1).LineNumber
+if ($endIdx -lt 2) { throw "Missing closing ---" }
 Write-Host "Frontmatter OK"
 ```
 
-**Step 3: Commit**
-
-```bash
-git add templates/rule-template.mdc
-git commit -m "docs(rules): add canonical mdc template with metadata schema"
-```
-
----
-
-### Task 2.2: Viết spec header schema (chuẩn hoá convention)
-
-**Files:**
-- Create: `docs/superpowers/specs/header-schema.md`
-
-**Step 1: Ghi chuẩn header**
-
-Tài liệu này **không** phải rule, chỉ là spec kỹ thuật để agent tham chiếu khi tạo rule. Nội dung
-tương tự spec §5.2, viết thành markdown sạch.
-
-**Step 2: Commit**
-
-```bash
-git add docs/superpowers/specs/header-schema.md
-git commit -m "docs(rules): document canonical header metadata schema"
-```
-
----
-
-### Task 3.1: Re-author `docs/CLAUDE.md`
-
-**Files:**
-- Modify: `docs/CLAUDE.md`
-
-**Step 1: Lấy version sạch từ git**
-
-```bash
-git log --follow --oneline -- docs/CLAUDE.md
-git show <last-clean-commit>:docs/CLAUDE.md > .scratch/CLAUDE.clean.md
-```
-
-Nếu **tất cả** lịch sử đều hỏng (không có commit sạch):
-
-- Dùng `git log -p --all -- docs/CLAUDE.md | head -500` để xem diff qua từng commit.
-- Tìm nội dung trong commit `git log -S "<key word>" --all -- docs/CLAUDE.md` với từ khoá đặc trưng
-  (vd: "Be Vietnam Pro", "tanstack", "shadcn").
-- Best-effort: ghi cờ trong commit message.
-
-**Step 2: Verify file sạch trước khi copy**
-
-```bash
-file --mime-encoding .scratch/CLAUDE.clean.md  # phải là utf-8
-```
-
-**Step 3: Re-author theo template (giữ nguyên 12 mục)**
-
-Giữ cấu trúc 12 mục (Bối cảnh dự án, Tech stack, Cấu trúc thư mục, Design tokens, ...). Chỉ:
-
-- Sửa encoding cho sạch.
-- Giữ nguyên mọi quyết định (Tailwind, shadcn/ui, TanStack Query, RHF+Zod, Be Vietnam Pro, ...).
-- Mỗi mục dùng heading `##` (KHÔNG dùng `>` blockquote cho heading).
-
-**Step 4: Verify encoding**
-
-```bash
-file --mime-encoding docs/CLAUDE.md  # phải là utf-8
-# Check không còn ký tự lỗi:
-grep -P "[┤╞╟╠═╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳]" docs/CLAUDE.md  # phải trống
-```
-
-**Step 5: Commit**
-
-```bash
-git add docs/CLAUDE.md
-git commit -m "docs(rules): re-author CLAUDE.md as clean utf-8 (12 sections preserved)"
-```
-
----
-
-### Task 3.2: Re-author `AGENTS.md`
-
-**Files:**
-- Modify: `AGENTS.md`
-
-**Step 1: Lấy version sạch từ git**
-
-```bash
-git log --follow --oneline -- AGENTS.md
-git show <last-clean-commit>:AGENTS.md > .scratch/AGENTS.clean.md
-```
-
-**Step 2: Re-author với Rule Index cập nhật**
-
-- Giữ Next.js warning block (`<!-- BEGIN:nextjs-agent-rules -->`) vì `next dev` sẽ re-add.
-- Phần "Flash Sale B2C — FE Agent Quick Reference": sạch encoding, giữ nguyên nội dung.
-- **Rule Index**: cập nhật theo 22 file mới (sau khi gộp api + api-reference) + 1 mới `meta-rule-authoring.mdc`.
-- Bỏ entry `flash-sale-b2c-api-reference.mdc`.
-
-**Step 3: Verify encoding**
-
-```bash
-file --mime-encoding AGENTS.md
-grep -P "[\x{FFF0}-\x{FFFF}]" AGENTS.md  # phải trống
-```
-
-**Step 4: Commit**
-
-```bash
-git add AGENTS.md
-git commit -m "docs(rules): re-author AGENTS.md clean utf-8, refresh rule index (22+1 files)"
-```
-
----
-
-### Task 3.3: Commit gộp SP1-SP3 (verify nhanh)
-
-**Step 1: Check trạng thái**
-
-```bash
-git log --oneline dev..HEAD
-```
-
-Expected: 5 commit mới (1.3 + 2.2 + 3.1 + 3.2 + ...).
-
-**Step 2: Verify không có file rule nào bị động trong SP1-SP3**
-
-```bash
-git diff dev..HEAD --name-only | grep ".cursor/rules"  # phải trống
-```
-
-**Step 3: Ghi log**
-
-```bash
-# Không commit mới, chỉ note cho người đọc log
-git log --oneline dev..HEAD
-```
-
----
-
-### Task 4.1: Re-author `skill-loading.mdc`
-
-**Files:**
-- Modify: `.cursor/rules/skill-loading.mdc`
-
-**Step 1: Lấy version sạch**
-
-```bash
-git show <last-clean-commit>:.cursor/rules/skill-loading.mdc > .scratch/skill-loading.clean.md
-```
-
-**Step 2: Re-author theo template**
-
-- Header 5 key bắt buộc.
-- Body giữ 2 section: "Checklist mỗi turn" + "Skill auto-gitignore (BẮT BUỘC)".
-- Sửa lỗi chính tả nhỏ nếu có (vd: "mỗi turn" thay vì "moĩ turn").
-
-**Step 3: Verify + commit**
-
-```bash
-file --mime-encoding .cursor/rules/skill-loading.mdc
-git add .cursor/rules/skill-loading.mdc
-git commit -m "docs(rules): re-author skill-loading.mdc clean utf-8 + canonical header"
-```
-
----
-
-### Task 4.2: Re-author `stack-versions.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Lưu ý: đây là rule `alwaysApply: true`, phải có 5 key đầy đủ. Body liệt kê version stack: Next 16.3.8,
-React 19.2, TS 5, Tailwind 4, RQ 5, Zustand 5, RHF 7, Zod 3, STOMP 7, shadcn/ui, date-fns vi,
-next-intl, decimal.js.
+**Step 3: Viet header-schema.md** mo ta 5 key bat buoc, 2 key tuy chon, vi du cho moi key.
 
 **Commit:**
 
 ```bash
-git commit -m "docs(rules): re-author stack-versions.mdc clean utf-8 + header"
+git add templates/rule-template.mdc docs/superpowers/specs/header-schema.md
+git commit -m "docs(rules): add canonical mdc template and header schema spec"
 ```
 
 ---
 
-### Task 4.3: Re-author `workflow-process.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Body: 6 bước (0 → 0.1 → 0.5 → 1 → 2 → 3 → 4 → 5 → 6). Số bước giữ nguyên, chỉ re-author format.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author workflow-process.mdc clean utf-8 (6 steps preserved)"
-```
-
----
-
-### Task 4.4: Re-author `error-handling.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author error-handling.mdc clean utf-8"
-```
-
----
-
-### Task 4.5: Re-author `no-overengineering.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author no-overengineering.mdc clean utf-8"
-```
-
----
-
-### Task 4.6: Re-author `testing-required.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author testing-required.mdc clean utf-8"
-```
-
----
-
-### Task 4.7: Re-author `layer-convention.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `stack-versions.mdc`, `design-system.mdc`. Thêm `depends_on` vào header.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author layer-convention.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.8: Re-author `design-system.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author design-system.mdc clean utf-8"
-```
-
----
-
-### Task 4.9: Re-author `component-pattern.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `design-system.mdc`, `layer-convention.mdc`. Thêm `depends_on`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author component-pattern.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.10: Re-author `state-management.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `stack-versions.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author state-management.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.11: Re-author `auth-jwt.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `api-data.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author auth-jwt.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.12: Re-author `websocket-realtime.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `state-management.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author websocket-realtime.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.13: Re-author `enum-labels.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author enum-labels.mdc clean utf-8"
-```
-
----
-
-### Task 4.14: Re-author `validation-forms.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author validation-forms.mdc clean utf-8"
-```
-
----
-
-### Task 4.15: Re-author `routing-guards.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author routing-guards.mdc clean utf-8"
-```
-
----
-
-### Task 4.16: Re-author `i18n.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author i18n.mdc clean utf-8"
-```
-
----
-
-### Task 4.17: Re-author `api-data.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `flash-sale-b2c-api.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author api-data.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.18: Gộp `flash-sale-b2c-api.mdc` + `flash-sale-b2c-api-reference.mdc`
-
-**Files:**
-- Modify: `.cursor/rules/flash-sale-b2c-api.mdc` (gộp nội dung)
-- Delete: `.cursor/rules/flash-sale-b2c-api-reference.mdc`
-
-**Step 1: Lấy version sạch của cả 2 file**
-
-```bash
-git show <last-clean-commit-A>:.cursor/rules/flash-sale-b2c-api.mdc > .scratch/api.clean.md
-git show <last-clean-commit-B>:.cursor/rules/flash-sale-b2c-api-reference.mdc > .scratch/api-ref.clean.md
-```
-
-**Step 2: Gộp nội dung**
-
-File mới `flash-sale-b2c-api.mdc` có:
-
-- Header chuẩn (5 key).
-- §1–§7: policy tích hợp (cũ của `api.mdc`).
-- §8: "Khi nào đọc docs/api-document.md / docs/api-reference.md" (cũ của `api-reference.mdc`).
-
-**Step 3: Xoá file cũ**
-
-```bash
-git rm .cursor/rules/flash-sale-b2c-api-reference.mdc
-```
-
-**Step 4: Verify + commit gộp**
-
-```bash
-file --mime-encoding .cursor/rules/flash-sale-b2c-api.mdc
-git add .cursor/rules/flash-sale-b2c-api.mdc
-git commit -m "docs(rules): merge flash-sale-b2c-api.mdc + reference into single api rule"
-```
-
----
-
-### Task 4.19: Re-author `flash-sale-payment.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `flash-sale-b2c-api.mdc`, `websocket-realtime.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author flash-sale-payment.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.20: Re-author `features-migration.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author features-migration.mdc clean utf-8"
-```
-
----
-
-### Task 4.21: Re-author `git-workflow.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `workflow-process.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author git-workflow.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.22: Re-author `git-worktree.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-Phụ thuộc: `git-workflow.mdc`.
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author git-worktree.mdc clean utf-8 + depends_on"
-```
-
----
-
-### Task 4.23: Re-author `docs-sync.mdc`
-
-**Step 1–3: Tương tự Task 4.1**
-
-**Commit:**
-
-```bash
-git commit -m "docs(rules): re-author docs-sync.mdc clean utf-8"
-```
-
----
-
-### Task 4.24: Verify SP4
-
-**Step 1: Đếm file**
-
-```powershell
-(Get-ChildItem .cursor/rules/*.mdc).Count
-# Expected: 24 (23 re-author + 1 meta-rule ở SP5, hoặc 23 nếu đếm trước SP5)
-```
-
-**Step 2: Verify encoding mỗi file**
-
-```powershell
-Get-ChildItem .cursor/rules/*.mdc | ForEach-Object {
-  $enc = file --mime-encoding $_.FullName
-  if ($enc -notmatch "utf-8") { Write-Host "FAIL: $($_.Name) → $enc" -ForegroundColor Red }
-  else { Write-Host "OK:   $($_.Name)" -ForegroundColor Green }
-}
-```
-
-**Step 3: Verify không còn ký tự lỗi**
-
-```powershell
-Get-ChildItem .cursor/rules/*.mdc | ForEach-Object {
-  $content = Get-Content $_.FullName -Raw
-  if ($content -match "[┤╞╟╠═╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳㼿]") {
-    Write-Host "FAIL: $($_.Name) has corrupt chars" -ForegroundColor Red
-  }
-}
-```
-
-**Step 4: Log + commit (nếu có fix)**
-
-Nếu fail → sửa ngay trong SP4, không để qua SP5.
-
-**Step 5: Verify file count cuối (sau khi SP5 thêm meta-rule)**
-
-```powershell
-(Get-ChildItem .cursor/rules/*.mdc).Count
-# Expected: 24 (24 re-author = 23 cũ - 1 gộp + 1 meta-rule mới)
-```
-
----
-
-### Task 5.1: Tạo meta-rule mới
-
-**Files:**
-- Create: `.cursor/rules/meta-rule-authoring.mdc`
-
-**Step 1: Viết file theo template**
-
-```markdown
----
-description: Quy trình bắt buộc khi tạo/sửa/xoá 1 file rule trong .cursor/rules/. Áp dụng mỗi khi thay đổi rule surface.
-globs:
-  - .cursor/rules/*.mdc
-  - AGENTS.md
-alwaysApply: true
-owner: human
-depends_on:
-  - workflow-process.mdc
-  - docs-sync.mdc
-last_reviewed: 2026-10-09
-version: 1
----
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/superpowers/specs/header-schema.md
-
-# Meta Rule — Authoring Conventions
-
-## 1. Header metadata (BẮT BUỘC)
-
-Mỗi file `.mdc` phải có YAML frontmatter 5 key:
-- `description` (1 câu tiếng Anh)
-- `globs` (danh sách path pattern)
-- `alwaysApply` (true|false)
-- `owner` (ai|human|team)
-- `last_reviewed` (YYYY-MM-DD)
-
-Tuỳ chọn: `version`, `depends_on`.
-
-## 2. Khi tạo rule mới
-
-1. Copy từ `templates/rule-template.mdc`.
-2. Điền header.
-3. Viết body ≤ 200 dòng (nếu hơn → tách thành 2 rule con).
-4. Chạy `bash scripts/verify-rules.ps1` để check header.
-5. Cập nhật `AGENTS.md` Rule Index (thêm entry + scope).
-6. Commit: `docs(rules): add <name>.mdc`.
-
-## 3. Khi sửa rule
-
-1. Cập nhật `last_reviewed` ở header.
-2. Nếu đổi scope/globs → cập nhật `AGENTS.md` Rule Index.
-3. Commit: `docs(rules): update <name>.mdc — <mô tả ngắn>`.
-
-## 4. Khi xoá rule
-
-1. `git rm .cursor/rules/<name>.mdc`.
-2. Xoá entry trong `AGENTS.md` Rule Index.
-3. Commit: `docs(rules): remove <name>.mdc`.
-
-## 5. Khi gộp/tách rule
-
-- Gộp: cập nhật cả 2 entry trong Rule Index → còn 1 entry mới.
-- Tách: tạo rule mới + sửa entry rule cũ trong Rule Index.
-- Commit: `docs(rules): merge|split <old> <new>`.
-
-## 6. KHÔNG
-
-- KHÔNG tạo rule trùng scope với rule hiện có → gộp hoặc cross-ref.
-- KHÔNG đặt code/secret trong rule.
-- KHÔNG push trực tiếp lên `dev` — đi qua nhánh + PR.
-```
-
-**Step 2: Verify**
-
-```bash
-file --mime-encoding .cursor/rules/meta-rule-authoring.mdc
-git add .cursor/rules/meta-rule-authoring.mdc
-git commit -m "docs(rules): add meta-rule-authoring.mdc (governance for rule changes)"
-```
-
----
-
-### Task 5.2: Cập nhật Rule Index trong `AGENTS.md`
-
-**Files:**
-- Modify: `AGENTS.md` (chỉ phần Rule Index)
-
-**Step 1: Thay bảng cũ bằng bảng mới (24 entry)**
-
-Bảng mới phải khớp với `globs` thật của từng file sau khi re-author. Mỗi entry có format:
-
-```
-| `.cursor/rules/<name>.mdc` | <scope ngắn gọn> |
-```
-
-Số entry: 24 (23 file cũ re-author - 1 do gộp api + api-reference + 1 meta-rule-authoring mới).
-
-**Step 2: Commit**
-
-```bash
-git add AGENTS.md
-git commit -m "docs(rules): refresh rule index in AGENTS.md (22 rules + meta-rule)"
-```
-
----
-
-### Task 6.1: Viết verify script
+### Task A.4: Verify script (SP6 phan setup, D4)
 
 **Files:**
 - Create: `scripts/verify-rules.ps1`
 
-**Step 1: Viết script**
+**Step 1: Viet script PowerShell native (KHONG dung `file` command)**
 
 ```powershell
 <#
 .SYNOPSIS
-  Verify toàn bộ rule surface: encoding, header, dependency, rule index.
+  Verify rule surface: encoding, header metadata, corrupt chars, BOM.
 .NOTES
-  Run từ repo root: powershell -File scripts/verify-rules.ps1
+  Chay tu repo root: powershell -File scripts/verify-rules.ps1
+  Windows-compatible, khong can Git Bash hay WSL.
 #>
 
 $ErrorActionPreference = "Stop"
 $rulesDir = ".cursor/rules"
 $requiredKeys = @("description", "globs", "alwaysApply", "owner", "last_reviewed")
+$corruptPattern = "[┤╞╟╠═╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳㼿]"
 
 # 1. Count
-$mdcFiles = Get-ChildItem "$rulesDir/*.mdc"
+$mdcFiles = Get-ChildItem "$rulesDir/*.mdc" -ErrorAction SilentlyContinue
+Write-Host "=== File count ===" -ForegroundColor Cyan
 Write-Host "Total .mdc files: $($mdcFiles.Count) (expected 24 after merge + meta-rule)"
-if ($mdcFiles.Count -ne 24) {
-  Write-Warning "File count mismatch"
-}
+if ($mdcFiles.Count -ne 24) { Write-Warning "  File count mismatch" }
 
-# 2. Encoding
+# 2. Encoding + BOM
+Write-Host "`n=== Encoding + BOM ===" -ForegroundColor Cyan
 foreach ($f in $mdcFiles) {
-  $enc = file --mime-encoding $f.FullName
-  if ($enc -notmatch "utf-8") {
-    Write-Host "FAIL [encoding]: $($f.Name) → $enc" -ForegroundColor Red
+  $bytes = [System.IO.File]::ReadAllBytes($f.FullName)
+  $hasBom = $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+  if ($hasBom) {
+    Write-Host "  FAIL: $($f.Name) has UTF-8 BOM" -ForegroundColor Red
+  } else {
+    Write-Host "  OK:   $($f.Name)" -ForegroundColor Green
   }
 }
 
-# 3. Header (5 key bắt buộc)
+# 3. Header metadata
+Write-Host "`n=== Header metadata (5 key bat buoc) ===" -ForegroundColor Cyan
 foreach ($f in $mdcFiles) {
   $head = Get-Content $f.FullName -TotalCount 30
   $inFrontmatter = $false
-  $frontmatter = @()
+  $frontmatterLines = @()
   foreach ($line in $head) {
     if ($line -eq "---") {
       if (-not $inFrontmatter) { $inFrontmatter = $true; continue }
       else { break }
     }
-    if ($inFrontmatter) { $frontmatter += $line }
+    if ($inFrontmatter) { $frontmatterLines += $line }
   }
-  $yaml = ($frontmatter -join "`n") -replace ":\s*\|", "" -replace ":\s*>", ""
+  $yaml = ($frontmatterLines -join "`n")
+  $missing = @()
   foreach ($key in $requiredKeys) {
-    if ($yaml -notmatch "(?m)^${key}:") {
-      Write-Host "FAIL [header missing $key]: $($f.Name)" -ForegroundColor Red
-    }
+    if ($yaml -notmatch "(?m)^${key}:") { $missing += $key }
+  }
+  if ($missing.Count -gt 0) {
+    Write-Host "  FAIL: $($f.Name) missing keys: $($missing -join ', ')" -ForegroundColor Red
+  } else {
+    Write-Host "  OK:   $($f.Name)" -ForegroundColor Green
   }
 }
 
 # 4. Corrupt chars
-$pattern = "[┤╞╟╠═╡╢╣╤╥╦╧╨╩╪╫╬╭╮╯╰╱╲╳㼿]"
+Write-Host "`n=== Corrupt characters ===" -ForegroundColor Cyan
 foreach ($f in $mdcFiles) {
-  $content = Get-Content $f.FullName -Raw
-  if ($content -match $pattern) {
-    Write-Host "FAIL [corrupt chars]: $($f.Name)" -ForegroundColor Red
+  $content = [System.IO.File]::ReadAllText($f.FullName, [System.Text.UTF8Encoding]::new($false))
+  $corruptCount = ([regex]::Matches($content, $corruptPattern)).Count
+  if ($corruptCount -gt 0) {
+    Write-Host "  FAIL: $($f.Name) has $corruptCount corrupt chars" -ForegroundColor Red
+  } else {
+    Write-Host "  OK:   $($f.Name)" -ForegroundColor Green
   }
 }
 
-# 5. AGENTS.md
-$agentsContent = Get-Content AGENTS.md -Raw
-if ($agentsContent -match $pattern) {
-  Write-Host "FAIL [corrupt chars in AGENTS.md]" -ForegroundColor Red
+# 5. AGENTS.md + docs/CLAUDE.md
+Write-Host "`n=== Top-level files ===" -ForegroundColor Cyan
+foreach ($f in @("AGENTS.md", "docs/CLAUDE.md")) {
+  if (-not (Test-Path $f)) { Write-Host "  SKIP: $f (not found)"; continue }
+  $content = [System.IO.File]::ReadAllText($f, [System.Text.UTF8Encoding]::new($false))
+  $corruptCount = ([regex]::Matches($content, $corruptPattern)).Count
+  $hasBom = $false
+  $bytes = [System.IO.File]::ReadAllBytes($f)
+  if ($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $hasBom = $true }
+  if ($corruptCount -gt 0 -or $hasBom) {
+    Write-Host "  FAIL: $f (corrupt=$corruptCount, bom=$hasBom)" -ForegroundColor Red
+  } else {
+    Write-Host "  OK:   $f" -ForegroundColor Green
+  }
 }
 
-# 6. Top-level
-Write-Host "---"
-Write-Host "Done. See FAIL lines above."
+Write-Host "`n=== Done ===" -ForegroundColor Cyan
 ```
 
-**Step 2: Commit**
+**Step 2: Chay thu (se FAIL vi chua re-author file nao)**
+
+```powershell
+powershell -File scripts/verify-rules.ps1
+```
+
+Expected output: nhieu FAIL lines (encoding, header, corrupt). Day la baseline de so sanh sau khi re-author.
+
+**Commit:**
 
 ```bash
 git add scripts/verify-rules.ps1
-git commit -m "docs(rules): add verify-rules.ps1 sanity check script"
+git commit -m "docs(rules): add verify-rules.ps1 sanity check script (Windows-native)"
 ```
 
 ---
 
-### Task 6.2: Chạy verify + final report
+### Task A.5: Keyword snapshot test (semantic regression guard)
 
-**Step 1: Chạy script**
+**Files:**
+- Create: `scripts/snapshot-keywords.ps1`
+
+**Step 1: Viet script**
+
+Script extract tat ca keyword "MUST", "BAT BUOC", "KHONG", "REQUIRED", "PROHIBITED" tu moi file rule, luu vao `docs/superpowers/specs/keyword-snapshot.json`. Sau khi re-author, chay lai de diff. Mat keyword nao -> flag.
+
+```powershell
+<#
+.SYNOPSIS
+  Extract strong keywords from rule files for semantic regression check.
+.NOTES
+  Run: powershell -File scripts/snapshot-keywords.ps1
+  Output: docs/superpowers/specs/keyword-snapshot.json
+#>
+
+$rulesDir = ".cursor/rules"
+$outputFile = "docs/superpowers/specs/keyword-snapshot.json"
+$keywords = @("\bMUST\b", "\bBAT BUOC\b", "\bKHONG\b", "\bREQUIRED\b", "\bPROHIBITED\b", "\bNEVER\b", "\bALWAYS\b")
+
+$rules = @{}
+Get-ChildItem "$rulesDir/*.mdc" | ForEach-Object {
+  $content = [System.IO.File]::ReadAllText($_.FullName, [System.Text.UTF8Encoding]::new($false))
+  $counts = @{}
+  foreach ($kw in $keywords) {
+    $pattern = $kw -replace "\\b", ""
+    $count = ([regex]::Matches($content, [regex]::Escape($pattern), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)).Count
+    $counts[$pattern] = $count
+  }
+  $rules[$_.Name] = $counts
+}
+
+$snapshot = @{
+  generatedAt = (Get-Date -Format "o")
+  rules = $rules
+}
+$snapshot | ConvertTo-Json -Depth 5 | Set-Content $outputFile -Encoding UTF8
+Write-Host "Snapshot saved: $outputFile"
+Write-Host "Total rules: $($rules.Count)"
+```
+
+**Step 2: Chay tao snapshot truoc khi re-author**
+
+```powershell
+powershell -File scripts/snapshot-keywords.ps1
+git add docs/superpowers/specs/keyword-snapshot.json
+git commit -m "docs(rules): add keyword snapshot baseline for semantic regression check"
+```
+
+**Su dung:** Sau Dot B, chay lai script, diff 2 file JSON. Mat keyword nao -> review.
+
+---
+
+### Checkpoint A
+
+Sau Dot A, **dung lai va bao cao cho user**:
+
+```text
+## Dot A Complete
+
+Commit: 5 (A.1 rollback, A.2 audit, A.3 template, A.4 verify, A.5 snapshot)
+File moi: 4 (rollback-procedure.md, audit-inventory.md, rule-dependency-graph.md, header-schema.md, rule-template.mdc, verify-rules.ps1, snapshot-keywords.ps1, keyword-snapshot.json)
+File sua: 0
+
+Verify script baseline:
+- File count: 24
+- Encoding FAIL: N (se sua o Dot B)
+- Header FAIL: 24 (chua co file nao co header chuan)
+- Corrupt FAIL: M (se sua o Dot B)
+
+Snapshot baseline saved.
+San sang Dot B (re-author 24 file + meta-rule)? OK thi tiep.
+```
+
+---
+
+## Phan 2 - Dot B (P1): Re-author squash
+
+### Task B.1: Re-author nhom 1 (6 rule "always") (D3)
+
+**Files (6 file, squash 1 commit):**
+- `.cursor/rules/skill-loading.mdc`
+- `.cursor/rules/stack-versions.mdc`
+- `.cursor/rules/workflow-process.mdc`
+- `.cursor/rules/error-handling.mdc`
+- `.cursor/rules/no-overengineering.mdc`
+- `.cursor/rules/testing-required.mdc`
+
+**Step 1: Lay version sach tu git cho moi file**
+
+```powershell
+foreach ($f in @("skill-loading.mdc", "stack-versions.mdc", "workflow-process.mdc", "error-handling.mdc", "no-overengineering.mdc", "testing-required.mdc")) {
+  $lastCommit = (git log --follow --format=%H -- ".cursor/rules/$f" | Select-Object -Last 1)
+  git show "${lastCommit}:.cursor/rules/$f" > ".scratch/clean-$f"
+  Write-Host "$f <- $lastCommit"
+}
+```
+
+**Step 2: Re-author moi file theo template**
+
+- Header 5 key bat buoc.
+- Body giu noi dung chinh (khong doi y), sua encoding.
+- Luu qua `[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))` de dam bao UTF-8 no BOM.
+
+**Step 3: Verify tung file**
+
+```powershell
+foreach ($f in @("skill-loading.mdc", "stack-versions.mdc", "workflow-process.mdc", "error-handling.mdc", "no-overengineering.mdc", "testing-required.mdc")) {
+  $bytes = [System.IO.File]::ReadAllBytes(".cursor/rules/$f")
+  Write-Host "$f - first 4 bytes: $($bytes[0..3] | ForEach-Object { $_.ToString('X2') })"
+}
+```
+
+Expected: first 4 bytes = `23 20 XX XX` (ASCII `#` + space + 2 ASCII).
+
+**Step 4: Commit squash**
 
 ```bash
+git add .cursor/rules/skill-loading.mdc .cursor/rules/stack-versions.mdc \
+        .cursor/rules/workflow-process.mdc .cursor/rules/error-handling.mdc \
+        .cursor/rules/no-overengineering.mdc .cursor/rules/testing-required.mdc
+git commit -m "docs(rules): re-author 6 always-apply rules (utf-8 + canonical header)
+
+Group 1 of 2: foundation rules loaded on every agent turn.
+- skill-loading.mdc: checklist + auto-gitignore
+- stack-versions.mdc: Next 16.3.8, React 19.2, TS 5, Tailwind 4, etc.
+- workflow-process.mdc: 6-step mandatory workflow
+- error-handling.mdc: throw vs catch vs toast convention
+- no-overengineering.mdc: YAGNI scope
+- testing-required.mdc: TDD red-green-refactor
+
+Each file re-authored from git history, intent preserved, format
+normalized to canonical header (5 required keys)."
+```
+
+---
+
+### Task B.2: Re-author nhom 2 (8 rule "design/component")
+
+**Files (8 file, squash 1 commit):**
+- `.cursor/rules/design-system.mdc`
+- `.cursor/rules/component-pattern.mdc`
+- `.cursor/rules/layer-convention.mdc`
+- `.cursor/rules/state-management.mdc`
+- `.cursor/rules/enum-labels.mdc`
+- `.cursor/rules/validation-forms.mdc`
+- `.cursor/rules/routing-guards.mdc`
+- `.cursor/rules/i18n.mdc`
+
+**Step 1-3:** Tuong tu Task B.1.
+
+**Step 4: Commit squash**
+
+```bash
+git add .cursor/rules/design-system.mdc .cursor/rules/component-pattern.mdc \
+        .cursor/rules/layer-convention.mdc .cursor/rules/state-management.mdc \
+        .cursor/rules/enum-labels.mdc .cursor/rules/validation-forms.mdc \
+        .cursor/rules/routing-guards.mdc .cursor/rules/i18n.mdc
+git commit -m "docs(rules): re-author 8 design/component rules (utf-8 + canonical header)
+
+Group 2 of 2: Tailwind 4 tokens, component structure (cva/forwardRef),
+layer convention, Zustand stores, enum labels, RHF+Zod validation,
+middleware/routing, next-intl."
+```
+
+---
+
+### Task B.3: Re-author nhom 3 (7 rule "data/integration") + GỘP api
+
+**Files (7 file squash, 1 file xoa, 1 commit gop):**
+- Modify: `.cursor/rules/api-data.mdc`
+- Modify: `.cursor/rules/flash-sale-b2c-api.mdc` (gop noi dung tu api-reference)
+- Modify: `.cursor/rules/flash-sale-payment.mdc`
+- Modify: `.cursor/rules/auth-jwt.mdc`
+- Modify: `.cursor/rules/websocket-realtime.mdc`
+- Modify: `.cursor/rules/features-migration.mdc`
+- Modify: `.cursor/rules/docs-sync.mdc`
+- Delete: `.cursor/rules/flash-sale-b2c-api-reference.mdc`
+
+**Step 1: Lay version sach**
+
+Tuong tu B.1, nhung them:
+
+```powershell
+# Rieng cho flash-sale-b2c-api.mdc, lay ca 2 file de gop
+$apiHash = (git log --follow --format=%H -- ".cursor/rules/flash-sale-b2c-api.mdc" | Select-Object -Last 1)
+$apiRefHash = (git log --follow --format=%H -- ".cursor/rules/flash-sale-b2c-api-reference.mdc" | Select-Object -Last 1)
+git show "${apiHash}:.cursor/rules/flash-sale-b2c-api.mdc" > .scratch/clean-flash-sale-b2c-api.mdc
+git show "${apiRefHash}:.cursor/rules/flash-sale-b2c-api-reference.mdc" > .scratch/clean-flash-sale-b2c-api-reference.mdc
+```
+
+**Step 2: Gop noi dung**
+
+File moi `flash-sale-b2c-api.mdc` co:
+- Header chuan (5 key).
+- Section 1-7: policy tich hop (cu cua api.mdc).
+- Section 8: "Khi nao doc docs/api-document.md / docs/api-reference.md" (cu cua api-reference.mdc).
+- Cross-ref den 2 file docs goc.
+
+**Step 3: Xoa file cu**
+
+```powershell
+git rm .cursor/rules/flash-sale-b2c-api-reference.mdc
+```
+
+**Step 4: Commit gop**
+
+```bash
+git add .cursor/rules/api-data.mdc .cursor/rules/flash-sale-b2c-api.mdc \
+        .cursor/rules/flash-sale-payment.mdc .cursor/rules/auth-jwt.mdc \
+        .cursor/rules/websocket-realtime.mdc .cursor/rules/features-migration.mdc \
+        .cursor/rules/docs-sync.mdc
+git rm .cursor/rules/flash-sale-b2c-api-reference.mdc
+git commit -m "docs(rules): re-author 7 data/integration rules + merge api pair (utf-8)
+
+Group 3 of 2: data layer, API contract, payment flow, JWT auth, STOMP
+WebSocket, feature migration, docs sync.
+
+flash-sale-b2c-api.mdc and flash-sale-b2c-api-reference.mdc are merged
+into a single rule (api-reference removed). API endpoint details stay
+in docs/api-document.md and docs/api-reference.md; the .mdc rule now
+only covers integration policy and cross-refs."
+```
+
+---
+
+### Task B.4: Re-author nhom 4 (3 rule "git") + meta-rule moi (D3 + D7)
+
+**Files (4 file, 1 commit):**
+- Modify: `.cursor/rules/git-workflow.mdc`
+- Modify: `.cursor/rules/git-worktree.mdc`
+- Create: `.cursor/rules/meta-rule-authoring.mdc` (MỚI)
+- Modify: `AGENTS.md` (Rule Index)
+
+**Step 1: Re-author 3 file git** (tuong tu B.1)
+
+**Step 2: Tao meta-rule-authoring.mdc**
+
+Header 5 key, body:
+- Section 1: Header metadata (BAT BUOC 5 key).
+- Section 2: Khi tao rule moi.
+- Section 3: Khi sua rule.
+- Section 4: Khi xoa rule.
+- Section 5: Khi gop/tach rule.
+- Section 6: KHONG.
+- **Phan biet scope:** "Scope: file RULE (.mdc). Quy trinh code xem workflow-process.mdc." (D7)
+
+**Step 3: Update Rule Index trong AGENTS.md**
+
+Bang moi: 24 entry (23 re-author + 1 meta-rule moi). Moi entry co format:
+
+```
+| `.cursor/rules/<name>.mdc` | <scope ngan gon> |
+```
+
+Bo entry `flash-sale-b2c-api-reference.mdc` (da xoa).
+
+**Step 4: Commit gop (3 file git + 1 file moi + AGENTS.md)**
+
+```bash
+git add .cursor/rules/git-workflow.mdc .cursor/rules/git-worktree.mdc \
+        .cursor/rules/meta-rule-authoring.mdc AGENTS.md
+git commit -m "docs(rules): re-author 3 git rules, add meta-rule, refresh index
+
+Group 4 of 2 (final): git workflow + worktree conventions.
+
+New: .cursor/rules/meta-rule-authoring.mdc — governance for creating/
+modifying/deleting rules. Distinguishes scope from workflow-process.mdc
+(that one covers code changes, this one covers rule files only).
+
+AGENTS.md Rule Index refreshed: 24 entries (23 re-authored + 1 new
+meta-rule), api-reference entry removed (merged into flash-sale-b2c-api)."
+```
+
+---
+
+### Task B.5: Re-author top-level (docs/CLAUDE.md)
+
+**Files:**
+- Modify: `docs/CLAUDE.md`
+
+**Step 1: Lay version sach**
+
+```powershell
+git log --follow --oneline -- docs/CLAUDE.md
+git show <hash>:docs/CLAUDE.md > .scratch/clean-CLAUDE.md
+```
+
+**Step 2: Re-author UTF-8 sach, giu nguyen 12 muc**
+
+Chi sua encoding, khong doi noi dung. Moi muc dung heading `##`, khong dung `>` blockquote cho heading.
+
+**Step 3: Verify + commit**
+
+```bash
+git add docs/CLAUDE.md
+git commit -m "docs(rules): re-author docs/CLAUDE.md as clean utf-8 (12 sections preserved)"
+```
+
+---
+
+### Task B.6: Verify cuoi cung + final report
+
+**Step 1: Chay verify script**
+
+```powershell
 powershell -File scripts/verify-rules.ps1
 ```
 
-**Step 2: Nếu có FAIL → sửa ngay (cùng commit cuối)**
+Expected: 0 FAIL, 0 corrupt, header OK 24/24.
 
-Các sửa có thể:
+**Step 2: Chay keyword snapshot diff**
 
-- Thiếu key → sửa header.
-- Encoding sai → convert UTF-8.
-- Corrupt char → sửa text.
+```powershell
+# Luu snapshot moi
+powershell -File scripts/snapshot-keywords.ps1
 
-**Step 3: Final report**
+# Diff voi snapshot cu
+$old = Get-Content docs/superpowers/specs/keyword-snapshot.json -Raw | ConvertFrom-Json
+# (Tao snapshot truoc khi re-author, da commit o Task A.5)
+$new = Get-Content docs/superpowers/specs/keyword-snapshot.json -Raw | ConvertFrom-Json
 
-Viết `docs/superpowers/specs/final-report-2026-10-09.md` với:
-
-```markdown
-# Final Report — Standardize Rules (2026-10-09)
-
-## Tổng kết
-- Subplan: 6/6
-- Tasks: 37/37
-- Commit: 37
-- File `.mdc` sau: 24 (23 cũ - 1 do gộp + 1 meta-rule mới)
-- File xoá: 1 (`flash-sale-b2c-api-reference.mdc`)
-- File mới: 3 (`meta-rule-authoring.mdc`, `rule-template.mdc`, `verify-rules.ps1`)
-
-## Verify kết quả
-- Encoding: PASS (24/24 file UTF-8)
-- Header: PASS (24/24 file có 5 key bắt buộc)
-- Corrupt chars: PASS (0 ký tự lỗi)
-- Rule Index: PASS (khớp với file thật)
-- AGENTS.md: PASS (UTF-8 sạch)
-- docs/CLAUDE.md: PASS (UTF-8 sạch, 12 mục giữ nguyên)
-
-## Notes
-- Branch: `docs/standardize-rules-utf8`
-- KHÔNG push (Bước 6 workflow chỉ auto-commit local)
-- User push khi review xong
+foreach ($rule in $old.rules.PSObject.Properties) {
+  $ruleName = $rule.Name
+  $oldCount = ($rule.Value | ConvertFrom-Json).PSObject.Properties | Measure-Object -Sum Value
+  # ... so sanh
+}
 ```
 
-**Step 4: Commit**
+Neu mat keyword nao (count giam) -> flag cho user review truoc khi commit final.
+
+**Step 3: Viet final report**
+
+Tao `docs/superpowers/specs/final-report-2026-10-09.md`:
+
+```markdown
+# Final Report - Standardize Rules (2026-10-09)
+
+## Tong ket
+- Branch: docs/standardize-rules-utf8
+- Subplan: 6/6 (gom thanh 2 dot)
+- Commit: 12 (5 o Dot A + 7 o Dot B)
+- File .mdc sau: 24 (23 re-author + 1 meta-rule moi)
+- File xoa: 1 (flash-sale-b2c-api-reference.mdc)
+- File moi: 8 (rollback-procedure, audit-inventory, dependency-graph, header-schema, rule-template, verify-rules, snapshot-keywords, meta-rule-authoring)
+
+## Verify ket qua
+- Encoding: PASS (24/24 UTF-8 no BOM)
+- Header: PASS (24/24 co 5 key bat buoc)
+- Corrupt chars: PASS (0 ky tu loi)
+- Keyword snapshot: PASS (khong mat keyword MUST/KHONG/REQUIRED nao)
+- Rule Index: PASS (24 entry, khop file that)
+- AGENTS.md: PASS (UTF-8 sach)
+- docs/CLAUDE.md: PASS (UTF-8 sach, 12 muc giu nguyen)
+
+## Notes
+- Rollback: git reset --hard baseline-before-utf8
+- KHONG push (user tu push khi review xong)
+- Best-effort: neu 1 file re-author khong khop git history, flag trong commit body
+```
+
+**Commit:**
 
 ```bash
 git add docs/superpowers/specs/final-report-2026-10-09.md
-git commit -m "docs(rules): add final report for standardize-rules (23/23 pass)"
+git commit -m "docs(rules): add final report - 12/12 commit pass verify"
 ```
 
 ---
 
 ## Self-Review Checklist
 
-- [x] Spec §10 (Open Questions) đã resolve trước khi viết plan
-- [x] Mỗi task có file cụ thể, step cụ thể, command cụ thể
-- [x] Mỗi task có commit message tiếng Anh
-- [x] Không có "TBD" / "TODO" / "similar to Task N"
-- [x] Test/verify: Task 6.1 + 6.2 (script PowerShell + final report)
-- [x] Dependency order: SP1 → SP2/SP3 song song → SP4 → SP5 → SP6
-- [x] Branch đã tạo (`docs/standardize-rules-utf8` từ `dev`)
-- [x] Tổng commit ước tính: 37 (mỗi file re-author = 1 commit, gộp/xoá = cộng thêm)
+- [x] Spec coverage: 10 muc spec duoc map vao 6 subplan
+- [x] D1 (chia 2 dot): Dot A (P0) + Dot B (P1)
+- [x] D2 (snapshot tag): Task A.1 baseline-before-utf8 + rollback procedure
+- [x] D3 (squash): 4 group commit thay vi 24 file rieng
+- [x] D4 (Windows script): verify-rules.ps1 dung PowerShell native, khong dung `file` command
+- [x] D5 (keyword snapshot): scripts/snapshot-keywords.ps1 + diff sau Dot B
+- [x] D6 (cross-ref CLAUDE.md): ghi chu trong Task B.5
+- [x] D7 (phan biet scope): Task B.4 Step 2 them 1 dong phan biet
+- [x] Tong commit: 12 (Dot A: 5, Dot B: 7)
+- [x] Branch: docs/standardize-rules-utf8 da tao tu dev
+- [x] Khong push
+- [x] Test/verify: verify-rules.ps1 + snapshot-keywords.ps1
 
 ## Execution Handoff
 
-Plan complete and saved to `docs/superpowers/plans/2026-10-09-standardize-rules-plan.md`.
+Plan v2 saved. 2 che do thuc thi (theo itz-writing-plans):
 
-Two execution options:
+1. **Subagent-driven (Recommended):**
+   - Dot A: 1 subagent (audit + template + script + snapshot).
+   - Dot B: 4 subagent song song (4 group re-author), 1 subagent cho meta-rule + AGENTS.md update, 1 subagent cho verify cuoi.
+   - Review giua Dot A va Dot B.
 
-1. **Subagent-Driven (recommended)** — Dispatch 1 subagent per task, review between tasks. Tốn thời gian nhưng review kỹ từng commit.
-
-2. **Inline Execution** — Thực thi trong session này theo thứ tự 6 subplan, checkpoint mỗi 5–6 commit. Nhanh hơn nhưng ít review hơn.
+2. **Inline execution:** Toi chay tuan tu trong session, checkpoint sau Dot A (5 commit) va Dot B (7 commit).
