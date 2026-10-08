@@ -79,7 +79,7 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
 
         <div>
           <label className="mb-1.5 block text-sm font-medium">
-            Địa chỉ nhận hàng
+            {t("addressLabel")}
           </label>
           <select
             value={addressId ?? ""}
@@ -120,7 +120,7 @@ export function BuyModal({ open, onClose, item, addresses }: BuyModalProps) {
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Hủy
+            {t("cancel")}
           </Button>
           <Button
             variant="primary"

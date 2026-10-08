@@ -52,6 +52,22 @@ describe('i18n lookup', () => {
       expect(getMessage('fr', 'common.loading')).toBeUndefined();
     });
 
+    it('returns the new addressLabel key in flash-sale.buyModal (cleanup 2026-10-08)', () => {
+      // SP4 follow-up: replace literal "Địa chỉ nhận hàng" with t('addressLabel')
+      expect(getMessage('vi', 'flash-sale.buyModal.addressLabel')).toBe(
+        'Địa chỉ nhận hàng'
+      );
+      expect(getMessage('en', 'flash-sale.buyModal.addressLabel')).toBe(
+        'Shipping address'
+      );
+    });
+
+    it('returns the new cancel key in flash-sale.buyModal (cleanup 2026-10-08)', () => {
+      // SP4 follow-up: replace literal "Huỷ" with t('cancel')
+      expect(getMessage('vi', 'flash-sale.buyModal.cancel')).toBe('Huỷ');
+      expect(getMessage('en', 'flash-sale.buyModal.cancel')).toBe('Cancel');
+    });
+
     it('returns undefined for unknown path', () => {
       expect(getMessage('vi', 'common.doesNotExist')).toBeUndefined();
       expect(getMessage('vi', 'noNamespace.key')).toBeUndefined();

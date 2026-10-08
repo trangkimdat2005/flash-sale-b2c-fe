@@ -255,6 +255,7 @@
       "noAddress": "Bạn chưa có địa chỉ. Vui lòng vào",
       "addressBook": "Sổ địa chỉ",
       "toAdd": "để thêm.",
+      "addressLabel": "Địa chỉ nhận hàng",
       "quantity": "Số lượng",
       "maxQuantity": "Tối đa {max} sản phẩm",
       "purchaseLimit": "Giới hạn mua: {limit} sản phẩm/khách",
@@ -267,7 +268,8 @@
       "errorGeneric": "Đặt hàng thất bại, thử lại sau",
       "requireLogin": "Vui lòng đăng nhập để mua",
       "buyNow": "Mua ngay",
-      "outOfStock": "Hết hàng"
+      "outOfStock": "Hết hàng",
+      "cancel": "Huỷ"
     },
     "slotDetail": {
       "startsIn": "Bắt đầu sau",

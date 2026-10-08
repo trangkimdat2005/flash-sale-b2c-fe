@@ -255,6 +255,7 @@
       "noAddress": "You have no address. Please go to the",
       "addressBook": "Address book",
       "toAdd": "to add one.",
+      "addressLabel": "Shipping address",
       "quantity": "Quantity",
       "maxQuantity": "Up to {max} products",
       "purchaseLimit": "Purchase limit: {limit}/customer",
@@ -267,7 +268,8 @@
       "errorGeneric": "Order failed, please try again later",
       "requireLogin": "Please log in to buy",
       "buyNow": "Buy now",
-      "outOfStock": "Out of stock"
+      "outOfStock": "Out of stock",
+      "cancel": "Cancel"
     },
     "slotDetail": {
       "startsIn": "Starts in",
