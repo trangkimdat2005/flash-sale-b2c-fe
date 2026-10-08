@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useCountdown } from "@/hooks";
 import { Badge } from "@/components/ui";
 import { Countdown } from "./Countdown";
 import type { PublicFlashSaleSlotResponse } from "@/types";

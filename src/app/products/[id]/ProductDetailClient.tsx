@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button, Badge } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { productApi, cartApi } from "@/lib/api";
-import { money, formatVND } from "@/lib/decimal";
+import { formatVND } from "@/lib/decimal";
 import { useAuthStore } from "@/stores/auth.store";
 import { ApiError } from "@/lib/api/errors";
 

@@ -95,7 +95,7 @@ export default function ProfilePage() {
                     oldPassword: parsed.oldPassword,
                     newPassword: parsed.newPassword,
                   });
-                } catch (e) {
+                } catch {
                   toast.error(t("confirmMismatch"));
                 }
               }}
