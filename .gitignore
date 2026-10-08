@@ -53,4 +53,8 @@ test-results/
 *.log
 
 # local scripts (debug/convert helpers)
-/scripts/
+# Note: scripts/verify-rules.ps1 and scripts/snapshot-keywords.ps1 are committed
+# (rule verification utilities). Other scripts/* remain local debug/convert helpers.
+/scripts/*
+!/scripts/verify-rules.ps1
+!/scripts/snapshot-keywords.ps1
