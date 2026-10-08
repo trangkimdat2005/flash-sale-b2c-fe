@@ -242,6 +242,7 @@ Sau khi xong Bước 5, **auto-commit** (không hỏi user). Rồi báo cáo v�
 
 ## Tests
 - Build: `npm run build` → pass / fail
+- Commit message bằng **tiếng Anh** + Conventional Commits (xem `.cursor/rules/git-workflow.mdc` → "Commit language")
 - Lint: `npm run lint` → pass / fail
 - Manual smoke: trang nào đã mở, status
 

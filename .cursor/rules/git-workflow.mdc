@@ -225,6 +225,54 @@ Files copy only (no test required):
 - Dùng `git add .` — KHÔNG `git add <file>` thủ công.
 - Commit CHỈ file đã thực sự thay đổi trong task.
 
+
+
+## Commit language (ENFORCED from 2026-10-09)
+
+**Rule**: All commit messages (subject, body, footer, breaking change notes) **MUST be written in English**. Vietnamese is allowed only in:
+
+- Source code comments (e.g. `// TODO: xử lý edge case`)
+- UI strings / copy shown to end users
+- Local-only content: branch names (`feat/them-trang-chu`), local draft notes
+
+### Why
+
+- Git history is global / public on GitHub — readability for all contributors
+- `git log --grep`, code review, changelog generation are all keyword-based
+- Conventional Commits spec (https://www.conventionalcommits.org/) is English-first by convention
+- Onboarding new contributors (en/vi) easier with one consistent language
+
+### Examples (good vs bad)
+
+```text
+# GOOD — English
+feat(cart): implement add-to-cart with optimistic update
+fix(auth): prevent infinite 401 refresh loop
+docs(rules): enforce English-only commit messages
+refactor(api): extract decimal.js wrapper for VND
+
+# BAD — Vietnamese, will be rejected
+feat(cart): thêm sản phẩm vào giỏ với optimistic update
+fix(auth): sửa lỗi vòng lặp 401 vô tận
+docs(rules): quy tắc commit phải viết tiếng Anh
+```
+
+### Pre-commit self-check (extend mốc 6 in Pre-commit checklist)
+
+Before `git commit`, agent MUST verify:
+
+- [ ] Subject line is **English** (no Vietnamese diacritics: ă, â, ể, ữ, ơ, ư, đ, etc.)
+- [ ] Body / footer is **English**
+- [ ] If a test file is mentioned in body → file path is correct and test exists
+- [ ] Type prefix matches one of: `feat | fix | docs | refactor | chore | test | perf | build | ci`
+- [ ] Subject length ≤ 72 chars; body wrapped at 72 chars
+
+### When to relax
+
+- User explicitly asks for Vietnamese commit (e.g. "commit bằng tiếng Việt cho PR này")
+- Hotfix on private branch where the user is the only reviewer
+- Never relax on: `main`, `dev`, or any shared branch
+
 ## Push policy (xin phép + merge dev trước khi push)
 
 **Trước khi push**, agent **BẮT BUỘC** merge code mới nhất từ dev:
