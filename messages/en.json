@@ -49,7 +49,8 @@
       "noAccount": "Don't have an account?",
       "registerLink": "Sign up now",
       "success": "Logged in successfully!",
-      "errorGeneric": "Something went wrong"
+      "errorGeneric": "Something went wrong",
+      "loading": "Loading..."
     },
     "register": {
       "title": "Create an account",

@@ -27,7 +27,7 @@ export default async function LoginPage() {
           <p className="mt-1 text-sm text-zinc-500">{t("subtitle")}</p>
         </div>
         <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <Suspense fallback={<p className="text-sm text-zinc-500">Đang tải...</p>}>
+          <Suspense fallback={<p className="text-sm text-zinc-500">{t("loading")}</p>}>
             <LoginForm />
           </Suspense>
         </div>

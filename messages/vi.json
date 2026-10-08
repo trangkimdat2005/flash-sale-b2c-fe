@@ -49,7 +49,8 @@
       "noAccount": "Chưa có tài khoản?",
       "registerLink": "Đăng ký ngay",
       "success": "Đăng nhập thành công!",
-      "errorGeneric": "Có lỗi xảy ra"
+      "errorGeneric": "Có lỗi xảy ra",
+      "loading": "Đang tải..."
     },
     "register": {
       "title": "Tạo tài khoản",

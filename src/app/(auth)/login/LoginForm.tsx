@@ -75,7 +75,7 @@ export function LoginForm() {
       </Button>
       <p className="text-center text-sm text-zinc-500">
         {t("noAccount")}{" "}
-        <Link href="/register" className="font-medium text-red-600 hover:underline">
+        <Link href="/register" className="font-medium text-sale hover:underline">
           {t("registerLink")}
         </Link>
       </p>

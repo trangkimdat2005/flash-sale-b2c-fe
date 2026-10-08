@@ -68,6 +68,22 @@ describe('i18n lookup', () => {
       expect(getMessage('en', 'flash-sale.buyModal.cancel')).toBe('Cancel');
     });
 
+    it('returns auth.login.loading in both locales (SP2 polish 2026-10-08)', () => {
+      // SP2 follow-up: replace hard-coded "Đang tải..." in login Suspense
+      expect(getMessage('vi', 'auth.login.loading')).toBe('Đang tải...');
+      expect(getMessage('en', 'auth.login.loading')).toBe('Loading...');
+    });
+
+    it('mirrors all auth.login keys between vi and en (SP2 polish)', () => {
+      // Verify parity of SP2 (auth.login) namespace
+      const auth = getMessagesByNamespace('auth');
+      const viKeys = Object.keys(auth.vi.login as Record<string, unknown>).sort();
+      const enKeys = Object.keys(auth.en.login as Record<string, unknown>).sort();
+      expect(viKeys).toEqual(enKeys);
+      // Sanity: ensure no unexpected extra keys
+      expect(viKeys.length).toBeGreaterThanOrEqual(8);
+    });
+
     it('returns undefined for unknown path', () => {
       expect(getMessage('vi', 'common.doesNotExist')).toBeUndefined();
       expect(getMessage('vi', 'noNamespace.key')).toBeUndefined();
