@@ -47,15 +47,15 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 - **Tuyệt đối KHÔNG commit trực tiếp lên `dev`**. Luôn tạo nhánh mới từ `dev`:
   - Format: `<type>/<short-desc>` (vd: `feat/route-guard`, `fix/typo-encoding`, `docs/update-workflow`)
   - Lệnh: `git fetch origin dev && git checkout -b <branch> dev`
-- **Trước khi push** (Bước 6): luôn rebase lên `origin/dev` mới nhất:
-  - `git fetch origin dev && git rebase origin/dev`
-  - Nếu có conflict → resolve + `git rebase --continue`
-- Push dùng `git push --force-with-lease` (an toàn hơn `--force`).
+- **Trước khi push** (Bước 6): luôn merge `origin/dev` mới nhất vào nhánh đang làm:
+  - `git fetch origin dev && git merge origin/dev`
+  - Nếu có conflict → resolve + `git commit` (merge commit)
+- Push dùng `git push` bình thường (không cần force vì commit cũ giữ nguyên hash).
 - Xem chi tiết ở `git-workflow.mdc` (9-step mandatory workflow + hard gate).
 
 ### Lý do
 
-- Tránh mất commit khi merge `dev` về sau (commit trên `dev` không rebase được).
+- Tránh mất commit khi merge `dev` vào nhánh (giữ nguyên lịch sử commit, dễ review).
 - Tránh conflict với người khác đang cùng làm trên `dev`.
 - Review/PR từ feature branch rõ ràng hơn.
 
