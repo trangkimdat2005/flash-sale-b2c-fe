@@ -1,0 +1,210 @@
+---
+description: Quy tắc bắt buộc về encoding khi tạo/sửa file trong dự án — toàn bộ source code và tài liệu dùng UTF-8 NO BOM. Apply khi Write/StrReplace tạo file text, đọc/ghi file .md/.mdc/.ts/.tsx/.json/.env, hoặc khi xử lý file có BOM/UTF-16.
+alwaysApply: false
+---
+
+> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 | React 19.2 | TS 5.x | Tailwind 4.x
+
+# Encoding Rules - UTF-8 Only
+
+## 1. Quy tắc cứng (HARD GATE)
+
+**Mọi file text trong repo PHẢI ở encoding UTF-8, KHÔNG BOM** (no BOM). Không có ngoại lệ.
+
+| File type | Encoding bắt buộc | Ghi chú |
+|---|---|---|
+| .ts, .tsx, .js, .jsx | UTF-8 no BOM | Source code |
+| .json | UTF-8 no BOM | Config, package.json, tsconfig |
+| .md, .mdc | UTF-8 no BOM | Docs, Cursor rules |
+| .css, .scss | UTF-8 no BOM | Styles |
+| .html | UTF-8 no BOM | Markup |
+| .yml, .yaml | UTF-8 no BOM | CI/CD config |
+| .env, .env.example | UTF-8 no BOM | Env vars |
+| .txt | UTF-8 no BOM | Plain text |
+
+CẤM các encoding sau:
+
+- UTF-16 LE / UTF-16 BE (BOM FF FE hoặc FE FF) — đã từng xảy ra với .mdc rule, gây hiển thị lỗi tiếng Việt và tăng 50% dung lượng
+- UTF-8 with BOM (BOM EF BB BF) — gây lỗi parse JSON, shell script, và next.config.js
+- Windows-1252 / cp1252 — không hỗ trợ tiếng Việt có dấu
+- Shift-JIS, GBK, Big5 — encoding cũ, không dùng cho dự án này
+
+## 2. Cách detect encoding sai
+
+Dùng PowerShell kiểm tra first bytes (BOM):
+
+```powershell
+$bytes = [System.IO.File]::ReadAllBytes("path/to/file")
+$first3 = "$($bytes[0].ToString("X2")) $($bytes[1].ToString("X2")) $($bytes[2].ToString("X2"))"
+# BOM UTF-8:    EF BB BF  ← CẤM
+# BOM UTF-16 LE: FF FE   ← CẤM
+# BOM UTF-16 BE: FE FF   ← CẤM
+```
+
+Dùng file command (Git Bash / WSL):
+
+```bash
+file path/to/file
+# Expected: UTF-8 Unicode text hoặc ASCII text
+# Warning: UTF-8 Unicode (with BOM) text ← CẦN FIX
+# Warning: Little-endian UTF-16 Unicode text ← CẦN FIX
+```
+
+## 3. Cách convert về UTF-8 no BOM
+
+Dùng Node.js (an toàn, idempotent):
+
+```javascript
+// scripts/convert-to-utf8.cjs
+'use strict';
+const fs = require("fs");
+const TARGETS = process.argv.slice(2);
+let converted = 0, failed = 0;
+
+for (const file of TARGETS) {
+  const buf = fs.readFileSync(file);
+  let text;
+  if (buf[0] === 0xff && buf[1] === 0xfe) {
+    text = buf.toString("utf16le");
+  } else {
+    text = buf.toString("utf8");
+  }
+  while (text.charCodeAt(0) === 0xfeff) { text = text.slice(1); }
+  const out = Buffer.from(text, "utf8");
+  fs.writeFileSync(file, out);
+  const verify = fs.readFileSync(file).toString("utf8");
+  if (verify === text) { console.log("OK   " + file); converted++; }
+  else { console.log("FAIL " + file); failed++; }
+}
+console.log("Summary: converted=" + converted + " failed=" + failed);
+process.exit(failed > 0 ? 1 : 0);
+```
+
+Chạy:
+
+```bash
+node scripts/convert-to-utf8.cjs .cursor/rules/*.mdc
+```
+
+KHÔNG dùng PowerShell 5.1 ReadAllText với Unicode — đã test và bị corrupt ký tự tiếng Việt. Dùng Node 14+ hoặc PowerShell 7+ (pwsh).
+
+## 4. Editor config
+
+Thêm vào .editorconfig (nếu chưa có):
+
+```ini
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+```
+
+KHÔNG cấu hình editor để thêm BOM (VSCode: "files.encoding": "utf8bom" ← CẤM).
+
+## 5. Khi phát hiện file sai encoding
+
+### Bước 1 — Backup
+
+```powershell
+$backup = "C:\path\to\backup-$(Get-Date -Format "yyyyMMdd-HHmmss")"
+New-Item -ItemType Directory -Path $backup -Force
+Copy-Item -Path "path/to/suspect/*" -Destination $backup -Force
+```
+
+### Bước 2 — Convert + verify
+
+Dùng script ở mục 3. Verify bằng cách so sánh kích thước file:
+
+- UTF-8 ASCII-only: kích thước = số byte
+- UTF-16 LE: kích thước = 2x (cho ASCII)
+- Nếu giảm ~50%: convert thành công
+
+### Bước 3 — Test nội dung
+
+Mở file bằng IDE (VSCode), check:
+
+- Không có ký tự replacement char (dấu hiệu UTF-16 bị đọc sai)
+- Ký tự tiếng Việt có dấu hiển thị đúng
+- Cú pháp code không bị lỗi
+
+### Bước 4 — Commit + push
+
+```bash
+git add <file>
+git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "fix(encoding): convert <file> from <old-encoding> to UTF-8 no BOM"
+git push
+```
+
+## 6. Vì sao phải dùng UTF-8 no BOM
+
+| Lý do | Giải thích |
+|---|---|
+| Tương thích JSON | BOM làm JSON parse lỗi (Unexpected token BOM) |
+| Tương thích shell | .env có BOM bị bash đọc sai biến đầu tiên |
+| Hiển thị tiếng Việt | UTF-16 hiển thị đúng nhưng copy-paste vào editor khác có thể lỗi |
+| Dung lượng | UTF-8 tiết kiệm 50% so với UTF-16 cho ASCII/HTML/code |
+| Git diff | UTF-8 hiển thị diff rõ ràng, UTF-16 thành binary |
+| Tooling hỗ trợ | hầu hết CLI, linter, prettier đều assume UTF-8 |
+
+## 7. Quy tắc khi code agent viết file
+
+Mỗi khi agent dùng tool Write / StrReplace / Edit:
+
+1. Trước khi ghi: kiểm tra encoding file hiện tại (nếu file đã tồn tại)
+2. Sau khi ghi: verify bằng file <path> hoặc Get-Content -Encoding UTF8 đọc lại
+3. KHÔNG BAO GIỜ thêm BOM — kể cả khi user yêu cầu
+4. Nếu agent phát hiện file mới có BOM → convert ngay, ghi chú trong báo cáo
+
+## 8. Lưu ý đặc biệt cho Cursor rule
+
+Cursor rule engine parse field description: ở đầu file .mdc để quyết định khi nào áp dụng rule. Nếu file bị UTF-16, Cursor không parse được → rule bị bỏ qua hoàn toàn.
+
+Đây là lý do ngày 2026-10-08 phải convert 23/24 file .mdc từ UTF-16 LE sang UTF-8 no BOM — rule workflow-process.mdc đã UTF-8 sẵn nên hoạt động đúng, các rule khác bị bỏ qua do Cursor không parse được description.
+
+## 9. Test
+
+Script test tự động (chạy trong CI hoặc pre-commit):
+
+```javascript
+// scripts/check-encoding.cjs
+'use strict';
+const fs = require("fs");
+const path = require("path");
+const exts = [".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".mdc", ".css", ".yml", ".yaml", ".env", ".example"];
+const skip = ["node_modules", ".next", ".git", "dist", "build", "coverage", "out"];
+let errors = 0;
+function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (skip.includes(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) { walk(full); }
+    else if (exts.some((e) => entry.name.endsWith(e))) {
+      const buf = fs.readFileSync(full);
+      if (buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf) { console.error("FAIL (UTF-8 BOM): " + full); errors++; }
+      else if (buf[0] === 0xff && buf[1] === 0xfe) { console.error("FAIL (UTF-16 LE): " + full); errors++; }
+      else if (buf[0] === 0xfe && buf[1] === 0xff) { console.error("FAIL (UTF-16 BE): " + full); errors++; }
+    }
+  }
+}
+walk(process.cwd());
+console.log(errors === 0 ? "PASS: all files UTF-8 no BOM" : "FAIL: " + errors + " files");
+process.exit(errors > 0 ? 1 : 0);
+```
+
+Chạy:
+
+```bash
+node scripts/check-encoding.cjs
+```
+
+## 10. Liên quan
+
+- git-workflow.mdc — quy trình commit + push
+- workflow-process.mdc — quy trình làm task (Bước 1 đọc rule liên quan)
+- .editorconfig — cấu hình editor
+- .gitattributes — Git attributes (nếu cần mark binary cho file đặc biệt)
