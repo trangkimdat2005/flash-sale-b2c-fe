@@ -42,6 +42,31 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 | User nói "refactor cả folder `src/types/`" | Bước 0: nói scope + cách chia → AskQuestion → chờ duyệt → Plan → Chia plan → Hỏi format chi tiết → Làm |
 | User nói "thêm auth mới" | Bước 0: nói sensitive → AskQuestion → nếu đồng ý mới qua Plan |
 
+## Bước 0.1 — Tạo nhánh (BẮT BUỘC)
+
+- **Tuyệt đối KHÔNG commit trực tiếp lên `dev`**. Luôn tạo nhánh mới từ `dev`:
+  - Format: `<type>/<short-desc>` (vd: `feat/route-guard`, `fix/typo-encoding`, `docs/update-workflow`)
+  - Lệnh: `git fetch origin dev && git checkout -b <branch> dev`
+- **Trước khi push** (Bước 6): luôn rebase lên `origin/dev` mới nhất:
+  - `git fetch origin dev && git rebase origin/dev`
+  - Nếu có conflict → resolve + `git rebase --continue`
+- Push dùng `git push --force-with-lease` (an toàn hơn `--force`).
+- Xem chi tiết ở `git-workflow.mdc` (9-step mandatory workflow + hard gate).
+
+### Lý do
+
+- Tránh mất commit khi merge `dev` về sau (commit trên `dev` không rebase được).
+- Tránh conflict với người khác đang cùng làm trên `dev`.
+- Review/PR từ feature branch rõ ràng hơn.
+
+### Ví dụ
+
+| Tình huống | Branch |
+|---|---|
+| User: "thêm auth mới" | `feat/auth-jwt-step-1` |
+| User: "sửa typo ở workflow-process.mdc" | `fix/workflow-process-typo` |
+| User: "refactor folder src/types/" | `refactor/types-cleanup` |
+
 ## Bước 0.5 — Worktree (khi 2 chat song song)
 
 Khi có 2+ chat song song cùng khả năng conflict (cùng file, cùng thư mục), **bắt buộc** tách worktree để tránh ghi đè. Load rule `git-worktree.mdc` để biết chi tiết.
