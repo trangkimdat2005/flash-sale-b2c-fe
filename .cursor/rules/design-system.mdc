@@ -1,5 +1,5 @@
 ---
-description: Design system ΓÇö Tailwind 4 setup + design tokens (color, font, spacing, radius, shadow, z-index) + globals.css. Apply cho globs d╞░ß╗¢i.
+description: Design system — Tailwind 4 setup + design tokens (color, font, spacing, radius, shadow, z-index) + globals.css. Apply cho globs dưới.
 globs:
   - tailwind.config.ts
   - src/app/globals.css
@@ -7,85 +7,85 @@ globs:
   - src/app/**
 alwaysApply: false
 ---
-> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 ┬╖ React 19.2 ┬╖ TS 5.x ┬╖ Tailwind 4.x
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Design System
 
-Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) design tokens (color, font, spacing, radius, shadow, z-index). Quy ╞░ß╗¢c component (cva, forwardRef, props, Button/Input/Modal/...) xem `component-pattern.mdc`.
+Rule này gộp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) design tokens (color, font, spacing, radius, shadow, z-index). Quy ước component (cva, forwardRef, props, Button/Input/Modal/...) xem `component-pattern.mdc`.
 
 ## 1. Tailwind 4 setup
 
-- Tailwind 4 vß╗¢i `@tailwindcss/postcss` plugin.
-- Tokens khai b├ío trong `tailwind.config.ts` (`theme.extend.colors`, `theme.extend.fontFamily.sans`).
-- Tailwind 4 vß║½n ─æß╗ìc ─æ╞░ß╗úc tß╗½ `tailwind.config.ts` ΓÇö **KH├öNG** d├╣ng `@theme` inline trong CSS trß╗½ khi cß║ºn.
-- `src/app/globals.css` chß╗ë:
+- Tailwind 4 với `@tailwindcss/postcss` plugin.
+- Tokens khai báo trong `tailwind.config.ts` (`theme.extend.colors`, `theme.extend.fontFamily.sans`).
+- Tailwind 4 vẫn đọc được từ `tailwind.config.ts` — **KHÔNG** dùng `@theme` inline trong CSS trừ khi cần.
+- `src/app/globals.css` chỉ:
   ```css
   @import "tailwindcss";
 
-  /* minimal CSS reset nß║┐u cß║ºn */
+  /* minimal CSS reset nếu cần */
   ```
 
-## 2. Color tokens (khai b├ío trong `tailwind.config.ts`)
+## 2. Color tokens (khai báo trong `tailwind.config.ts`)
 
 ### Brand
-- `brand.primary` ΓÇö CTA ch├¡nh (n├║t "Mua ngay", "─É─âng nhß║¡p").
-- `brand.secondary` ΓÇö CTA phß╗Ñ (n├║t "Xem chi tiß║┐t").
+- `brand.primary` — CTA chính (nút "Mua ngay", "Đăng nhập").
+- `brand.secondary` — CTA phụ (nút "Xem chi tiết").
 
 ### Sale (Flash sale)
-- `sale.red` ΓÇö Gi├í flash sale (giß║úm gi├í).
-- `sale.orange` ΓÇö Countdown, hot badge, urgency.
+- `sale.red` — Giá flash sale (giảm giá).
+- `sale.orange` — Countdown, hot badge, urgency.
 
 ### Ink (Text)
-- `ink.primary` ΓÇö Text ch├¡nh, heading.
-- `ink.secondary` ΓÇö Text phß╗Ñ, m├┤ tß║ú.
-- `ink.disabled` ΓÇö Text disabled.
-- `ink.inverse` ΓÇö Text tr├¬n nß╗ün tß╗æi (vd button primary).
+- `ink.primary` — Text chính, heading.
+- `ink.secondary` — Text phụ, mô tả.
+- `ink.disabled` — Text disabled.
+- `ink.inverse` — Text trên nền tối (vd button primary).
 
 ### Page (Background)
-- `page.bg` ΓÇö Background page.
-- `page.card` ΓÇö Background card.
-- `page.muted` ΓÇö Background section phß╗Ñ (vd sidebar).
+- `page.bg` — Background page.
+- `page.card` — Background card.
+- `page.muted` — Background section phụ (vd sidebar).
 
 ### Line (Border)
-- `line.default` ΓÇö Border mß║╖c ─æß╗ïnh (input, card).
-- `line.strong` ΓÇö Border ─æß║¡m (focus, hover).
-- `line.subtle` ΓÇö Border rß║Ñt nhß║ít (divider).
+- `line.default` — Border mặc định (input, card).
+- `line.strong` — Border đậm (focus, hover).
+- `line.subtle` — Border rất nhạt (divider).
 
 ### Seller
-- `seller.primary` ΓÇö Chß╗ë d├╣ng ß╗ƒ `/seller/**`.
-- `seller.bg` ΓÇö Background Seller dashboard.
+- `seller.primary` — Chỉ dùng ở `/seller/**`.
+- `seller.bg` — Background Seller dashboard.
 
 ### Admin
-- `admin.primary` ΓÇö Chß╗ë d├╣ng ß╗ƒ `/admin/**`.
-- `admin.bg` ΓÇö Background Admin dashboard.
+- `admin.primary` — Chỉ dùng ở `/admin/**`.
+- `admin.bg` — Background Admin dashboard.
 
 ## 3. Tailwind class mapping
 
-| Token | Tailwind class | M├┤ tß║ú |
+| Token | Tailwind class | Mô tả |
 |---|---|---|
-| `brand.primary` | `bg-brand-primary`, `text-brand-primary` | CTA ch├¡nh |
-| `brand.secondary` | `bg-brand-secondary` | CTA phß╗Ñ |
+| `brand.primary` | `bg-brand-primary`, `text-brand-primary` | CTA chính |
+| `brand.secondary` | `bg-brand-secondary` | CTA phụ |
 | `sale.red` | `bg-sale-red`, `text-sale-red` | Flash sale price |
 | `sale.orange` | `bg-sale-orange` | Countdown / hot |
-| `ink.primary` | `text-ink-primary` | Text ch├¡nh |
-| `ink.secondary` | `text-ink-secondary` | Text phß╗Ñ |
+| `ink.primary` | `text-ink-primary` | Text chính |
+| `ink.secondary` | `text-ink-secondary` | Text phụ |
 | `ink.disabled` | `text-ink-disabled` | Text disabled |
 | `page.bg` | `bg-page` | Background page |
 | `page.card` | `bg-card` | Background card |
-| `line.default` | `border-line` | Border mß║╖c ─æß╗ïnh |
-| `seller.*` | `bg-seller-*` | Chß╗ë Seller UI |
-| `admin.*` | `bg-admin-*` | Chß╗ë Admin UI |
+| `line.default` | `border-line` | Border mặc định |
+| `seller.*` | `bg-seller-*` | Chỉ Seller UI |
+| `admin.*` | `bg-admin-*` | Chỉ Admin UI |
 
 ## 4. Font
 
 - **Be Vietnam Pro** qua `next/font/google`, subset `vietnamese`, weight `400/500/600`.
-- Set l├ám default trong `tailwind.config.ts`:
+- Set làm default trong `tailwind.config.ts`:
   ```ts
   fontFamily: {
     sans: ['var(--font-be-vietnam-pro)', 'system-ui', 'sans-serif'],
   }
   ```
-- ├üp dß╗Ñng trong `src/app/layout.tsx`:
+- Áp dụng trong `src/app/layout.tsx`:
   ```ts
   import { Be_Vietnam_Pro } from 'next/font/google';
 
@@ -97,11 +97,11 @@ Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) desi
   });
   ```
 - `<body className={beVietnamPro.variable}>`.
-- Hiß╗çn tß║íi ─æang d├╣ng Geist (default Next) ΓÇö **cß║ºn migrate** khi token setup xong.
+- Hiện tại đang dùng Geist (default Next) — **cần migrate** khi token setup xong.
 
-## 5. Spacing (kß║┐ thß╗½a Tailwind mß║╖c ─æß╗ïnh)
+## 5. Spacing (kế thừa Tailwind mặc định)
 
-| Token | Value | D├╣ng cho |
+| Token | Value | Dùng cho |
 |---|---|---|
 | `gap-1` | 4px | icon + text |
 | `gap-2` | 8px | input + label |
@@ -112,7 +112,7 @@ Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) desi
 
 ## 6. Border radius
 
-| Token | Value | D├╣ng cho |
+| Token | Value | Dùng cho |
 |---|---|---|
 | `rounded` | 4px | Badge, chip |
 | `rounded-md` | 6px | Button, input |
@@ -121,7 +121,7 @@ Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) desi
 
 ## 7. Shadow
 
-| Token | D├╣ng cho |
+| Token | Dùng cho |
 |---|---|
 | `shadow-sm` | Button subtle |
 | `shadow` | Card default |
@@ -131,7 +131,7 @@ Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) desi
 
 ## 8. Z-index
 
-| Token | Value | D├╣ng cho |
+| Token | Value | Dùng cho |
 |---|---|---|
 | `z-dropdown` | 1000 | Dropdown, popover |
 | `z-sticky` | 1100 | Header sticky |
@@ -150,9 +150,9 @@ Rule n├áy gß╗Öp 2 concern: (1) Tailwind 4 setup + `globals.css`, (2) desi
 | `xl` | 1280px |
 | `2xl` | 1536px |
 
-## 10. KH├öNG
+## 10. KHÔNG
 
-- KH├öNG hard-code m├áu hex trong component (`#FF0000` ΓåÆ d├╣ng `bg-sale-red`).
-- KH├öNG ─æß╗ïnh ngh─⌐a token mß╗¢i t├╣y ├╜ ΓÇö b├ío user tr╞░ß╗¢c.
-- KH├öNG override Tailwind mß║╖c ─æß╗ïnh ΓÇö chß╗ë `theme.extend`.
-- KH├öNG d├╣ng `dark:` class (chß╗ë Light mode ΓÇö xem `no-overengineering.mdc`).
+- KHÔNG hard-code màu hex trong component (`#FF0000` → dùng `bg-sale-red`).
+- KHÔNG định nghĩa token mới tùy ý — báo user trước.
+- KHÔNG override Tailwind mặc định — chỉ `theme.extend`.
+- KHÔNG dùng `dark:` class (chỉ Light mode — xem `no-overengineering.mdc`).
