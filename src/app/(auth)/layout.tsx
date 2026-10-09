@@ -1,12 +1,18 @@
 import type { ReactNode } from "react";
+import { AuthHeader } from "@/components/auth/AuthHeader";
+import { AuthFooter } from "@/components/auth/AuthFooter";
 
-/** Layout `(auth)` – tối giản, không header/footer người mua. */
+/**
+ * Layout `(auth)` – full-bleed, gồm AuthHeader + main + AuthFooter.
+ * Áp dụng cho: /dang-nhap, /dang-ky, /quen-mat-khau, ...
+ * Side-effect: tất cả route trong (auth) đều có header/footer (đã duyệt 2026-10-09).
+ */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center bg-page px-4 py-10">
-      <div className="w-full max-w-md rounded-xl border border-line bg-card p-6 shadow-sm">
-        {children}
-      </div>
+    <div className="flex min-h-screen flex-col bg-page">
+      <AuthHeader />
+      <main className="flex-1">{children}</main>
+      <AuthFooter />
     </div>
   );
 }
