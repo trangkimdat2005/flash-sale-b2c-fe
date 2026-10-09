@@ -11,6 +11,62 @@ alwaysApply: true
 
 Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) phải qua 6 bước. Thay đổi nhỏ (sửa 1 dòng, format) có thể gộp bước 4+5.
 
+## Bước 0.0 — Detect Parallel Work (BẮT BUỘC — hard gate, không có ngoại lệ)
+
+Trước khi vào Bước 0 (Xin phép), agent **PHẢI** chạy 4 lệnh kiểm tra sau và đọc kết quả. Nếu bất kỳ check nào có dấu hiệu parallel work → **DỪNG NGAY**, không qua Bước 0, dùng `AskQuestion` để hỏi user.
+
+### 4 lệnh kiểm tra (BẮT BUỘC)
+
+| # | Lệnh | Mục đích | Nếu có dấu hiệu |
+|---|---|---|---|
+| 1 | `git fetch origin dev` rồi `git log origin/dev --oneline -20` | Xem commit gần đây trên `dev` | Commit trong 7 ngày chạm file thuộc scope của task hiện tại |
+| 2 | `git log origin/dev --since="7 days ago" -- <file-in-scope>` cho **từng file dự kiến sửa** | Xem cụ thể file nào vừa bị sửa | Bất kỳ commit nào trong 7 ngày trên file đó |
+| 3 | `ls docs/superpowers/plans/2026-10-*-*.md` (cùng ngày) | Phát hiện plan khác cùng ngày | Plan cùng ngày có concern chồng lấn với task hiện tại |
+| 4 | `git worktree list` + đếm `agent-transcripts/*.jsonl` sửa trong 24h gần nhất | Phát hiện worktree/chat song song | Có worktree khác cùng branch base HOẶC > 1 chat file trong 24h |
+
+### Quyết định sau 4 check
+
+| Kết quả | Hành động |
+|---|---|
+| Tất cả 4 check **sạch** | Tiếp tục Bước 0 (hỏi user như bình thường) |
+| Bất kỳ check nào **có dấu hiệu** | **DỪNG**. Dùng `AskQuestion` với các option: (a) đợi chat kia xong, (b) tách worktree (`git-worktree.mdc`), (c) hủy task. |
+| User chọn "tách worktree" | Load `git-worktree.mdc`, chạy `git worktree add`, chuyển sang worktree mới |
+| User chọn "đợi" | Ghi lý do vào plan, chờ user xác nhận lại sau |
+
+### Cấm rationalize (KHÔNG có ngoại lệ ngầm)
+
+Các câu agent **KHÔNG ĐƯỢC** tự nghĩ để skip check:
+
+- ❌ "Plan kia cùng ngày nhưng khác concern, không conflict" → **VẪN PHẢI hỏi user**
+- ❌ "Commit kia đã merge rồi, không sao" → **VẪN PHẢI hỏi user**
+- ❌ "Worktree kia làm việc khác, không liên quan" → **VẪN PHẢI hỏi user**
+- ❌ "Agent khác đã xong, mình tiếp tục được" → **VẪN PHẢI hỏi user**
+- ❌ "Check mất thời gian, task nhỏ thôi" → **VẪN PHẢI chạy check**
+
+**Lý do**: Agent **không có đủ context** để tự phán định "có conflict hay không". User mới là người có context đầy đủ. Mọi nghi ngờ → hỏi user. Mọi check có dấu hiệu → hỏi user. Không có ngoại lệ.
+
+### Lệnh shell tổng hợp (copy-paste được)
+
+```bash
+# Detect Parallel Work - 4 checks
+echo "=== check 1: recent commits on dev ==="
+git fetch origin dev
+git log origin/dev --oneline -20
+
+echo "=== check 2: file in scope (run for each file) ==="
+git log origin/dev --since="7 days ago" -- <path/to/file-1>
+# repeat for each file in scope
+
+echo "=== check 3: plans created same day ==="
+ls docs/superpowers/plans/2026-10-$(date +%d)-*.md 2>/dev/null
+
+echo "=== check 4a: worktrees ==="
+git worktree list
+
+echo "=== check 4b: agent-transcripts (24h) ==="
+find ~/.cursor/projects -name "*.jsonl" -mtime -1 2>/dev/null | wc -l
+```
+
 ## Bước 0 — Xin phép
 
 - Dùng `AskQuestion` với các lựa chọn rõ ràng (đồng ý / chỉnh sửa / hủy).
