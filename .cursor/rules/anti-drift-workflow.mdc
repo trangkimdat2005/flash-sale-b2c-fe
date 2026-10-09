@@ -1,0 +1,62 @@
+---
+description: BẮT BUỘC checklist 6 bước ở đầu MỖI response từ agent. Mục đích chống drift khi áp lực thời gian hoặc task "dễ". Không tick = không code. Applies to all responses.
+globs: []
+alwaysApply: true
+---
+> Last reviewed: 2026-10-09 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+
+# Anti-Drift Workflow — Mandatory Checklist (MỖI response)
+
+## Quy tắc cứng
+
+**Mỗi response từ agent PHẢI mở đầu bằng checklist 9 mục dưới đây.** Tick ✅ = đã làm, tick ❌ = chưa làm (KHÔNG được code khi còn ❌).
+
+```
+- [ ] Bước 0.0: 5 check parallel work (git log, plan same day, worktree, 24h chat, stash)
+- [ ] Bước 0.1: Nhánh từ origin/dev (git fetch + checkout -b dev)
+- [ ] Bước 1: Plan có scope + tham khảo + subplan + test
+- [ ] Bước 2: Subplan độc lập, mỗi subagent 1 subplan
+- [ ] Bước 3: Model phù hợp (mặc định inherit)
+- [ ] Bước 4: Hỏi user (file/loại/rủi ro/ước lượng)
+- [ ] Bước 5: TDD (test đỏ trước → sửa → xanh)
+- [ ] Bước 5.0: Audit file (logic vs copy) trước khi sửa
+- [ ] Bước 6: Auto-commit + báo cáo (KHÔNG push)
+```
+
+## Tại sao cần rule này
+
+Trong session 2026-10-09, agent (tôi) đã **2 lần vi phạm chính rule mình viết**:
+
+| Vi phạm | Hậu quả | Cách checklist ngăn |
+|---|---|---|
+| Skip 9-step git workflow khi tạo nhánh | HEAD sai, phải reset 4 lần | Bước 0.1 tick ngay khi bắt đầu |
+| Gọi `AskQuestion` không có gì thật sự để hỏi | User mất thời gian vô ích | Bước 4 tick buộc phải có lý do hỏi |
+
+Rule văn bản chỉ hiệu quả khi agent tự kỷ luật → checklist ở **đầu response** là reminder tự động.
+
+## Khi nào KHÔNG cần checklist
+
+| Tình huống | Lý do |
+|---|---|
+| User nói "làm nhanh" / "skip quy trình" | User yêu cầu rõ ràng |
+| Đã có checklist ở response trước (< 5 phút) | Đã audit rồi, không cần lặp |
+| Task chỉ trả lời câu hỏi (không code) | Không có gì để drift |
+
+## Áp dụng
+
+- Checklist là **một phần của response** — user sẽ thấy ngay khi agent skip
+- Nếu agent skip checklist 2 lần liên tiếp → user có quyền dừng session
+- Checklist này **không thay thế** `workflow-process.mdc` (chỉ là reminder)
+
+## Out of scope
+
+- KHÔNG tự động check bằng script (rule này là text, không phải code)
+- KHÔNG bắt agent phải list nội dung từng mục — chỉ cần tick ✅/❌
+- KHÔNG thay thế 9-step git workflow — chỉ nhắc nhở
+
+## Liên quan
+
+- `workflow-process.mdc` — quy trình 6 bước đầy đủ
+- `git-workflow.mdc` — pre-commit checklist
+- `testing-required.mdc` — TDD gate
+- `scripts/audit-workflow.mjs` — auto audit pre-commit hook (nếu có)

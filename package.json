@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:workflow": "node scripts/audit-workflow.mjs",
+    "test:audit": "node --test scripts/audit-workflow.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

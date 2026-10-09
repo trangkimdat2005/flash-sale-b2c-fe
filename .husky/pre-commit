@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+# .husky/pre-commit
+# Pre-commit hook: chạy audit-workflow.mjs trước khi commit
+# Skip: git commit --no-verify
+
+node scripts/audit-workflow.mjs --pre-commit
+exit $?
