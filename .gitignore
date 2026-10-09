@@ -53,18 +53,15 @@ test-results/
 *.log
 
 # local scripts (debug/convert helpers)
-<<<<<<< HEAD
 # Note: scripts/verify-rules.ps1 and scripts/snapshot-keywords.ps1 are committed
 # (rule verification utilities). Other scripts/* remain local debug/convert helpers.
+# 2026-10-09: added audit-workflow.* (pre-commit audit, see .cursor/rules/anti-drift-workflow.mdc)
 /scripts/*
 !/scripts/verify-rules.ps1
 !/scripts/snapshot-keywords.ps1
-
-# Stitch MCP (key merged into .env - no separate file needed)
-
-=======
-/scripts/
+!/scripts/audit-workflow.mjs
+!/scripts/audit-workflow.test.mjs
+!/scripts/audit-workflow.ps1
 
 # Scratch
 .scratch/
->>>>>>> dev
