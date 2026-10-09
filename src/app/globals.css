@@ -122,3 +122,22 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+ * Ẩn icon mắt native của trình duyệt trên input[type="password"]
+ * (Chrome / Edge mặc định render nút "Hiện mật khẩu" bên cạnh
+ *  icon custom của LoginForm — gây trùng lặp và rối mắt).
+ * Giữ nguyên icon custom (eye / eye-off) làm nguồn toggle duy nhất.
+ * ========================================================= */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+}
+
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-strong-password-auto-fill-button,
+input[type='password']::-webkit-textfield-decoration-container {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none !important;
+}
