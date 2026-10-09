@@ -18,19 +18,23 @@ import {
   type UserResponse,
   type AuthResponse,
 } from "./api";
+import { decodeJwtPrimaryRole } from "./jwt";
 
 /** Key theo mảng (rule api-data). */
 const KEYS = {
   me: ["auth", "me"] as const,
 };
 
-/** Map UserResponse (backend) → AuthUser (FE store). */
-function toAuthUser(u: UserResponse): AuthUser {
+/**
+ * Map UserResponse (backend) + JWT authorities → AuthUser (FE store).
+ * Backend không trả role trong user DTO — role lấy từ JWT `authorities`.
+ */
+function toAuthUser(u: UserResponse, accessToken: string): AuthUser {
   return {
     id: String(u.id),
     email: u.email,
     fullName: u.fullName,
-    role: "BUYER", // Mặc định; role đọc từ JWT claims (sẽ thêm ở auth-jwt)
+    role: decodeJwtPrimaryRole(accessToken),
   };
 }
 
@@ -43,7 +47,7 @@ export function useLoginMutation() {
     onSuccess: async (res: AuthResponse) => {
       setAccessToken(res.accessToken);
       setRefreshToken(res.refreshToken);
-      const user = toAuthUser(res.user);
+      const user = toAuthUser(res.user, res.accessToken);
       setUser(user);
       toast.success("Đăng nhập thành công");
       qc.invalidateQueries({ queryKey: KEYS.me });
