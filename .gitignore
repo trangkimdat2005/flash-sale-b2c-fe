@@ -58,3 +58,8 @@ test-results/
 /scripts/*
 !/scripts/verify-rules.ps1
 !/scripts/snapshot-keywords.ps1
+
+# Stitch MCP
+.env.stitch
+.cursor/mcp.json
+
