@@ -62,6 +62,7 @@ test-results/
 !/scripts/audit-workflow.mjs
 !/scripts/audit-workflow.test.mjs
 !/scripts/audit-workflow.ps1
+!/scripts/i18n-parity.test.mjs
 
 # Scratch
 .scratch/
