@@ -5,7 +5,7 @@
 .DESCRIPTION
   Checks each .mdc file (plus AGENTS.md and docs/CLAUDE.md) for:
    1. UTF-8 BOM (fail if present)
-   2. 5 required frontmatter keys (description, globs, alwaysApply, owner, last_reviewed)
+   2. 6 required frontmatter keys (description, globs, alwaysApply, owner, last_reviewed, encoding)
    3. Corrupt characters (regex match for known encoding-broken chars)
 
   Uses PowerShell native APIs ([System.IO.File]::ReadAllBytes) instead
@@ -31,7 +31,7 @@ $DocsToCheck = @(
   (Join-Path $RepoRoot 'docs/CLAUDE.md')
 )
 
-$RequiredKeys = @('description', 'globs', 'alwaysApply', 'owner', 'last_reviewed')
+$RequiredKeys = @('description', 'globs', 'alwaysApply', 'owner', 'last_reviewed', 'encoding')
 
 # Build corrupt-character regex via Unicode codepoints to avoid encoding-broken
 # chars in this file (PowerShell here-strings mis-render them).
@@ -85,6 +85,15 @@ function Test-Frontmatter {
     $result.DescriptionLength = $matches[1].Trim().Length
   }
 
+  # Rule 11: encoding value must be exactly 'utf-8' (case-insensitive, trimmed).
+  # Built via Unicode codepoint to avoid encoding issues in this file.
+  $result | Add-Member -NotePropertyName HasEncoding -NotePropertyValue $false
+  $result | Add-Member -NotePropertyName EncodingValue -NotePropertyValue ''
+  if ($fm -match '(?m)^encoding\s*:\s*(.*)$') {
+    $result.HasEncoding = $true
+    $result.EncodingValue = $matches[1].Trim()
+  }
+
   return ,$result
 }
 
@@ -108,6 +117,15 @@ function Test-OneFile {
   }
   if ($fmResult.HasDescription -and $fmResult.DescriptionLength -gt 100) {
     $failures += ('description too long (' + $fmResult.DescriptionLength + ' chars, max 100)')
+  }
+
+  # Rule 11: encoding value must equal 'utf-8' (case-insensitive, trimmed).
+  # Built via Unicode codepoint to avoid encoding issues in this file.
+  $expectedEncoding = [char]0x75 + [char]0x74 + [char]0x66 + [char]0x2D + [char]0x38  # 'utf-8'
+  if (-not $fmResult.HasEncoding) {
+    $failures += 'Missing encoding key in frontmatter'
+  } elseif ($fmResult.EncodingValue -ine $expectedEncoding) {
+    $failures += ('Invalid encoding value: ' + $fmResult.EncodingValue + ' (expected utf-8)')
   }
 
   $corruptCount = Test-Corrupt -Content $content
