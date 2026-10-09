@@ -37,7 +37,7 @@ export function LoginForm() {
     formState: { errors },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: '', password: '' },
+    defaultValues: { email: '', password: '' },
   });
 
   const login = useLoginMutation();
@@ -68,19 +68,19 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="identifier">{t('identifierLabel')}</Label>
+        <Label htmlFor="email">{t('identifierLabel')}</Label>
         <Input
-          id="identifier"
-          type="text"
+          id="email"
+          type="email"
           autoComplete="username"
           inputMode="email"
           placeholder={t('identifierPlaceholder')}
-          aria-invalid={!!errors.identifier}
-          {...register('identifier')}
+          aria-invalid={!!errors.email}
+          {...register('email')}
         />
-        {errors.identifier && (
+        {errors.email && (
           <p className="text-xs text-danger" role="alert">
-            {errors.identifier.message}
+            {errors.email.message}
           </p>
         )}
       </div>

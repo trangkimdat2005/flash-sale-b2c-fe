@@ -65,5 +65,4 @@ describe('DangNhapPage', () => {
     expect(
       screen.getByTestId('login-submit')
     ).toBeInTheDocument();
-  });
-});
+  });});

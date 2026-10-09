@@ -5,8 +5,9 @@
 export { useLoginMutation, useLogoutMutation, useMeQuery } from './hooks';
 export type {
   LoginRequest,
-  LoginResponse,
+  AuthResponse,
+  UserResponse,
   AuthUserDto,
   LoginInput,
 } from './types';
-export { loginSchema, identifierSchema, passwordSchema } from './schemas';
+export { loginSchema, emailSchema, passwordSchema } from './schemas';

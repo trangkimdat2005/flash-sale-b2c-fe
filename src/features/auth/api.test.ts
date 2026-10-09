@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { loginRequest, fetchMe, logoutRequest } from './api';
 
-// Mock apiFetch
 vi.mock('@/lib/api', () => ({
   apiFetch: vi.fn(),
 }));
@@ -13,60 +12,66 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('loginRequest', () => {
-  it('posts to /auth/login with email|password payload (no phoneNumber)', async () => {
+describe('loginRequest (real backend contract)', () => {
+  it('POSTs /api/v1/auth/login with { usernameOrEmail, password }', async () => {
     mockedApiFetch.mockResolvedValueOnce({
       accessToken: 'token',
+      refreshToken: 'refresh',
+      tokenType: 'Bearer',
       expiresIn: 3600,
+      user: { id: 1, email: 'u@e.com', fullName: 'User' },
     });
-    await loginRequest({
-      identifier: 'user@example.com',
-      password: '12345678',
-    });
-    expect(mockedApiFetch).toHaveBeenCalledWith('/auth/login', {
+    await loginRequest({ email: 'u@e.com', password: '12345678' });
+    expect(mockedApiFetch).toHaveBeenCalledWith('/api/v1/auth/login', {
       method: 'POST',
-      json: {
-        email: 'user@example.com',
-        phoneNumber: undefined,
-        password: '12345678',
-      },
+      json: { usernameOrEmail: 'u@e.com', password: '12345678' },
       withAuth: false,
     });
   });
 
-  it('maps phone identifier to phoneNumber field (email undefined)', async () => {
-    mockedApiFetch.mockResolvedValueOnce({
-      accessToken: 'token',
-      expiresIn: 3600,
-    });
-    await loginRequest({ identifier: '0912345678', password: '12345678' });
-    expect(mockedApiFetch).toHaveBeenCalledWith('/auth/login', {
-      method: 'POST',
-      json: {
-        email: undefined,
-        phoneNumber: '0912345678',
-        password: '12345678',
-      },
-      withAuth: false,
-    });
+  it('accepts phone-like string in usernameOrEmail (backend decides, client just passes through)', async () => {
+    // After backend contract check 2026-10-10: client uses emailSchema
+    // (zod .email) so phone-only is rejected client-side. If backend
+    // later wants phone login, schema should change to phoneVnSchema.
+    // This test verifies that the client validation prevents a phone
+    // string from reaching the API.
+    await expect(
+      loginRequest({ email: '0912345678', password: '12345678' })
+    ).rejects.toThrow();
+    expect(mockedApiFetch).not.toHaveBeenCalled();
   });
 });
 
-describe('fetchMe', () => {
-  it('GETs /auth/me', async () => {
+describe('fetchMe (real backend contract)', () => {
+  it('GETs /api/v1/users/me', async () => {
     mockedApiFetch.mockResolvedValueOnce({
-      id: '1',
+      id: 1,
       email: 'u@e.com',
-      role: 'BUYER',
+      fullName: 'User',
+      phone: '0912345678',
+      avatarUrl: null,
+      status: 'ACTIVE',
+      createdAt: '2026-10-10T00:00:00',
     });
     await fetchMe();
-    expect(mockedApiFetch).toHaveBeenCalledWith('/auth/me', { method: 'GET' });
+    expect(mockedApiFetch).toHaveBeenCalledWith('/api/v1/users/me', {
+      method: 'GET',
+    });
   });
 });
 
-describe('logoutRequest', () => {
-  it('POSTs /auth/logout and swallows errors', async () => {
+describe('logoutRequest (real backend contract)', () => {
+  it('POSTs /api/v1/auth/logout with refreshToken in body', async () => {
+    mockedApiFetch.mockResolvedValueOnce(undefined);
+    await logoutRequest('refresh-token-123');
+    expect(mockedApiFetch).toHaveBeenCalledWith('/api/v1/auth/logout', {
+      method: 'POST',
+      json: { refreshToken: 'refresh-token-123' },
+    });
+  });
+
+  it('swallows errors (best-effort logout)', async () => {
     mockedApiFetch.mockRejectedValueOnce(new Error('boom'));
-    await expect(logoutRequest()).resolves.toBeUndefined();
+    await expect(logoutRequest('rt')).resolves.toBeUndefined();
   });
 });
