@@ -1,13 +1,33 @@
-import { apiFetch } from "@/lib/api";
-import { ROLES, type Role } from "@/lib/constants";
+import { apiFetch } from '@/lib/api';
+import { ROLES, type Role } from '@/lib/constants';
+import { identifierSchema, passwordSchema } from './schemas';
+import { z } from 'zod';
 
 /**
  * Auth API – gọi backend Spring Boot.
  * KHÔNG dùng `fetch` trực tiếp trong component (rule §7).
+ *
+ * Quyết định plan 2026-10-09: payload gửi cả 2 field (email, phoneNumber),
+ * backend tự chọn dùng field nào dựa trên identifier.
  */
 
+const loginPayloadSchema = z.object({
+  identifier: identifierSchema,
+  password: passwordSchema,
+});
+
+function splitIdentifier(identifier: string): {
+  email?: string;
+  phoneNumber?: string;
+} {
+  if (identifier.includes('@')) {
+    return { email: identifier, phoneNumber: undefined };
+  }
+  return { email: undefined, phoneNumber: identifier };
+}
+
 export interface LoginRequest {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -23,27 +43,26 @@ export interface AuthUserDto {
   fullName?: string;
   role: Role;
   permissions?: string[];
-  storeStatus?: "PENDING" | "APPROVED" | "BANNED";
+  storeStatus?: 'PENDING' | 'APPROVED' | 'BANNED';
 }
 
 export async function loginRequest(payload: LoginRequest): Promise<LoginResponse> {
-  // TODO(api): xác nhận endpoint chính thức từ backend (thường /auth/login).
-  return apiFetch<LoginResponse>("/auth/login", {
-    method: "POST",
-    json: payload,
+  // Validate client-side trước khi gửi (defense in depth)
+  const parsed = loginPayloadSchema.parse(payload);
+  const { email, phoneNumber } = splitIdentifier(parsed.identifier);
+  return apiFetch<LoginResponse>('/auth/login', {
+    method: 'POST',
+    json: { email, phoneNumber, password: parsed.password },
     withAuth: false,
   });
 }
 
 export async function fetchMe(): Promise<AuthUserDto> {
-  // TODO(api): xác nhận endpoint (thường /auth/me).
-  return apiFetch<AuthUserDto>("/auth/me", { method: "GET" });
+  return apiFetch<AuthUserDto>('/auth/me', { method: 'GET' });
 }
 
 export async function logoutRequest(): Promise<void> {
-  // TODO(api): nếu backend có /auth/logout, gọi để revoke refresh token.
-  await apiFetch<void>("/auth/logout", { method: "POST" }).catch(() => undefined);
+  await apiFetch<void>('/auth/logout', { method: 'POST' }).catch(() => undefined);
 }
 
-/** Ánh xạ role phục vụ test/seed – không dùng trong production. */
 export const ROLES_FOR_DEV = ROLES;

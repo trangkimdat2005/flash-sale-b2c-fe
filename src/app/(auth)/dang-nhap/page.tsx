@@ -14,7 +14,7 @@ export default function DangNhapPage() {
   const router = useRouter();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { identifier: "", password: "" },
   });
   const login = useLoginMutation();
 
@@ -35,9 +35,17 @@ export default function DangNhapPage() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" autoComplete="email" {...register("email")} />
-        {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
+        <Label htmlFor="identifier">Email hoặc Số điện thoại</Label>
+        <Input
+          id="identifier"
+          type="text"
+          autoComplete="username"
+          inputMode="email"
+          {...register("identifier")}
+        />
+        {errors.identifier && (
+          <p className="text-xs text-danger">{errors.identifier.message}</p>
+        )}
       </div>
 
       <div className="space-y-1.5">
