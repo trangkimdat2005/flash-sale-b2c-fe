@@ -55,6 +55,60 @@
       "ENDED": "Ended"
     }
   },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back",
+      "identifierLabel": "Email or phone number",
+      "identifierPlaceholder": "example@gmail.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitPending": "Signing in…",
+      "dividerOr": "or continue with",
+      "noAccount": "Don't have an account?",
+      "signupCta": "Sign up now"
+    },
+    "errors": {
+      "identifierRequired": "Please enter your email or phone number",
+      "identifierInvalid": "Invalid email or phone number",
+      "passwordRequired": "Please enter your password",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "invalidCredentials": "Incorrect email or password",
+      "oauthNotImplemented": "Feature coming soon"
+    },
+    "social": {
+      "google": "Sign in with Google",
+      "facebook": "Sign in with Facebook",
+      "github": "Sign in with GitHub"
+    },
+    "brand": {
+      "title": "Shop easy, hunt deals every day",
+      "intro": "A modern e-commerce platform with millions of exclusive offers and a worry-free shopping experience.",
+      "benefit1Title": "Thousands of trusted stores",
+      "benefit1Desc": "100% authentic products, fully verified",
+      "benefit2Title": "Flash sales with shocking prices every slot",
+      "benefit2Desc": "Up to 50% cashback voucher every week",
+      "benefit2Badge": "HOT DEAL",
+      "benefit3Title": "Pay with ZaloPay or COD",
+      "benefit3Desc": "PCI DSS security standard and flexible cash-on-delivery"
+    },
+    "chrome": {
+      "header": {
+        "authLabel": "Account authentication",
+        "navHelp": "Help",
+        "navHome": "Back to home"
+      },
+      "footer": {
+        "copyright": "© 2026 Vibe Mart. All rights reserved.",
+        "terms": "Terms of service",
+        "privacy": "Privacy policy",
+        "contact": "Contact"
+      }
+    }
+  },
   "error": {
     "UNAUTHORIZED": "Your session has expired. Please sign in again.",
     "FORBIDDEN": "You don't have access to this area.",
