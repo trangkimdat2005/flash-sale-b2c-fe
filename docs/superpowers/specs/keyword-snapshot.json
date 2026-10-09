@@ -1,0 +1,222 @@
+{
+    "generatedAt":  "2026-10-09T01:21:08.7145905+07:00",
+    "baseline":  "pre-Dot-B-re-author",
+    "rules":  {
+                  "component-pattern.mdc":  {
+                                                "MUST":  0,
+                                                "BAT BUOC":  0,
+                                                "KHONG":  0,
+                                                "REQUIRED":  1,
+                                                "PROHIBITED":  0,
+                                                "NEVER":  0,
+                                                "ALWAYS":  1
+                                            },
+                  "state-management.mdc":  {
+                                               "MUST":  0,
+                                               "BAT BUOC":  0,
+                                               "KHONG":  0,
+                                               "REQUIRED":  0,
+                                               "PROHIBITED":  0,
+                                               "NEVER":  0,
+                                               "ALWAYS":  1
+                                           },
+                  "workflow-process.mdc":  {
+                                               "MUST":  0,
+                                               "BAT BUOC":  0,
+                                               "KHONG":  0,
+                                               "REQUIRED":  1,
+                                               "PROHIBITED":  0,
+                                               "NEVER":  0,
+                                               "ALWAYS":  1
+                                           },
+                  "layer-convention.mdc":  {
+                                               "MUST":  0,
+                                               "BAT BUOC":  0,
+                                               "KHONG":  0,
+                                               "REQUIRED":  0,
+                                               "PROHIBITED":  0,
+                                               "NEVER":  0,
+                                               "ALWAYS":  1
+                                           },
+                  "design-system.mdc":  {
+                                            "MUST":  0,
+                                            "BAT BUOC":  0,
+                                            "KHONG":  0,
+                                            "REQUIRED":  0,
+                                            "PROHIBITED":  0,
+                                            "NEVER":  0,
+                                            "ALWAYS":  1
+                                        },
+                  "routing-guards.mdc":  {
+                                             "MUST":  0,
+                                             "BAT BUOC":  0,
+                                             "KHONG":  0,
+                                             "REQUIRED":  0,
+                                             "PROHIBITED":  0,
+                                             "NEVER":  1,
+                                             "ALWAYS":  1
+                                         },
+                  "features-migration.mdc":  {
+                                                 "MUST":  0,
+                                                 "BAT BUOC":  0,
+                                                 "KHONG":  0,
+                                                 "REQUIRED":  0,
+                                                 "PROHIBITED":  0,
+                                                 "NEVER":  0,
+                                                 "ALWAYS":  1
+                                             },
+                  "docs-sync.mdc":  {
+                                        "MUST":  0,
+                                        "BAT BUOC":  0,
+                                        "KHONG":  0,
+                                        "REQUIRED":  0,
+                                        "PROHIBITED":  0,
+                                        "NEVER":  0,
+                                        "ALWAYS":  1
+                                    },
+                  "git-worktree.mdc":  {
+                                           "MUST":  0,
+                                           "BAT BUOC":  0,
+                                           "KHONG":  0,
+                                           "REQUIRED":  0,
+                                           "PROHIBITED":  0,
+                                           "NEVER":  0,
+                                           "ALWAYS":  1
+                                       },
+                  "skill-loading.mdc":  {
+                                            "MUST":  0,
+                                            "BAT BUOC":  0,
+                                            "KHONG":  0,
+                                            "REQUIRED":  0,
+                                            "PROHIBITED":  0,
+                                            "NEVER":  0,
+                                            "ALWAYS":  1
+                                        },
+                  "enum-labels.mdc":  {
+                                          "MUST":  0,
+                                          "BAT BUOC":  0,
+                                          "KHONG":  0,
+                                          "REQUIRED":  0,
+                                          "PROHIBITED":  0,
+                                          "NEVER":  0,
+                                          "ALWAYS":  1
+                                      },
+                  "validation-forms.mdc":  {
+                                               "MUST":  0,
+                                               "BAT BUOC":  0,
+                                               "KHONG":  0,
+                                               "REQUIRED":  0,
+                                               "PROHIBITED":  0,
+                                               "NEVER":  0,
+                                               "ALWAYS":  1
+                                           },
+                  "no-overengineering.mdc":  {
+                                                 "MUST":  0,
+                                                 "BAT BUOC":  0,
+                                                 "KHONG":  0,
+                                                 "REQUIRED":  0,
+                                                 "PROHIBITED":  0,
+                                                 "NEVER":  0,
+                                                 "ALWAYS":  1
+                                             },
+                  "auth-jwt.mdc":  {
+                                       "MUST":  0,
+                                       "BAT BUOC":  0,
+                                       "KHONG":  0,
+                                       "REQUIRED":  0,
+                                       "PROHIBITED":  0,
+                                       "NEVER":  0,
+                                       "ALWAYS":  1
+                                   },
+                  "git-workflow.mdc":  {
+                                           "MUST":  0,
+                                           "BAT BUOC":  0,
+                                           "KHONG":  0,
+                                           "REQUIRED":  4,
+                                           "PROHIBITED":  0,
+                                           "NEVER":  0,
+                                           "ALWAYS":  1
+                                       },
+                  "flash-sale-payment.mdc":  {
+                                                 "MUST":  0,
+                                                 "BAT BUOC":  0,
+                                                 "KHONG":  0,
+                                                 "REQUIRED":  0,
+                                                 "PROHIBITED":  0,
+                                                 "NEVER":  0,
+                                                 "ALWAYS":  1
+                                             },
+                  "websocket-realtime.mdc":  {
+                                                 "MUST":  0,
+                                                 "BAT BUOC":  0,
+                                                 "KHONG":  0,
+                                                 "REQUIRED":  0,
+                                                 "PROHIBITED":  0,
+                                                 "NEVER":  0,
+                                                 "ALWAYS":  1
+                                             },
+                  "flash-sale-b2c-api.mdc":  {
+                                                 "MUST":  0,
+                                                 "BAT BUOC":  0,
+                                                 "KHONG":  0,
+                                                 "REQUIRED":  0,
+                                                 "PROHIBITED":  0,
+                                                 "NEVER":  0,
+                                                 "ALWAYS":  1
+                                             },
+                  "testing-required.mdc":  {
+                                               "MUST":  0,
+                                               "BAT BUOC":  0,
+                                               "KHONG":  0,
+                                               "REQUIRED":  0,
+                                               "PROHIBITED":  0,
+                                               "NEVER":  0,
+                                               "ALWAYS":  1
+                                           },
+                  "api-data.mdc":  {
+                                       "MUST":  0,
+                                       "BAT BUOC":  0,
+                                       "KHONG":  0,
+                                       "REQUIRED":  0,
+                                       "PROHIBITED":  0,
+                                       "NEVER":  0,
+                                       "ALWAYS":  1
+                                   },
+                  "error-handling.mdc":  {
+                                             "MUST":  0,
+                                             "BAT BUOC":  0,
+                                             "KHONG":  0,
+                                             "REQUIRED":  0,
+                                             "PROHIBITED":  0,
+                                             "NEVER":  0,
+                                             "ALWAYS":  1
+                                         },
+                  "i18n.mdc":  {
+                                   "MUST":  0,
+                                   "BAT BUOC":  0,
+                                   "KHONG":  0,
+                                   "REQUIRED":  0,
+                                   "PROHIBITED":  0,
+                                   "NEVER":  1,
+                                   "ALWAYS":  1
+                               },
+                  "flash-sale-b2c-api-reference.mdc":  {
+                                                           "MUST":  0,
+                                                           "BAT BUOC":  0,
+                                                           "KHONG":  0,
+                                                           "REQUIRED":  0,
+                                                           "PROHIBITED":  0,
+                                                           "NEVER":  0,
+                                                           "ALWAYS":  1
+                                                       },
+                  "stack-versions.mdc":  {
+                                             "MUST":  0,
+                                             "BAT BUOC":  0,
+                                             "KHONG":  0,
+                                             "REQUIRED":  0,
+                                             "PROHIBITED":  0,
+                                             "NEVER":  0,
+                                             "ALWAYS":  1
+                                         }
+              }
+}

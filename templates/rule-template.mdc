@@ -1,0 +1,22 @@
+---
+description: <one-line English describing what this rule enforces>
+globs:
+  - <path pattern 1>
+  - <path pattern 2>
+alwaysApply: <true|false>
+owner: <ai|human|team>
+depends_on:
+  - <other-rule.mdc>
+last_reviewed: 2026-10-09
+version: 1
+---
+> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
+> Source-of-truth: docs/CLAUDE.md section <X> - <name>
+
+# <Rule Title in English>
+
+<Body in Vietnamese, UTF-8 clean, 1-4 sections>
+
+## 1. <Section title>
+
+<Markdown body>
