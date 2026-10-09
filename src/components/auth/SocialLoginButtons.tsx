@@ -88,6 +88,7 @@ const PROVIDERS: Array<{
 export function SocialLoginButtons() {
   const t = useTranslations('auth.social');
   const tErr = useTranslations('auth.errors');
+  const tLogin = useTranslations('auth.login');
 
   const handleClick = (provider: Provider) => {
     // TODO(auth): gọi backend OAuth flow khi có endpoint
@@ -102,9 +103,7 @@ export function SocialLoginButtons() {
           <div className="w-full border-t border-line" />
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-card px-2 text-ink-3">
-            hoặc tiếp tục với
-          </span>
+          <span className="bg-card px-2 text-ink-3">{tLogin('dividerOr')}</span>
         </div>
       </div>
       {PROVIDERS.map((p) => (
