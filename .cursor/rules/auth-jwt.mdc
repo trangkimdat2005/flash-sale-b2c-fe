@@ -1,5 +1,5 @@
 ---
-description: JWT auth flow: token storage, refresh, useAuth hook. Apply auth-related files.
+description: Quy ước auth + JWT (token storage, refresh, cookie bridge, hooks). Apply cho auth.store, api/client, useAuth, SessionCookieBridge, route (auth).
 globs:
   - src/stores/auth.store.ts
   - src/lib/api/client.ts
@@ -8,9 +8,6 @@ globs:
   - src/app/(auth)/**
   - src/lib/auth-guard.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

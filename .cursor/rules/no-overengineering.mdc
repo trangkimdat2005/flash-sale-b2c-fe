@@ -1,56 +1,31 @@
 ---
-description: YAGNI scope - explicit list of things AI must NOT add without user approval.
-globs: []
+description: Danh sách KHÔNG nên tự ý thêm — tránh over-engineering (lib, middleware, auth, dark mode, ...). Apply mọi task cân nhắc thêm dependency hoặc cấu hình mới.
 alwaysApply: true
-owner: team
-depends_on:
-  - component-pattern.mdc
-  - design-system.mdc
-  - routing-guards.mdc
-  - stack-versions.mdc
-last_reviewed: 2026-10-09
-version: 2
 ---
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section 12 - workflow process (YAGNI gate)
-
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # No Premature Over-Engineering
 
 Không tự ý thêm:
 
 - PWA / service worker.
-
 - Dark mode toggle UI (chỉ Light mode theo `docs/CLAUDE.md` mục 3 — KHÔNG viết class `dark:`).
-
 - Storybook (chỉ khi UI primitive đã ổn định).
-
 - E2E test infrastructure (chỉ khi manual test không đủ).
-
 - Route handler proxy (`app/api/**`).
-
 - Saga / state machine cho form (chỉ khi form phức tạp thật sự).
-
 - Redux / Jotai (TanStack Query + Zustand đủ — đã có sẵn).
-
 - Auth guard phức tạp ngoài `middleware.ts` (vd Server Action riêng, custom JWT verify ở edge).
 
 **ĐƯỢC phép thêm** (theo `docs/CLAUDE.md`):
 
 - `next/image` (BẮT BUỘC dùng cho ảnh, KHÔNG dùng `<img>` — xem `component-pattern.mdc` mục 10).
-
 - `tailwind.config.ts` (BẮT BUỘC khai báo design tokens — xem `design-system.mdc` mục 1–4).
-
 - `middleware.ts` ở root (BẮT BUỘC chặn route theo role — xem `routing-guards.mdc` mục 2).
-
 - `date-fns` locale `vi` (BẮT BUỘC cho format ngày giờ — xem `component-pattern.mdc` mục 13).
-
 - `cva` (BẮT BUỘC cho variant component — xem `component-pattern.mdc` mục 3.2).
-
 - `shadcn/ui` primitives (BẮT BUỘC copy về `components/ui` — xem `component-pattern.mdc` mục 2).
-
 - `Recharts` (BẮT BUỘC cho Dashboard Seller/Admin — xem `stack-versions.mdc`).
-
 - `next-intl` (BẮT BUỘC cho đa ngôn ngữ `vi` + `en` — xem `i18n.mdc`).
 
 **Lưu ý i18n**: dự án bật i18n, nhưng **locale mặc định là `vi`** (chuyển từ chỉ-tiếng-Việt sang đa-ngôn-ngữ với default `vi`). KHÔNG thêm lib i18n khác (react-i18next, lingui, formatjs) khi đã có next-intl.

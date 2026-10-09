@@ -1,47 +1,44 @@
 ---
-description: React component patterns: cva variants, forwardRef, props typing. Apply src/components/**.
+description: Component pattern — cấu trúc src/components/, cva, forwardRef, props, component cụ thể (Button/Input/Modal/...), layout, state styling, a11y, image, icon, date, money, loading. Apply cho globs dưới.
 globs:
   - src/components/**
   - src/app/**/*.tsx
   - src/app/globals.css
   - tailwind.config.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
-> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 ┬╖ React 19.2 ┬╖ TS 5.x ┬╖ Tailwind 4.x
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Component Pattern
 
-Rule n├áy gß╗Öp 2 concern c┼⌐: (1) UI primitives (shadcn/ui), (2) component cß╗Ñ thß╗â + styling/layout. Design tokens (color, font, spacing, ...) xem `design-system.mdc`.
+Rule này gộp 2 concern cũ: (1) UI primitives (shadcn/ui), (2) component cụ thể + styling/layout. Design tokens (color, font, spacing, ...) xem `design-system.mdc`.
 
-## 1. Ph├ón cß║Ñp `src/components/`
+## 1. Phân cấp `src/components/`
 
 ```
 src/components/
-Γö£ΓöÇΓöÇ ui/              # shadcn/ui primitives (Button, Input, Modal, Badge, Skeleton, Toast)
-Γö£ΓöÇΓöÇ flash-sale/      # Countdown, StockProgressBar, SlotCard, v.v.
-ΓööΓöÇΓöÇ layout/          # Header, Footer, SessionCookieBridge, Sidebar
+├── ui/              # shadcn/ui primitives (Button, Input, Modal, Badge, Skeleton, Toast)
+├── flash-sale/      # Countdown, StockProgressBar, SlotCard, v.v.
+└── layout/          # Header, Footer, SessionCookieBridge, Sidebar
 ```
 
-- `ui/` ΓÇö primitives tß╗½ shadcn/ui, KH├öNG tß╗▒ code trß╗½ khi wrapper logic.
-- `flash-sale/` ΓÇö domain component cho flash sale.
-- `layout/` ΓÇö layout shell.
+- `ui/` — primitives từ shadcn/ui, KHÔNG tự code trừ khi wrapper logic.
+- `flash-sale/` — domain component cho flash sale.
+- `layout/` — layout shell.
 
 ## 2. UI Primitives
 
-- D├╣ng **shadcn/ui** (Radix + cva). Copy vß╗ü `src/components/ui/` qua `npx shadcn@latest add <component>`.
-- **KH├öNG** c├ái Antd, MUI, Chakra, Mantine (xem `no-overengineering.mdc`).
-- Primitives hiß╗çn c├│: `button`, `input`, `modal`, `badge`, `skeleton`, `toast` (xem `src/components/ui/`).
-- Khi cß║ºn primitive mß╗¢i ΓåÆ chß║íy `npx shadcn@latest add <name>`, KH├öNG tß╗▒ code tß╗½ ─æß║ºu.
+- Dùng **shadcn/ui** (Radix + cva). Copy về `src/components/ui/` qua `npx shadcn@latest add <component>`.
+- **KHÔNG** cài Antd, MUI, Chakra, Mantine (xem `no-overengineering.mdc`).
+- Primitives hiện có: `button`, `input`, `modal`, `badge`, `skeleton`, `toast` (xem `src/components/ui/`).
+- Khi cần primitive mới → chạy `npx shadcn@latest add <name>`, KHÔNG tự code từ đầu.
 
-## 3. Quy tß║»c tß║ío component
+## 3. Quy tắc tạo component
 
-### 3.1. Cß║Ñu tr├║c file
+### 3.1. Cấu trúc file
 
 ```tsx
-'use client'; // nß║┐u cß║ºn (mß║╖c ─æß╗ïnh KH├öNG c├│, trß╗½ khi d├╣ng hook/event)
+'use client'; // nếu cần (mặc định KHÔNG có, trừ khi dùng hook/event)
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import { forwardRef } from 'react';
@@ -71,11 +68,11 @@ export const Component = forwardRef<HTMLDivElement, ComponentProps>(
 Component.displayName = 'Component';
 ```
 
-### 3.2. cva (bß║»t buß╗Öc cho variant)
+### 3.2. cva (bắt buộc cho variant)
 
-- Mß╗ìi component c├│ variant ΓåÆ d├╣ng `cva`.
-- `defaultVariants` lu├┤n c├│.
-- **Bß║«T BUß╗ÿC** d├╣ng `cva` cho component c├│ variant (vd Button: primary/secondary/ghost, size: sm/md/lg).
+- Mọi component có variant → dùng `cva`.
+- `defaultVariants` luôn có.
+- **BẮT BUỘC** dùng `cva` cho component có variant (vd Button: primary/secondary/ghost, size: sm/md/lg).
 - Pattern:
   ```ts
   import { cva, type VariantProps } from 'class-variance-authority';
@@ -91,19 +88,19 @@ Component.displayName = 'Component';
 
 ### 3.3. forwardRef
 
-- Mß╗ìi component gß╗æc ΓåÆ `forwardRef` ─æß╗â parent ref ─æ╞░ß╗úc.
-- Component bß╗ìc (vd `Card` bß╗ìc `div`) ΓåÆ KH├öNG cß║ºn forwardRef (kß║┐ thß╗½a qua spread).
+- Mọi component gốc → `forwardRef` để parent ref được.
+- Component bọc (vd `Card` bọc `div`) → KHÔNG cần forwardRef (kế thừa qua spread).
 
 ### 3.4. Composition
 
-- ╞»u ti├¬n composition over configuration.
-- Pattern: `<Card><CardHeader>...</CardHeader><CardBody>...</CardBody></Card>` thay v├¼ `<Card header={...} body={...} />`.
-- D├╣ng `children` cho composition.
+- Ưu tiên composition over configuration.
+- Pattern: `<Card><CardHeader>...</CardHeader><CardBody>...</CardBody></Card>` thay vì `<Card header={...} body={...} />`.
+- Dùng `children` cho composition.
 
 ### 3.5. Props convention
 
 ```ts
-// Γ£à Tß╗æt
+// ✅ Tốt
 interface CardProps {
   title: string;        // required, primitive
   description?: string; // optional
@@ -111,7 +108,7 @@ interface CardProps {
   children: React.ReactNode; // composition
 }
 
-// Γ¥î Tr├ính
+// ❌ Tránh
 interface CardProps {
   bigHeaderTitle: string;
   headerSubtitle: string;
@@ -120,137 +117,137 @@ interface CardProps {
 }
 ```
 
-- D├╣ng `variant` enum thay v├¼ nhiß╗üu boolean prop.
-- D├╣ng `as` prop ─æß╗â ─æß╗òi root element (vd `as="section"`).
+- Dùng `variant` enum thay vì nhiều boolean prop.
+- Dùng `as` prop để đổi root element (vd `as="section"`).
 
 ### 3.6. Type safety
 
-- Export `interface <Name>Props` (kh├┤ng `type`).
-- Props extend `HTMLAttributes<HTMLElement>` khi l├á wrapper.
-- KH├öNG `any` trong props.
+- Export `interface <Name>Props` (không `type`).
+- Props extend `HTMLAttributes<HTMLElement>` khi là wrapper.
+- KHÔNG `any` trong props.
 
-## 4. Component cß╗Ñ thß╗â
+## 4. Component cụ thể
 
 ### Button (`src/components/ui/Button.tsx`)
 
-- Variants: `primary` (CTA ch├¡nh), `secondary` (CTA phß╗Ñ), `ghost` (tertiary), `destructive` (x├│a).
-- Sizes: `sm`, `md`, `lg`, `icon` (chß╗ë icon, w/h = size).
+- Variants: `primary` (CTA chính), `secondary` (CTA phụ), `ghost` (tertiary), `destructive` (xóa).
+- Sizes: `sm`, `md`, `lg`, `icon` (chỉ icon, w/h = size).
 - Props: `loading?: boolean` (disable + spinner), `asChild?: boolean` (Slot pattern).
-- KH├öNG d├╣ng `<button>` native ΓÇö lu├┤n qua component n├áy.
+- KHÔNG dùng `<button>` native — luôn qua component này.
 
 ### Input (`src/components/ui/Input.tsx`)
 
 - Props: `error?: string`, `label?: string`, `hint?: string`.
-- Kß║┐t hß╗úp vß╗¢i React Hook Form qua `Controller` hoß║╖c `{...register}`.
+- Kết hợp với React Hook Form qua `Controller` hoặc `{...register}`.
 - Style error: border `border-sale-red`, helper text `text-sale-red`.
 
 ### Modal (`src/components/ui/Modal.tsx`)
 
-- D├╣ng Radix Dialog (tß╗½ shadcn).
+- Dùng Radix Dialog (từ shadcn).
 - Props: `open`, `onOpenChange`, `title`, `description`, `children`, `footer?`.
-- KH├öNG tß╗▒ code modal ΓÇö lu├┤n qua component n├áy.
+- KHÔNG tự code modal — luôn qua component này.
 
 ### Badge (`src/components/ui/Badge.tsx`)
 
 - Variants: `default`, `success`, `warning`, `destructive`, `outline`.
-- D├╣ng cho: status (order, payment), tag sß║ún phß║⌐m.
-- Enum status ΓåÆ nh├ún ─æa ng├┤n ngß╗» qua `enum-labels.mdc`.
+- Dùng cho: status (order, payment), tag sản phẩm.
+- Enum status → nhãn đa ngôn ngữ qua `enum-labels.mdc`.
 
 ### Skeleton (`src/components/ui/Skeleton.tsx`)
 
-- D├╣ng `animate-pulse` + `bg-page-muted`.
-- Replace cho content ─æang load (kh├┤ng d├╣ng spinner cho cß║ú page).
+- Dùng `animate-pulse` + `bg-page-muted`.
+- Replace cho content đang load (không dùng spinner cho cả page).
 
 ### Toast (`src/components/ui/Toast.tsx`)
 
 - Variants: `default`, `success`, `error`, `warning`, `info`.
-- Hook: `useToast()` trß║ú vß╗ü `{ toast }` ΓåÆ `toast({ variant, title, description })`.
+- Hook: `useToast()` trả về `{ toast }` → `toast({ variant, title, description })`.
 - Auto dismiss sau 4s (default).
-- KH├öNG d├╣ng `window.alert` / `window.confirm`.
-- Hook: `useToast()` ß╗ƒ `src/hooks/useToast.ts`.
+- KHÔNG dùng `window.alert` / `window.confirm`.
+- Hook: `useToast()` ở `src/hooks/useToast.ts`.
 
 ## 5. Flash-sale components
 
 ### Countdown (`src/components/flash-sale/Countdown.tsx`)
 
 - Props: `endAt: ISO string`, `onExpire?: () => void`.
-- Hiß╗ân thß╗ï `HH:MM:SS`, ─æß╗òi m├áu `sale.orange` khi < 1 ph├║t.
-- D├╣ng hook `useCountdown` (xem `src/hooks/useCountdown.ts`).
+- Hiển thị `HH:MM:SS`, đổi màu `sale.orange` khi < 1 phút.
+- Dùng hook `useCountdown` (xem `src/hooks/useCountdown.ts`).
 
 ### StockProgressBar (`src/components/flash-sale/StockProgressBar.tsx`)
 
 - Props: `total: number`, `remaining: number`.
-- Hiß╗ân thß╗ï % c├▓n lß║íi + progress bar m├áu `sale.red`.
-- Khi `remaining = 0` ΓåÆ "Hß║┐t h├áng", `remaining < 10` ΓåÆ "Sß║»p hß║┐t".
+- Hiển thị % còn lại + progress bar màu `sale.red`.
+- Khi `remaining = 0` → "Hết hàng", `remaining < 10` → "Sắp hết".
 
 ## 6. Layout
 
-- Mobile-first: viß║┐t base cho mobile, th├¬m `md:` / `lg:` cho desktop.
-- Container: d├╣ng `max-w-7xl mx-auto px-4` (hoß║╖c token container t╞░╞íng ß╗⌐ng).
-- Grid: d├╣ng `grid grid-cols-<n> gap-<size>` thay v├¼ flexbox khi cß║ºn alignment ─æß╗üu.
-- Spacing: ╞░u ti├¬n gap/space cß╗ºa Tailwind (`gap-4`, `space-y-6`).
-- Breakpoints xem `design-system.mdc` mß╗Ñc 9.
+- Mobile-first: viết base cho mobile, thêm `md:` / `lg:` cho desktop.
+- Container: dùng `max-w-7xl mx-auto px-4` (hoặc token container tương ứng).
+- Grid: dùng `grid grid-cols-<n> gap-<size>` thay vì flexbox khi cần alignment đều.
+- Spacing: ưu tiên gap/space của Tailwind (`gap-4`, `space-y-6`).
+- Breakpoints xem `design-system.mdc` mục 9.
 
 ## 7. State styling
 
 - **Hover**: `hover:bg-*`, `hover:text-*`.
-- **Focus**: d├╣ng `focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2`.
+- **Focus**: dùng `focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2`.
 - **Disabled**: `disabled:opacity-50 disabled:cursor-not-allowed` + `aria-disabled`.
 - **Active**: `active:scale-[0.98]` cho button.
 
 ## 8. Animation
 
-- D├╣ng Tailwind animate utilities (`animate-pulse`, `animate-spin`).
-- Custom animation ΓåÆ ─æß╗ïnh ngh─⌐a trong `tailwind.config.ts`.
-- **KH├öNG** c├ái framer-motion cho hiß╗çu ß╗⌐ng ─æ╞ín giß║ún (xem `no-overengineering.mdc`).
+- Dùng Tailwind animate utilities (`animate-pulse`, `animate-spin`).
+- Custom animation → định nghĩa trong `tailwind.config.ts`.
+- **KHÔNG** cài framer-motion cho hiệu ứng đơn giản (xem `no-overengineering.mdc`).
 
 ## 9. Accessibility (a11y)
 
-- Mß╗ìi interactive element c├│ `aria-label` hoß║╖c text r├╡ r├áng.
-- Form input c├│ `<label htmlFor>` r├╡ r├áng.
-- Modal d├╣ng Radix Dialog (─æ├ú c├│ a11y chuß║⌐n).
-- Color contrast ΓëÑ WCAG AA (4.5:1 cho text th╞░ß╗¥ng, 3:1 cho text lß╗¢n).
+- Mọi interactive element có `aria-label` hoặc text rõ ràng.
+- Form input có `<label htmlFor>` rõ ràng.
+- Modal dùng Radix Dialog (đã có a11y chuẩn).
+- Color contrast ≥ WCAG AA (4.5:1 cho text thường, 3:1 cho text lớn).
 
 ## 10. Image
 
-- **Bß║«T BUß╗ÿC** d├╣ng `next/image` cho mß╗ìi ß║únh.
-- KH├öNG d├╣ng `<img>` th╞░ß╗¥ng.
-- Props bß║»t buß╗Öc: `src`, `alt` (tiß║┐ng Viß╗çt, m├┤ tß║ú nß╗Öi dung), `width`, `height` (tr├ính CLS).
-- Lazy load: `loading="lazy"` mß║╖c ─æß╗ïnh (Next tß╗▒ th├¬m).
-- Priority: `priority` cho ß║únh above-the-fold (hero, banner).
+- **BẮT BUỘC** dùng `next/image` cho mọi ảnh.
+- KHÔNG dùng `<img>` thường.
+- Props bắt buộc: `src`, `alt` (tiếng Việt, mô tả nội dung), `width`, `height` (tránh CLS).
+- Lazy load: `loading="lazy"` mặc định (Next tự thêm).
+- Priority: `priority` cho ảnh above-the-fold (hero, banner).
 
 ## 11. Icon
 
-- D├╣ng `lucide-react` (xem `stack-versions.mdc`).
-- Size mß║╖c ─æß╗ïnh: 16, 20, 24 (theo Tailwind w-/h-).
-- M├áu: kß║┐ thß╗½a tß╗½ `currentColor` (Tailwind `text-*`).
-- **KH├öNG** d├╣ng emoji cho icon.
+- Dùng `lucide-react` (xem `stack-versions.mdc`).
+- Size mặc định: 16, 20, 24 (theo Tailwind w-/h-).
+- Màu: kế thừa từ `currentColor` (Tailwind `text-*`).
+- **KHÔNG** dùng emoji cho icon.
 
 ## 12. Loading state
 
-- Skeleton: d├╣ng `src/components/ui/Skeleton.tsx`.
-- Spinner: d├╣ng `lucide-react` `Loader2` vß╗¢i `animate-spin`.
-- KH├öNG d├╣ng custom CSS spinner.
+- Skeleton: dùng `src/components/ui/Skeleton.tsx`.
+- Spinner: dùng `lucide-react` `Loader2` với `animate-spin`.
+- KHÔNG dùng custom CSS spinner.
 
-## 13. Ng├áy giß╗¥
+## 13. Ngày giờ
 
-- D├╣ng `date-fns` vß╗¢i locale `vi` (`vi` tß╗½ `date-fns/locale`).
-- Format: `dd/MM/yyyy HH:mm` (mß║╖c ─æß╗ïnh), hoß║╖c theo context (`'PPp'` cho ─æß║ºy ─æß╗º).
+- Dùng `date-fns` với locale `vi` (`vi` từ `date-fns/locale`).
+- Format: `dd/MM/yyyy HH:mm` (mặc định), hoặc theo context (`'PPp'` cho đầy đủ).
 - Relative time: `formatDistanceToNow(date, { addSuffix: true, locale: vi })`.
 
-## 14. Tiß╗ün tß╗ç
+## 14. Tiền tệ
 
-- VND BigDecimal ΓÇö KH├öNG float.
-- D├╣ng `decimal.js` (xem `src/lib/decimal.ts`).
-- Format: `1.290.000Γé½` qua helper `formatVND(value)`.
+- VND BigDecimal — KHÔNG float.
+- Dùng `decimal.js` (xem `src/lib/decimal.ts`).
+- Format: `1.290.000₫` qua helper `formatVND(value)`.
 
-## 15. KH├öNG
+## 15. KHÔNG
 
-- KH├öNG inline style (trß╗½ dynamic value tß╗½ JS).
-- KH├öNG `!important` trong CSS.
-- KH├öNG d├╣ng `dark:` class.
-- KH├öNG `<img>` th╞░ß╗¥ng.
-- KH├öNG c├ái lib UI kh├íc ngo├ái shadcn/ui.
-- KH├öNG tß║ío component c├╣ng concern ß╗ƒ nhiß╗üu n╞íi (vd 2 Button kh├íc nhau).
-- KH├öNG mix Tailwind class vß╗¢i inline style.
-- KH├öNG hard-code text ΓÇö qua `next-intl` (xem `i18n.mdc`).
+- KHÔNG inline style (trừ dynamic value từ JS).
+- KHÔNG `!important` trong CSS.
+- KHÔNG dùng `dark:` class.
+- KHÔNG `<img>` thường.
+- KHÔNG cài lib UI khác ngoài shadcn/ui.
+- KHÔNG tạo component cùng concern ở nhiều nơi (vd 2 Button khác nhau).
+- KHÔNG mix Tailwind class với inline style.
+- KHÔNG hard-code text — qua `next-intl` (xem `i18n.mdc`).

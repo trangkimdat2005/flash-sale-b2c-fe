@@ -1,16 +1,8 @@
 ---
-description: Mandatory TDD workflow - tests required for every logic change, no exceptions without explicit user approval.
-globs: []
+description: BẮT BUỘC viết test mỗi lần thay đổi code. KHÔNG được bỏ qua. Mọi logic change đều cần test. Apply mọi task có sửa file logic.
 alwaysApply: true
-owner: team
-depends_on:
-  - no-overengineering.mdc
-last_reviewed: 2026-10-09
-version: 3
 ---
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section 12 - workflow process (TDD gate)
-
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Testing — Bắt Buộc Mỗi Lần Thay Đổi
 
@@ -28,13 +20,9 @@ version: 3
 ```
 
 **Quy tắc cứng**:
-
 - Không có test đỏ trước = không được sửa code (trừ khi user **rõ ràng** miễn trừ).
-
 - Test phải FAIL vì **đúng lý do** (assertion đúng, không phải import sai / typo).
-
 - Sau khi fix code → test phải chuyển từ FAIL → PASS, không phải vô hiệu hoá test.
-
 - TDD áp dụng cho mọi layer: `lib/`, `hooks/`, `stores/`, `components/`, `features/`, `app/` (route handlers), `api/`.
 
 **Ngoại lệ (chỉ khi user ghi rõ)**: chỉnh sửa thuần tuý UI (chỉ color, spacing, copy không có logic), thêm export constant không có logic, đổi tên biến.
@@ -72,9 +60,7 @@ Agent **KHÔNG ĐƯỢC** tự bịa các lý do sau để skip test. Mỗi lý 
 ### Quy tắc cuối cùng
 
 - **Nghi ngờ file có logic hay không → mặc định viết test.** An toàn hơn bỏ sót.
-
 - **Đã từng vi phạm → revert commit vi phạm**, làm lại đúng TDD. KHÔNG "giữ vì đã commit".
-
 - Sau mỗi commit có logic → commit message body **PHẢI list file test mới/sửa** kèm.
 
 ## Nguyên tắc cốt lõi
@@ -84,9 +70,7 @@ Agent **KHÔNG ĐƯỢC** tự bịa các lý do sau để skip test. Mỗi lý 
 > **Áp dụng cho MỌI file logic**: `src/**/*.{ts,tsx}`, `tests/**`, `**/*.test.{ts,tsx}`, `**/*.spec.{ts,tsx}`, `__tests__/**`. Mọi file khớp các glob trên đều thuộc scope bắt buộc test — không có ngoại lệ theo folder.
 
 - Test là phần của Definition of Done — không phải nice-to-have.
-
 - Agent không được phép commit code thay đổi mà chưa có test (trừ khi user **rõ ràng** bỏ qua).
-
 - Nếu user bỏ qua → ghi rõ trong báo cáo, không tự ý skip.
 
 ## Scope — khi nào BẮT BUỘC viết test
@@ -130,9 +114,7 @@ tests/                        # integration test phức tạp (nếu cần)
 ```
 
 - Test đặt **cạnh file** (kèm `.test.ts(x)`) theo convention Vitest.
-
 - Test tích hợp nhiều module → đặt ở `tests/`.
-
 - Mỗi test file = 1 module/component. Tách nhỏ nếu > 1 concern.
 
 ## Pattern bắt buộc
@@ -144,6 +126,7 @@ import { renderHook } from '@testing-library/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema } from './login.schema';
+
 test('loginSchema rejects empty email', async () => {
   const { result } = renderHook(() =>
     useForm({ resolver: zodResolver(loginSchema) })
@@ -160,7 +143,9 @@ test('loginSchema rejects empty email', async () => {
 
 ```ts
 import { useCartStore } from './cart.store';
+
 beforeEach(() => useCartStore.setState({ items: [] }));
+
 test('addItem increments count', () => {
   useCartStore.getState().addItem({ id: '1', qty: 1 });
   expect(useCartStore.getState().items).toHaveLength(1);
@@ -173,11 +158,13 @@ test('addItem increments count', () => {
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useProducts } from './useProducts';
+
 const wrapper = ({ children }) => (
   <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
     {children}
   </QueryClientProvider>
 );
+
 test('useProducts returns data', async () => {
   const { result } = renderHook(() => useProducts(), { wrapper });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -187,11 +174,8 @@ test('useProducts returns data', async () => {
 ## Bugfix workflow (BẮT BUỘC)
 
 1. Viết reproduction test — test phải **FAIL** trên code hiện tại.
-
 2. Sửa code.
-
 3. Re-run test — phải **PASS**.
-
 4. Add regression test nếu bug nằm trong area đã có test khác.
 
 → Không có reproduction test = bugfix không hợp lệ.
@@ -219,19 +203,14 @@ npm run test -- <path>    # chạy 1 file
 ## Khi user muốn bỏ qua test
 
 - Ghi rõ trong báo cáo: "User yêu cầu bỏ qua test cho <X> vì <lý do>".
-
 - KHÔNG tự ý skip.
-
 - Vẫn list file đã thay đổi trong Changes để user tự review.
 
 ## Khi nào KHÔNG cần test
 
 - File `.md` (docs).
-
 - File `.mdc` (rule).
-
 - File config `*.config.{ts,js}` không chứa logic (chỉ export constant).
-
 - File `*.d.ts` (type-only).
 
 Nếu không chắc → viết test. An toàn hơn bỏ sót.

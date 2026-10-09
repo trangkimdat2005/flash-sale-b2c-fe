@@ -1,43 +1,43 @@
-# QUY ─Éß╗èNH CODE GIAO DIß╗åN ΓÇô VIBE MART (Frontend)
+# QUY ĐỊNH CODE GIAO DIỆN – VIBE MART (Frontend)
 
-> T├ái liß╗çu n├áy l├á "luß║¡t" cho mß╗ìi ng╞░ß╗¥i v├á mß╗ìi AI (Claude Code, Cursor, Copilot, v0ΓÇª) khi viß║┐t code giao diß╗çn cho dß╗▒ ├ín.
-> ─Éß║╖t file ß╗ƒ th╞░ mß╗Ñc gß╗æc cß╗ºa repo frontend vß╗¢i t├¬n `CLAUDE.md` (Claude Code), `AGENTS.md` hoß║╖c `.cursorrules` (Cursor).
-> AI phß║úi ─æß╗ìc to├án bß╗Ö file n├áy tr╞░ß╗¢c khi viß║┐t code. Khi mß╗Öt y├¬u cß║ºu m├óu thuß║½n vß╗¢i quy ─æß╗ïnh ß╗ƒ ─æ├óy, h├úy Hß╗ÄI Lß║áI thay v├¼ tß╗▒ quyß║┐t.
-
----
-
-## 0. Bß╗æi cß║únh dß╗▒ ├ín
-
-- **Vibe Mart**: s├án TM─ÉT B2C ─æa ng╞░ß╗¥i b├ín (multi-vendor), t├¡nh n─âng nß╗òi bß║¡t l├á **Flash Sale** chß╗æng b├ín v╞░ß╗út kho (over-selling). ─Éß╗ô ├ín Kß╗╣ thuß║¡t Phß║ºn mß╗üm ΓÇô UTC2.
-- **3 khu vß╗▒c giao diß╗çn** trong c├╣ng mß╗Öt ß╗⌐ng dß╗Ñng Next.js:
-  - **Storefront** (ng╞░ß╗¥i mua): desktop + mobile, m├áu chß╗º ─æß║ío xanh biß╗ân.
-  - **Seller Center** (ng╞░ß╗¥i b├ín): chß╗ë desktop, m├áu mint.
-  - **Admin Console** (quß║ún trß╗ï s├án): chß╗ë desktop, sidebar x├ím than.
-- **Backend**: Spring Boot (REST + JWT), PostgreSQL, Redis, WebSocket STOMP. Frontend KH├öNG chß╗⌐a logic nghiß╗çp vß╗Ñ quan trß╗ìng (t├¡nh tiß╗ün, trß╗½ kho, kiß╗âm tra voucher, ph├ón quyß╗ün thß║¡t) ΓÇô mß╗ìi thß╗⌐ ─æ├│ do backend quyß║┐t ─æß╗ïnh.
-- **Thanh to├ín**: ZaloPay QR (giß╗» h├áng 5 ph├║t) v├á COD. **─É─âng nhß║¡p**: email/mß║¡t khß║⌐u, Google, Facebook, GitHub.
-- To├án bß╗Ö chß╗» hiß╗ân thß╗ï l├á **tiß║┐ng Viß╗çt c├│ dß║Ñu**.
+> Tài liệu này là "luật" cho mọi người và mọi AI (Claude Code, Cursor, Copilot, v0…) khi viết code giao diện cho dự án.
+> Đặt file ở thư mục gốc của repo frontend với tên `CLAUDE.md` (Claude Code), `AGENTS.md` hoặc `.cursorrules` (Cursor).
+> AI phải đọc toàn bộ file này trước khi viết code. Khi một yêu cầu mâu thuẫn với quy định ở đây, hãy HỎI LẠI thay vì tự quyết.
 
 ---
 
-## 1. Tech stack (cß╗æ ─æß╗ïnh ΓÇô kh├┤ng tß╗▒ ├╜ th├¬m th╞░ viß╗çn)
+## 0. Bối cảnh dự án
 
-| Mß╗Ñc | D├╣ng | Ghi ch├║ |
+- **Vibe Mart**: sàn TMĐT B2C đa người bán (multi-vendor), tính năng nổi bật là **Flash Sale** chống bán vượt kho (over-selling). Đồ án Kỹ thuật Phần mềm – UTC2.
+- **3 khu vực giao diện** trong cùng một ứng dụng Next.js:
+  - **Storefront** (người mua): desktop + mobile, màu chủ đạo xanh biển.
+  - **Seller Center** (người bán): chỉ desktop, màu mint.
+  - **Admin Console** (quản trị sàn): chỉ desktop, sidebar xám than.
+- **Backend**: Spring Boot (REST + JWT), PostgreSQL, Redis, WebSocket STOMP. Frontend KHÔNG chứa logic nghiệp vụ quan trọng (tính tiền, trừ kho, kiểm tra voucher, phân quyền thật) – mọi thứ đó do backend quyết định.
+- **Thanh toán**: ZaloPay QR (giữ hàng 5 phút) và COD. **Đăng nhập**: email/mật khẩu, Google, Facebook, GitHub.
+- Toàn bộ chữ hiển thị là **tiếng Việt có dấu**.
+
+---
+
+## 1. Tech stack (cố định – không tự ý thêm thư viện)
+
+| Mục | Dùng | Ghi chú |
 |---|---|---|
-| Framework | Next.js (App Router) + React + TypeScript `strict` | Kh├┤ng d├╣ng Pages Router |
-| Style | Tailwind CSS | Kh├┤ng CSS-in-JS, kh├┤ng file `.css` ri├¬ng trß╗½ `globals.css` |
-| UI primitives | shadcn/ui (Radix) + icon `lucide-react` | Copy component v├áo `components/ui`, kh├┤ng c├ái bß╗Ö UI kh├íc |
-| Dß╗» liß╗çu server | TanStack Query | Kh├┤ng gß╗ìi `fetch` trß╗▒c tiß║┐p trong component |
-| State client | Zustand | Chß╗ë cho state thß║¡t sß╗▒ to├án cß╗Ñc (auth, giß╗Å h├áng tß║ím) |
-| Form | react-hook-form + zod | Mß╗ìi form ─æß╗üu c├│ schema zod |
-| Realtime | `@stomp/stompjs` (+ SockJS nß║┐u backend bß║¡t) | Chß╗ë qua hook `useStomp` |
-| Biß╗âu ─æß╗ô | Recharts | Chß╗ë ß╗ƒ Dashboard Seller/Admin |
-| Ng├áy giß╗¥ | `date-fns` (locale `vi`) | Kh├┤ng d├╣ng moment |
+| Framework | Next.js (App Router) + React + TypeScript `strict` | Không dùng Pages Router |
+| Style | Tailwind CSS | Không CSS-in-JS, không file `.css` riêng trừ `globals.css` |
+| UI primitives | shadcn/ui (Radix) + icon `lucide-react` | Copy component vào `components/ui`, không cài bộ UI khác |
+| Dữ liệu server | TanStack Query | Không gọi `fetch` trực tiếp trong component |
+| State client | Zustand | Chỉ cho state thật sự toàn cục (auth, giỏ hàng tạm) |
+| Form | react-hook-form + zod | Mọi form đều có schema zod |
+| Realtime | `@stomp/stompjs` (+ SockJS nếu backend bật) | Chỉ qua hook `useStomp` |
+| Biểu đồ | Recharts | Chỉ ở Dashboard Seller/Admin |
+| Ngày giờ | `date-fns` (locale `vi`) | Không dùng moment |
 
-Muß╗æn th├¬m th╞░ viß╗çn mß╗¢i ΓåÆ phß║úi hß╗Åi tr╞░ß╗¢c v├á n├¬u l├╜ do.
+Muốn thêm thư viện mới → phải hỏi trước và nêu lý do.
 
 ---
 
-## 2. Cß║Ñu tr├║c th╞░ mß╗Ñc
+## 2. Cấu trúc thư mục
 
 ```
 src/
@@ -45,201 +45,201 @@ src/
     (auth)/            dang-nhap, dang-ky, quen-mat-khau, ...
     (storefront)/      trang-chu (/) , flash-sale, san-pham/[slug], tim-kiem, gio-hang,
                        thanh-toan, don-hang, tai-khoan, kho-voucher, shop/[slug], dang-ky-ban-hang
-    seller/            layout c├│ SellerSidebar: tong-quan, san-pham, don-hang, flash-sale, ...
-    admin/             layout c├│ AdminSidebar: tong-quan, nguoi-dung, gian-hang, khung-gio, ...
-    bao-tri/           trang "T├¡nh n─âng ─æang bß║úo tr├¼"
+    seller/            layout có SellerSidebar: tong-quan, san-pham, don-hang, flash-sale, ...
+    admin/             layout có AdminSidebar: tong-quan, nguoi-dung, gian-hang, khung-gio, ...
+    bao-tri/           trang "Tính năng đang bảo trì"
     not-found.tsx, forbidden/
   components/
     ui/                shadcn primitives (Button, Input, Dialog, Table, ...)
-    common/            d├╣ng chung mß╗ìi portal (StatusBadge, PriceText, EmptyState, Pagination, ...)
+    common/            dùng chung mọi portal (StatusBadge, PriceText, EmptyState, Pagination, ...)
     storefront/        Header, Footer, ProductCard, FlashSaleCard, VoucherTicket, ...
-    seller/  admin/    component ri├¬ng tß╗½ng portal
-  features/            logic theo nghiß╗çp vß╗Ñ: auth, cart, checkout, flash-sale, orders, vouchers, ...
-    <feature>/api.ts       h├ám gß╗ìi API
+    seller/  admin/    component riêng từng portal
+  features/            logic theo nghiệp vụ: auth, cart, checkout, flash-sale, orders, vouchers, ...
+    <feature>/api.ts       hàm gọi API
     <feature>/hooks.ts     useQuery/useMutation
-    <feature>/types.ts     kiß╗âu dß╗» liß╗çu khß╗¢p DTO backend
+    <feature>/types.ts     kiểu dữ liệu khớp DTO backend
     <feature>/schemas.ts   zod schema
   lib/                 api-client.ts, format.ts, constants.ts, stomp.ts, utils.ts (cn)
   stores/              zustand stores
-  middleware.ts        chß║╖n route theo vai tr├▓
+  middleware.ts        chặn route theo vai trò
 ```
 
-- T├¬n file component: `PascalCase.tsx`; hook: `useXxx.ts`; c├▓n lß║íi `kebab-case.ts`.
-- ─É╞░ß╗¥ng dß║½n URL d├╣ng **tiß║┐ng Viß╗çt kh├┤ng dß║Ñu, gß║ích ngang** (`/don-hang`, `/kho-voucher`).
-- Mß╗ùi component mß╗Öt file, **tß╗æi ─æa ~200 d├▓ng**; d├ái h╞ín th├¼ t├ích.
+- Tên file component: `PascalCase.tsx`; hook: `useXxx.ts`; còn lại `kebab-case.ts`.
+- Đường dẫn URL dùng **tiếng Việt không dấu, gạch ngang** (`/don-hang`, `/kho-voucher`).
+- Mỗi component một file, **tối đa ~200 dòng**; dài hơn thì tách.
 
 ---
 
 ## 3. Design tokens (design system "Ocean Mint")
 
-Khai b├ío mß╗Öt lß║ºn trong `tailwind.config.ts`. **Cß║Ñm viß║┐t m├ú m├áu hex trß╗▒c tiß║┐p trong component** ΓÇô lu├┤n d├╣ng t├¬n token.
+Khai báo một lần trong `tailwind.config.ts`. **Cấm viết mã màu hex trực tiếp trong component** – luôn dùng tên token.
 
-| Token Tailwind | Gi├í trß╗ï | D├╣ng cho |
+| Token Tailwind | Giá trị | Dùng cho |
 |---|---|---|
-| `brand` / `brand-hover` / `brand-soft` | `#0284C7` / `#0369A1` / `#E0F2FE` | Storefront, n├║t ch├¡nh Admin |
+| `brand` / `brand-hover` / `brand-soft` | `#0284C7` / `#0369A1` / `#E0F2FE` | Storefront, nút chính Admin |
 | `seller` / `seller-hover` / `seller-soft` | `#10B981` / `#059669` / `#D1FAE5` | Seller Center |
 | `admin` / `admin-2` | `#1E293B` / `#334155` | Sidebar Admin |
-| `sale` / `sale-soft` | `#E11D48` / `#FFE4E6` | CHß╗ê Flash Sale, gi├í giß║úm, badge -%, cß║únh b├ío hß║┐t hß║ín |
-| `page` / `card` / `line` | `#F8FAFC` / `#FFFFFF` / `#E2E8F0` | Nß╗ün trang, nß╗ün card, viß╗ün |
-| `ink` / `ink-2` / `ink-3` | `#0F172A` / `#64748B` / `#94A3B8` | Chß╗» ch├¡nh / phß╗Ñ / mß╗¥ |
-| `success` / `warning` / `danger` / `info` | `#16A34A` / `#F59E0B` / `#DC2626` / `#0284C7` | Trß║íng th├íi |
-| `star` | `#F59E0B` | Sao ─æ├ính gi├í |
+| `sale` / `sale-soft` | `#E11D48` / `#FFE4E6` | CHỈ Flash Sale, giá giảm, badge -%, cảnh báo hết hạn |
+| `page` / `card` / `line` | `#F8FAFC` / `#FFFFFF` / `#E2E8F0` | Nền trang, nền card, viền |
+| `ink` / `ink-2` / `ink-3` | `#0F172A` / `#64748B` / `#94A3B8` | Chữ chính / phụ / mờ |
+| `success` / `warning` / `danger` / `info` | `#16A34A` / `#F59E0B` / `#DC2626` / `#0284C7` | Trạng thái |
+| `star` | `#F59E0B` | Sao đánh giá |
 
 - Font: **Be Vietnam Pro** qua `next/font/google` (subset `vietnamese`), weight 400/500/600.
-- Cß╗í chß╗»: H1 28px/600, H2 22px/600, H3 18px/600, body 14ΓÇô15px, caption 12px. Gi├í tiß╗ün: 600 + `tabular-nums`.
-- Bo g├│c: card `rounded-xl` (12px), n├║t/input `rounded-lg` (8px), badge `rounded-md` (6px).
-- Khoß║úng c├ích theo l╞░ß╗¢i 8px. Shadow tß╗æi ─æa `shadow-sm`; ╞░u ti├¬n viß╗ün 1px `border-line`.
-- N├║t cao 40px (nhß╗Å 32px). Icon lucide 20px (16px trong n├║t nhß╗Å).
-- **Chß╗ë Light mode.** Kh├┤ng viß║┐t class `dark:`.
+- Cỡ chữ: H1 28px/600, H2 22px/600, H3 18px/600, body 14–15px, caption 12px. Giá tiền: 600 + `tabular-nums`.
+- Bo góc: card `rounded-xl` (12px), nút/input `rounded-lg` (8px), badge `rounded-md` (6px).
+- Khoảng cách theo lưới 8px. Shadow tối đa `shadow-sm`; ưu tiên viền 1px `border-line`.
+- Nút cao 40px (nhỏ 32px). Icon lucide 20px (16px trong nút nhỏ).
+- **Chỉ Light mode.** Không viết class `dark:`.
 
 ---
 
-## 4. Quy tß║»c chß╗æng rß╗æi mß║»t (bß║»t buß╗Öc)
+## 4. Quy tắc chống rối mắt (bắt buộc)
 
-1. Mß╗ùi m├án chß╗ë c├│ **Mß╗ÿT** n├║t `variant="primary"`; h├ánh ─æß╗Öng kh├íc d├╣ng `secondary` / `ghost`.
-2. Kh├┤ng gradient, kh├┤ng hoß║í tiß║┐t trang tr├¡, kh├┤ng animation chß╗¢p nh├íy (trß╗½ chß║Ñm "live" nhß╗Å).
-3. Mß╗Öt v├╣ng nh├¼n tß╗æi ─æa 3 m├áu: trß║»ng/x├ím + m├áu portal + (nß║┐u c├│) ─æß╗Å `sale`.
-4. L╞░ß╗¢i sß║ún phß║⌐m: desktop tß╗æi ─æa 5 cß╗Öt, tablet 3ΓÇô4, mobile 2.
-5. Bß║úng dß╗» liß╗çu: h├áng cao 56px, viß╗ün ngang mß║únh, kh├┤ng sß╗ìc ngß╗▒a vß║▒n, h├ánh ─æß╗Öng gom v├áo menu `Γï»` cuß╗æi h├áng.
-6. Form d├ái chia th├ánh nhiß╗üu card section c├│ ti├¬u ─æß╗ü; label nß║▒m tr├¬n input.
-7. Popup (`Dialog`) chß╗ë d├╣ng cho thao t├íc ngß║»n: x├íc nhß║¡n, chß╗ìn ─æß╗ïa chß╗ë, chß╗ìn voucher, viß║┐t ─æ├ính gi├í. Form d├ái d├╣ng trang hoß║╖c `Sheet` tr╞░ß╗út phß║úi.
-8. Mß╗ìi danh s├ích ─æß╗üu c├│ ─æß╗º 4 trß║íng th├íi: **─æang tß║úi (skeleton) ΓÇô rß╗ùng (EmptyState) ΓÇô lß╗ùi (c├│ n├║t Thß╗¡ lß║íi) ΓÇô c├│ dß╗» liß╗çu**.
+1. Mỗi màn chỉ có **MỘT** nút `variant="primary"`; hành động khác dùng `secondary` / `ghost`.
+2. Không gradient, không hoạ tiết trang trí, không animation chớp nháy (trừ chấm "live" nhỏ).
+3. Một vùng nhìn tối đa 3 màu: trắng/xám + màu portal + (nếu có) đỏ `sale`.
+4. Lưới sản phẩm: desktop tối đa 5 cột, tablet 3–4, mobile 2.
+5. Bảng dữ liệu: hàng cao 56px, viền ngang mảnh, không sọc ngựa vằn, hành động gom vào menu `⋯` cuối hàng.
+6. Form dài chia thành nhiều card section có tiêu đề; label nằm trên input.
+7. Popup (`Dialog`) chỉ dùng cho thao tác ngắn: xác nhận, chọn địa chỉ, chọn voucher, viết đánh giá. Form dài dùng trang hoặc `Sheet` trượt phải.
+8. Mọi danh sách đều có đủ 4 trạng thái: **đang tải (skeleton) – rỗng (EmptyState) – lỗi (có nút Thử lại) – có dữ liệu**.
 
 ---
 
-## 5. Component d├╣ng chung ΓÇô Bß║«T BUß╗ÿC t├íi sß╗¡ dß╗Ñng
+## 5. Component dùng chung – BẮT BUỘC tái sử dụng
 
-Tr╞░ß╗¢c khi tß║ío component mß╗¢i, t├¼m trong `components/` xem ─æ├ú c├│ ch╞░a. **Kh├┤ng ─æ╞░ß╗úc copy-paste mß╗Öt header/footer/thß║╗ thß╗⌐ hai.**
+Trước khi tạo component mới, tìm trong `components/` xem đã có chưa. **Không được copy-paste một header/footer/thẻ thứ hai.**
 
-| Component | Vß╗ï tr├¡ | Ghi ch├║ |
+| Component | Vị trí | Ghi chú |
 |---|---|---|
-| `StorefrontHeader` | storefront | Prop `activeNav` ─æß╗â t├┤ ─æ├║ng mß╗Ñc ─æang chß╗ìn (xem bß║úng mß╗Ñc 9); prop `variant="compact"` cho Giß╗Å h├áng/Checkout/ZaloPay |
-| `StorefrontFooter` | storefront | Mß╗Öt bß║ún duy nhß║Ñt cho mß╗ìi trang ng╞░ß╗¥i mua |
-| `MobileBottomNav` | storefront | 4 tab: Trang chß╗º, Flash Sale, ─É╞ín h├áng, T├┤i; prop `active` |
-| `SellerSidebar`, `AdminSidebar`, `PortalTopbar` | seller / admin | Menu khai b├ío trong mß╗Öt mß║úng cß║Ñu h├¼nh, kh├┤ng viß║┐t cß╗⌐ng nhiß╗üu n╞íi |
-| `ProductCard` | storefront | Biß║┐n thß╗â: `default`, `discount`, `voucher`, `skeleton`, `mini`. Chiß╗üu cao cß╗æ ─æß╗ïnh, t├¬n lu├┤n giß╗» chß╗ù 2 d├▓ng; tag voucher/freeship ─É├ê l├¬n ß║únh g├│c d╞░ß╗¢i tr├íi, kh├┤ng l├ám ─æß╗òi k├¡ch th╞░ß╗¢c thß║╗ |
-| `FlashSaleCard` | storefront | Trß║íng th├íi: `live`, `almost-sold-out` (>90%), `sold-out`, `upcoming` |
-| `StockBar` | storefront | Thanh "─É├â B├üN X" / "Sß║«P CH├üY H├ÇNG" |
-| `Countdown` | common | Nhß║¡n `endsAt` (ISO tß╗½ server), tß╗▒ trß╗½ ─æß╗Ö lß╗çch giß╗¥ server |
-| `PriceText` | common | Hiß╗çn gi├í, gi├í gß╗æc gß║ích ngang, badge % |
-| `StatusBadge` | common | Nhß║¡n `type` + `status` enum, tß╗▒ tra nh├ún v├á m├áu (mß╗Ñc 6) |
-| `VoucherTicket` | common | Thß║╗ voucher dß║íng v├⌐, d├╣ng ß╗ƒ trang chß╗º, kho voucher, checkout |
-| `Pagination` | common | Biß║┐n thß╗â `full`, `compact` ("1/42 ΓÇ╣ ΓÇ║"), `table` (k├¿m "Hiß╗ân thß╗ï 1ΓÇô20 trong 248"), `mobile` |
-| `EmptyState`, `ErrorState` | common | Icon outline + 1 c├óu + 1 n├║t |
-| `ConfirmDialog` | common | Mß╗ìi thao t├íc xo├í/huß╗╖/kho├í phß║úi qua ─æ├óy |
-| `AddressPicker` | storefront | Popup chß╗ìn ─æß╗ïa chß╗ë, c├│ bß║ún ─æß╗ô ghim GPS |
+| `StorefrontHeader` | storefront | Prop `activeNav` để tô đúng mục đang chọn (xem bảng mục 9); prop `variant="compact"` cho Giỏ hàng/Checkout/ZaloPay |
+| `StorefrontFooter` | storefront | Một bản duy nhất cho mọi trang người mua |
+| `MobileBottomNav` | storefront | 4 tab: Trang chủ, Flash Sale, Đơn hàng, Tôi; prop `active` |
+| `SellerSidebar`, `AdminSidebar`, `PortalTopbar` | seller / admin | Menu khai báo trong một mảng cấu hình, không viết cứng nhiều nơi |
+| `ProductCard` | storefront | Biến thể: `default`, `discount`, `voucher`, `skeleton`, `mini`. Chiều cao cố định, tên luôn giữ chỗ 2 dòng; tag voucher/freeship ĐÈ lên ảnh góc dưới trái, không làm đổi kích thước thẻ |
+| `FlashSaleCard` | storefront | Trạng thái: `live`, `almost-sold-out` (>90%), `sold-out`, `upcoming` |
+| `StockBar` | storefront | Thanh "ĐÃ BÁN X" / "SẮP CHÁY HÀNG" |
+| `Countdown` | common | Nhận `endsAt` (ISO từ server), tự trừ độ lệch giờ server |
+| `PriceText` | common | Hiện giá, giá gốc gạch ngang, badge % |
+| `StatusBadge` | common | Nhận `type` + `status` enum, tự tra nhãn và màu (mục 6) |
+| `VoucherTicket` | common | Thẻ voucher dạng vé, dùng ở trang chủ, kho voucher, checkout |
+| `Pagination` | common | Biến thể `full`, `compact` ("1/42 ‹ ›"), `table` (kèm "Hiển thị 1–20 trong 248"), `mobile` |
+| `EmptyState`, `ErrorState` | common | Icon outline + 1 câu + 1 nút |
+| `ConfirmDialog` | common | Mọi thao tác xoá/huỷ/khoá phải qua đây |
+| `AddressPicker` | storefront | Popup chọn địa chỉ, có bản đồ ghim GPS |
 
 ---
 
-## 6. Ng├┤n ngß╗», ─æß╗ïnh dß║íng v├á nh├ún trß║íng th├íi
+## 6. Ngôn ngữ, định dạng và nhãn trạng thái
 
-- Tiß╗ün: `formatVND(1290000)` ΓåÆ `1.290.000Γé½`. Kh├┤ng tß╗▒ nß╗æi chuß╗ùi `"─æ"`.
-- Sß╗æ lß╗¢n r├║t gß╗ìn: `1,2k`, `12,3k`, `1,28 tß╗╖Γé½`.
-- Ng├áy giß╗¥: `14:00 ΓÇô 01/10/2026`; thß╗¥i gian t╞░╞íng ─æß╗æi: "5 ph├║t tr╞░ß╗¢c".
-- M├ú ─æ╞ín hiß╗ân thß╗ï nguy├¬n v─ân tß╗½ backend (`FS-261001-A7K2Q`).
-- V─ân phong: ngß║»n, r├╡, kh├┤ng d├╣ng "Vui l├▓ng" thß╗½a, kh├┤ng dß║Ñu `!`. N├║t bß║»t ─æß║ºu bß║▒ng ─æß╗Öng tß╗½: "Mua ngay", "Th├¬m v├áo giß╗Å", "L╞░u thay ─æß╗òi".
-- **Kh├┤ng hiß╗ân thß╗ï enum tiß║┐ng Anh cho ng╞░ß╗¥i d├╣ng.** Tß║Ñt cß║ú nß║▒m trong `lib/constants.ts`:
+- Tiền: `formatVND(1290000)` → `1.290.000₫`. Không tự nối chuỗi `"đ"`.
+- Số lớn rút gọn: `1,2k`, `12,3k`, `1,28 tỷ₫`.
+- Ngày giờ: `14:00 – 01/10/2026`; thời gian tương đối: "5 phút trước".
+- Mã đơn hiển thị nguyên văn từ backend (`FS-261001-A7K2Q`).
+- Văn phong: ngắn, rõ, không dùng "Vui lòng" thừa, không dấu `!`. Nút bắt đầu bằng động từ: "Mua ngay", "Thêm vào giỏ", "Lưu thay đổi".
+- **Không hiển thị enum tiếng Anh cho người dùng.** Tất cả nằm trong `lib/constants.ts`:
 
-| Enum (backend) | Nh├ún hiß╗ân thß╗ï | M├áu badge |
+| Enum (backend) | Nhãn hiển thị | Màu badge |
 |---|---|---|
-| Order `PENDING_PAYMENT` | Chß╗¥ thanh to├ín | warning |
-| Order `PAID` | ─É├ú thanh to├ín | info |
-| Order `CONFIRMED` | ─É├ú x├íc nhß║¡n | info |
-| Order `SHIPPING` | ─Éang giao | info |
-| Order `COMPLETED` | Ho├án th├ánh | success |
-| Order `CANCELLED_TIMEOUT` | ─É├ú huß╗╖ ΓÇô qu├í hß║ín thanh to├ín | neutral |
-| Order `CANCELLED_USER` | ─É├ú huß╗╖ | neutral |
-| Payment `PENDING` / `SUCCESS` / `FAILED` / `EXPIRED` / `REFUNDED` | ─Éang chß╗¥ / Th├ánh c├┤ng / Thß║Ñt bß║íi / Hß║┐t hß║ín / ─É├ú ho├án tiß╗ün | warning / success / danger / neutral / info |
-| Slot `UPCOMING` / `ACTIVE` / `ENDED` | Sß║»p diß╗àn ra / ─Éang diß╗àn ra / ─É├ú kß║┐t th├║c | info / sale / neutral |
-| FlashSaleItem `PENDING_APPROVAL` / `APPROVED` / `REJECTED` / `ENDED` | Chß╗¥ duyß╗çt / ─É├ú duyß╗çt / Tß╗½ chß╗æi / ─É├ú kß║┐t th├║c | warning / success / danger / neutral |
-| Store `PENDING` / `APPROVED` / `BANNED` | Chß╗¥ duyß╗çt / ─É├ú duyß╗çt / ─É├ú cß║Ñm | warning / success / danger |
-| User `ACTIVE` / `LOCKED` / `SUSPENDED` | Hoß║ít ─æß╗Öng / ─É├ú kho├í / Tß║ím ─æ├¼nh chß╗ë | success / danger / warning |
-| Product `ACTIVE` / `INACTIVE` / `OUT_OF_STOCK` | ─Éang b├ín / ─É├ú ß║⌐n / Hß║┐t h├áng | success / neutral / warning |
-| Voucher `ACTIVE` / `EXPIRED` / `EXHAUSTED` / `DISABLED` | ─Éang diß╗àn ra / Hß║┐t hß║ín / Hß║┐t l╞░ß╗út / ─É├ú tß║»t | success / neutral / warning / neutral |
-| Review `VISIBLE` / `HIDDEN` | Hiß╗ân thß╗ï / ─É├ú ß║⌐n | success / neutral |
+| Order `PENDING_PAYMENT` | Chờ thanh toán | warning |
+| Order `PAID` | Đã thanh toán | info |
+| Order `CONFIRMED` | Đã xác nhận | info |
+| Order `SHIPPING` | Đang giao | info |
+| Order `COMPLETED` | Hoàn thành | success |
+| Order `CANCELLED_TIMEOUT` | Đã huỷ – quá hạn thanh toán | neutral |
+| Order `CANCELLED_USER` | Đã huỷ | neutral |
+| Payment `PENDING` / `SUCCESS` / `FAILED` / `EXPIRED` / `REFUNDED` | Đang chờ / Thành công / Thất bại / Hết hạn / Đã hoàn tiền | warning / success / danger / neutral / info |
+| Slot `UPCOMING` / `ACTIVE` / `ENDED` | Sắp diễn ra / Đang diễn ra / Đã kết thúc | info / sale / neutral |
+| FlashSaleItem `PENDING_APPROVAL` / `APPROVED` / `REJECTED` / `ENDED` | Chờ duyệt / Đã duyệt / Từ chối / Đã kết thúc | warning / success / danger / neutral |
+| Store `PENDING` / `APPROVED` / `BANNED` | Chờ duyệt / Đã duyệt / Đã cấm | warning / success / danger |
+| User `ACTIVE` / `LOCKED` / `SUSPENDED` | Hoạt động / Đã khoá / Tạm đình chỉ | success / danger / warning |
+| Product `ACTIVE` / `INACTIVE` / `OUT_OF_STOCK` | Đang bán / Đã ẩn / Hết hàng | success / neutral / warning |
+| Voucher `ACTIVE` / `EXPIRED` / `EXHAUSTED` / `DISABLED` | Đang diễn ra / Hết hạn / Hết lượt / Đã tắt | success / neutral / warning / neutral |
+| Review `VISIBLE` / `HIDDEN` | Hiển thị / Đã ẩn | success / neutral |
 
 ---
 
-## 7. Gß╗ìi API v├á xß╗¡ l├╜ dß╗» liß╗çu
+## 7. Gọi API và xử lý dữ liệu
 
-- Mß╗ìi request ─æi qua `lib/api-client.ts` (gß║»n JWT, base URL tß╗½ `NEXT_PUBLIC_API_URL`, chuß║⌐n ho├í lß╗ùi). Kh├┤ng gß╗ìi API trß╗▒c tiß║┐p trong component ΓÇô d├╣ng hook trong `features/<x>/hooks.ts`.
-- Kiß╗âu dß╗» liß╗çu trong `types.ts` phß║úi **khß╗¢p DTO backend**; kh├┤ng d├╣ng `any`. Ch╞░a c├│ API th├¼ tß║ío mock trong `features/<x>/mock.ts` c├╣ng kiß╗âu dß╗» liß╗çu, bß║¡t bß║▒ng `NEXT_PUBLIC_USE_MOCK=true`.
-- Query key ─æß║╖t theo mß║úng: `['orders', { status, page }]`. Sau khi mutation th├ánh c├┤ng phß║úi `invalidateQueries` ─æ├║ng key.
-- Xß╗¡ l├╜ lß╗ùi theo m├ú HTTP:
-  - `401` ΓåÆ xo├í phi├¬n, chuyß╗ân `/dang-nhap?redirect=...`.
-  - `403` do quyß╗ün bß╗ï **tß║»t t├¡nh n─âng** (feature toggle `is_active = false`) ΓåÆ chuyß╗ân `/bao-tri?feature=<m├ú quyß╗ün>`; 403 th╞░ß╗¥ng ΓåÆ trang "Kh├┤ng c├│ quyß╗ün truy cß║¡p".
-  - `409` / `422` ΓåÆ hiß╗çn th├┤ng b├ío nghiß╗çp vß╗Ñ tß╗½ backend (VD: "Sß║ún phß║⌐m ─æ├ú hß║┐t h├áng", "Bß║ín ─æ├ú ─æß║ít giß╗¢i hß║ín mua").
-  - `5xx` / mß║Ñt mß║íng ΓåÆ `ErrorState` c├│ n├║t "Thß╗¡ lß║íi", kh├┤ng l├ám trß║»ng trang.
-- **Kh├┤ng tin dß╗» liß╗çu ph├¡a client**: kh├┤ng tß╗▒ t├¡nh tß╗òng tiß╗ün cuß╗æi, ph├¡ s├án, mß╗⌐c giß║úm voucher ─æß╗â gß╗¡i l├¬n; kh├┤ng gß╗¡i `slotId`/gi├í l├¬n khi ─æß║╖t Flash Sale ΓÇô chß╗ë gß╗¡i `flashSaleItemId` + `quantity`. Sß╗æ tiß╗ün hiß╗ân thß╗ï lß║Ñy tß╗½ response cß╗ºa backend.
-- Th├┤ng b├ío kß║┐t quß║ú bß║▒ng toast (g├│c phß║úi tr├¬n), tß╗æi ─æa 1 d├▓ng.
-
----
-
-## 8. Flash Sale, giß╗» chß╗ù v├á thanh to├ín (phß║ºn cß╗æt l├╡i ΓÇô l├ám cß║⌐n thß║¡n)
-
-1. **─Éß╗ông hß╗ô**: lu├┤n t├¡nh theo giß╗¥ server. Khi tß║úi trang lß║Ñy `serverTime`, l╞░u ─æß╗Ö lß╗çch `offset = serverTime - Date.now()`; `Countdown` d├╣ng `Date.now() + offset`. Kh├┤ng ─æß║┐m theo giß╗¥ m├íy ng╞░ß╗¥i d├╣ng.
-2. **Tß╗ôn kho realtime**: subscribe STOMP topic tß╗ôn kho cß╗ºa phi├¬n qua `useStomp`; cß║¡p nhß║¡t `StockBar` bß║▒ng `queryClient.setQueryData`, kh├┤ng refetch cß║ú trang. Huß╗╖ subscribe khi rß╗¥i trang. Mß║Ñt kß║┐t nß╗æi ΓåÆ hiß╗çn chip "─Éang kß║┐t nß╗æi lß║íiΓÇª" v├á tß╗▒ kß║┐t nß╗æi lß║íi.
-3. **N├║t "Mua ngay"**: bß║Ñm xong kho├í n├║t ngay (loading) cho tß╗¢i khi c├│ phß║ún hß╗ôi ─æß╗â chß╗æng bß║Ñm ─æ├║p; mß╗ùi lß║ºn bß║Ñm gß╗¡i k├¿m header `Idempotency-Key` (uuid). Hß║┐t h├áng/hß║┐t phi├¬n ΓåÆ n├║t chuyß╗ân trß║íng th├íi "─É├ú hß║┐t", kh├┤ng ß║⌐n ─æi.
-4. **Giß╗» chß╗ù 5 ph├║t**: thß╗¥i ─æiß╗âm hß║┐t hß║ín lß║Ñy tß╗½ `expiresAt` cß╗ºa ─æ╞ín (backend trß║ú), kh├┤ng tß╗▒ ─æß║╖t 5 ph├║t ß╗ƒ client. Hß║┐t giß╗¥ ΓåÆ chuyß╗ân sang m├án "─É╞ín h├áng ─æ├ú hß║┐t hß║ín".
-5. **ZaloPay QR**: hiß╗ân thß╗ï QR tß╗½ dß╗» liß╗çu backend; kiß╗âm tra trß║íng th├íi bß║▒ng STOMP hoß║╖c polling 3 gi├óy/lß║ºn; trß║íng th├íi thanh to├ín cuß╗æi c├╣ng **chß╗ë tin theo backend** (webhook), kh├┤ng tin tham sß╗æ tr├¬n URL trß║ú vß╗ü.
-6. Giß╗Å h├áng nhiß╗üu shop: hiß╗ân thß╗ï theo nh├│m shop v├á ghi r├╡ "sß║╜ ─æ╞░ß╗úc t├ích th├ánh N ─æ╞ín h├áng". QR gß╗Öp hiß╗ân thß╗ï danh s├ích c├íc ─æ╞ín con k├¿m tß╗òng tiß╗ün.
+- Mọi request đi qua `lib/api-client.ts` (gắn JWT, base URL từ `NEXT_PUBLIC_API_URL`, chuẩn hoá lỗi). Không gọi API trực tiếp trong component – dùng hook trong `features/<x>/hooks.ts`.
+- Kiểu dữ liệu trong `types.ts` phải **khớp DTO backend**; không dùng `any`. Chưa có API thì tạo mock trong `features/<x>/mock.ts` cùng kiểu dữ liệu, bật bằng `NEXT_PUBLIC_USE_MOCK=true`.
+- Query key đặt theo mảng: `['orders', { status, page }]`. Sau khi mutation thành công phải `invalidateQueries` đúng key.
+- Xử lý lỗi theo mã HTTP:
+  - `401` → xoá phiên, chuyển `/dang-nhap?redirect=...`.
+  - `403` do quyền bị **tắt tính năng** (feature toggle `is_active = false`) → chuyển `/bao-tri?feature=<mã quyền>`; 403 thường → trang "Không có quyền truy cập".
+  - `409` / `422` → hiện thông báo nghiệp vụ từ backend (VD: "Sản phẩm đã hết hàng", "Bạn đã đạt giới hạn mua").
+  - `5xx` / mất mạng → `ErrorState` có nút "Thử lại", không làm trắng trang.
+- **Không tin dữ liệu phía client**: không tự tính tổng tiền cuối, phí sàn, mức giảm voucher để gửi lên; không gửi `slotId`/giá lên khi đặt Flash Sale – chỉ gửi `flashSaleItemId` + `quantity`. Số tiền hiển thị lấy từ response của backend.
+- Thông báo kết quả bằng toast (góc phải trên), tối đa 1 dòng.
 
 ---
 
-## 9. Ph├ón quyß╗ün, ─æiß╗üu h╞░ß╗¢ng v├á layout
+## 8. Flash Sale, giữ chỗ và thanh toán (phần cốt lõi – làm cẩn thận)
 
-- `middleware.ts` chß║╖n route theo vai tr├▓ trong JWT: `/seller/**` cß║ºn `ROLE_SELLER` (store ─æ├ú `APPROVED`), `/admin/**` cß║ºn `ROLE_ADMIN`. Ch╞░a ─æ─âng nhß║¡p ΓåÆ `/dang-nhap`.
-- ß║¿n/hiß╗çn n├║t theo quyß╗ün bß║▒ng hook `useCan('product:update')` ΓÇô chß╗ë l├á UX, backend vß║½n kiß╗âm tra thß║¡t.
-- Seller c├│ store `PENDING` ΓåÆ lu├┤n chuyß╗ân vß╗ü m├án "Hß╗ô s╞í ─æang ─æ╞░ß╗úc x├⌐t duyß╗çt".
-- Mß╗Ñc ─æiß╗üu h╞░ß╗¢ng ─æang chß╗ìn (`activeNav` desktop / `active` mobile):
+1. **Đồng hồ**: luôn tính theo giờ server. Khi tải trang lấy `serverTime`, lưu độ lệch `offset = serverTime - Date.now()`; `Countdown` dùng `Date.now() + offset`. Không đếm theo giờ máy người dùng.
+2. **Tồn kho realtime**: subscribe STOMP topic tồn kho của phiên qua `useStomp`; cập nhật `StockBar` bằng `queryClient.setQueryData`, không refetch cả trang. Huỷ subscribe khi rời trang. Mất kết nối → hiện chip "Đang kết nối lại…" và tự kết nối lại.
+3. **Nút "Mua ngay"**: bấm xong khoá nút ngay (loading) cho tới khi có phản hồi để chống bấm đúp; mỗi lần bấm gửi kèm header `Idempotency-Key` (uuid). Hết hàng/hết phiên → nút chuyển trạng thái "Đã hết", không ẩn đi.
+4. **Giữ chỗ 5 phút**: thời điểm hết hạn lấy từ `expiresAt` của đơn (backend trả), không tự đặt 5 phút ở client. Hết giờ → chuyển sang màn "Đơn hàng đã hết hạn".
+5. **ZaloPay QR**: hiển thị QR từ dữ liệu backend; kiểm tra trạng thái bằng STOMP hoặc polling 3 giây/lần; trạng thái thanh toán cuối cùng **chỉ tin theo backend** (webhook), không tin tham số trên URL trả về.
+6. Giỏ hàng nhiều shop: hiển thị theo nhóm shop và ghi rõ "sẽ được tách thành N đơn hàng". QR gộp hiển thị danh sách các đơn con kèm tổng tiền.
+
+---
+
+## 9. Phân quyền, điều hướng và layout
+
+- `middleware.ts` chặn route theo vai trò trong JWT: `/seller/**` cần `ROLE_SELLER` (store đã `APPROVED`), `/admin/**` cần `ROLE_ADMIN`. Chưa đăng nhập → `/dang-nhap`.
+- Ẩn/hiện nút theo quyền bằng hook `useCan('product:update')` – chỉ là UX, backend vẫn kiểm tra thật.
+- Seller có store `PENDING` → luôn chuyển về màn "Hồ sơ đang được xét duyệt".
+- Mục điều hướng đang chọn (`activeNav` desktop / `active` mobile):
 
 | Trang | Desktop | Mobile |
 |---|---|---|
-| Trang chß╗º | Trang chß╗º | Trang chß╗º |
+| Trang chủ | Trang chủ | Trang chủ |
 | Flash Sale | Flash Sale | Flash Sale |
-| Danh s├ích theo danh mß╗Ñc | Danh mß╗Ñc | Trang chß╗º |
-| T├¼m kiß║┐m, Chi tiß║┐t SP, Trang gian h├áng | (kh├┤ng t├┤) | Trang chß╗º |
-| Kho voucher | Voucher | T├┤i |
-| ─É╞ín h├áng, Chi tiß║┐t ─æ╞ín | (kh├┤ng t├┤) | ─É╞ín h├áng |
-| T├ái khoß║ún, ─É─âng k├╜ b├ín h├áng | (kh├┤ng t├┤) | T├┤i |
-| Giß╗Å h├áng, Checkout, ZaloPay, Kß║┐t quß║ú | header `compact` | ß║⌐n bottom nav |
+| Danh sách theo danh mục | Danh mục | Trang chủ |
+| Tìm kiếm, Chi tiết SP, Trang gian hàng | (không tô) | Trang chủ |
+| Kho voucher | Voucher | Tôi |
+| Đơn hàng, Chi tiết đơn | (không tô) | Đơn hàng |
+| Tài khoản, Đăng ký bán hàng | (không tô) | Tôi |
+| Giỏ hàng, Checkout, ZaloPay, Kết quả | header `compact` | ẩn bottom nav |
 
 ---
 
-## 10. Responsive v├á khß║ú n─âng truy cß║¡p
+## 10. Responsive và khả năng truy cập
 
-- Breakpoint Tailwind mß║╖c ─æß╗ïnh; thiß║┐t kß║┐ mobile-first cho Storefront. Seller/Admin tß╗æi thiß╗âu 1280px, d╞░ß╗¢i mß╗⌐c ─æ├│ hiß╗çn th├┤ng b├ío "Vui l├▓ng d├╣ng m├íy t├¡nh".
-- Container nß╗Öi dung `max-w-[1200px] mx-auto px-4`.
-- ß║ónh d├╣ng `next/image` c├│ `alt` tiß║┐ng Viß╗çt, k├¡ch th╞░ß╗¢c cß╗æ ─æß╗ïnh ─æß╗â kh├┤ng nhß║úy layout.
-- N├║t chß╗ë c├│ icon phß║úi c├│ `aria-label`. Mß╗ìi phß║ºn tß╗¡ bß║Ñm ─æ╞░ß╗úc d├╣ng `button`/`a`, c├│ focus ring `ring-2 ring-brand`.
-- ─Éß╗Ö t╞░╞íng phß║ún chß╗» ─æß║ít WCAG AA; kh├┤ng truyß╗ün tß║úi th├┤ng tin chß╗ë bß║▒ng m├áu (badge lu├┤n c├│ chß╗»).
-
----
-
-## 11. Quy ╞░ß╗¢c viß║┐t code
-
-- Mß║╖c ─æß╗ïnh **Server Component**; chß╗ë th├¬m `'use client'` khi cß║ºn state, effect, sß╗▒ kiß╗çn hoß║╖c STOMP.
-- Kh├┤ng `any`, kh├┤ng `// @ts-ignore`. Props khai b├ío bß║▒ng `type XxxProps`.
-- Gß╗Öp class bß║▒ng `cn()`; biß║┐n thß╗â component d├╣ng `cva`.
-- Kh├┤ng ─æß╗â sß╗æ "ma thuß║¡t": thß╗¥i gian, giß╗¢i hß║ín, k├¡ch th╞░ß╗¢c trang ─æß║╖t trong `lib/constants.ts`.
-- Kh├┤ng ─æß╗â `console.log` khi commit. ESLint + Prettier phß║úi sß║ích.
-- T├¬n biß║┐n/h├ám tiß║┐ng Anh; chß╗» hiß╗ân thß╗ï tiß║┐ng Viß╗çt.
-- Commit theo Conventional Commits: `feat(storefront): th├¬m trang Flash Sale`, `fix(seller): sß╗¡a bß║úng SKU`.
+- Breakpoint Tailwind mặc định; thiết kế mobile-first cho Storefront. Seller/Admin tối thiểu 1280px, dưới mức đó hiện thông báo "Vui lòng dùng máy tính".
+- Container nội dung `max-w-[1200px] mx-auto px-4`.
+- Ảnh dùng `next/image` có `alt` tiếng Việt, kích thước cố định để không nhảy layout.
+- Nút chỉ có icon phải có `aria-label`. Mọi phần tử bấm được dùng `button`/`a`, có focus ring `ring-2 ring-brand`.
+- Độ tương phản chữ đạt WCAG AA; không truyền tải thông tin chỉ bằng màu (badge luôn có chữ).
 
 ---
 
-## 12. Quy tr├¼nh bß║»t buß╗Öc khi AI viß║┐t code
+## 11. Quy ước viết code
 
-1. **─Éß╗ìc tr╞░ß╗¢c khi viß║┐t**: ─æß╗ìc file n├áy, c├íc component li├¬n quan trong `components/`, v├á `types.ts` cß╗ºa feature.
-2. **L├ám tß╗½ng phß║ºn nhß╗Å**: mß╗ùi lß║ºn chß╗ë mß╗Öt trang hoß║╖c mß╗Öt component. Kh├┤ng sß╗¡a file ngo├ái phß║ím vi ─æ╞░ß╗úc y├¬u cß║ºu.
-3. **T├íi sß╗¡ dß╗Ñng tr╞░ß╗¢c, tß║ío mß╗¢i sau**: nß║┐u cß║ºn component mß╗¢i d├╣ng chung, ─æß║╖t v├áo `components/common` v├á b├ío lß║íi.
-4. **Kh├┤ng bß╗ïa API**: nß║┐u ch╞░a biß║┐t endpoint/DTO, d├╣ng mock ─æ├║ng kiß╗âu v├á ghi `// TODO(api): ...`, rß╗ôi liß╗çt k├¬ trong b├ío c├ío.
-5. **Tß╗▒ kiß╗âm tra tr╞░ß╗¢c khi b├ío xong**:
-   - [ ] `pnpm lint` v├á `pnpm tsc --noEmit` kh├┤ng lß╗ùi
-   - [ ] Kh├┤ng c├│ m├ú m├áu hex trong component, chß╗ë d├╣ng token
-   - [ ] ─Éß╗º 4 trß║íng th├íi: tß║úi / rß╗ùng / lß╗ùi / c├│ dß╗» liß╗çu
-   - [ ] ─É├║ng mß╗Öt n├║t primary tr├¬n m├án
-   - [ ] Mobile 375px kh├┤ng tr├án ngang (vß╗¢i trang Storefront)
-   - [ ] Mß╗ìi chß╗» hiß╗ân thß╗ï l├á tiß║┐ng Viß╗çt, enum ─æ├ú ─æß╗òi sang nh├ún
-   - [ ] ─É├ú d├╣ng lß║íi Header/Footer/ProductCard/Pagination c├│ sß║╡n, t├┤ ─æ├║ng mß╗Ñc ─æiß╗üu h╞░ß╗¢ng
-6. **B├ío c├ío ngß║»n** sau mß╗ùi lß║ºn l├ám: file ─æ├ú tß║ío/sß╗¡a, component mß╗¢i, c├íc `TODO(api)` c├▓n lß║íi.
+- Mặc định **Server Component**; chỉ thêm `'use client'` khi cần state, effect, sự kiện hoặc STOMP.
+- Không `any`, không `// @ts-ignore`. Props khai báo bằng `type XxxProps`.
+- Gộp class bằng `cn()`; biến thể component dùng `cva`.
+- Không để số "ma thuật": thời gian, giới hạn, kích thước trang đặt trong `lib/constants.ts`.
+- Không để `console.log` khi commit. ESLint + Prettier phải sạch.
+- Tên biến/hàm tiếng Anh; chữ hiển thị tiếng Việt.
+- Commit theo Conventional Commits: `feat(storefront): thêm trang Flash Sale`, `fix(seller): sửa bảng SKU`.
+
+---
+
+## 12. Quy trình bắt buộc khi AI viết code
+
+1. **Đọc trước khi viết**: đọc file này, các component liên quan trong `components/`, và `types.ts` của feature.
+2. **Làm từng phần nhỏ**: mỗi lần chỉ một trang hoặc một component. Không sửa file ngoài phạm vi được yêu cầu.
+3. **Tái sử dụng trước, tạo mới sau**: nếu cần component mới dùng chung, đặt vào `components/common` và báo lại.
+4. **Không bịa API**: nếu chưa biết endpoint/DTO, dùng mock đúng kiểu và ghi `// TODO(api): ...`, rồi liệt kê trong báo cáo.
+5. **Tự kiểm tra trước khi báo xong**:
+   - [ ] `pnpm lint` và `pnpm tsc --noEmit` không lỗi
+   - [ ] Không có mã màu hex trong component, chỉ dùng token
+   - [ ] Đủ 4 trạng thái: tải / rỗng / lỗi / có dữ liệu
+   - [ ] Đúng một nút primary trên màn
+   - [ ] Mobile 375px không tràn ngang (với trang Storefront)
+   - [ ] Mọi chữ hiển thị là tiếng Việt, enum đã đổi sang nhãn
+   - [ ] Đã dùng lại Header/Footer/ProductCard/Pagination có sẵn, tô đúng mục điều hướng
+6. **Báo cáo ngắn** sau mỗi lần làm: file đã tạo/sửa, component mới, các `TODO(api)` còn lại.

@@ -1,5 +1,5 @@
 ---
-description: Backend enum to label mapping. Apply StatusBadge, Badge, lib/constants.ts.
+description: Mapping enum backend → nhãn đa ngôn ngữ (vi, en). Apply cho StatusBadge, Badge, lib/constants.ts, status enum types.
 globs:
   - src/components/ui/Badge.tsx
   - src/components/flash-sale/**
@@ -9,9 +9,6 @@ globs:
   - src/types/flash-sale.ts
   - src/types/product.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

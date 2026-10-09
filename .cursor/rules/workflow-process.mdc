@@ -1,19 +1,11 @@
 ---
-description: 6-step mandatory workflow for AI changes (branch, plan, model, ask, do, review).
-globs: []
+description: Quy trình 6 bước BẮT BUỘC khi AI thêm/sửa file trong .cursor/rules/ hoặc thay đổi code lớn (sửa rule, tạo/sửa nhiều file, refactor). Xin phép trước, lập plan, đánh giá model, hỏi trước khi thực hiện.
+globs:
+  - .cursor/rules/*.mdc
+  - AGENTS.md
 alwaysApply: true
-owner: team
-depends_on:
-  - git-workflow.mdc
-  - git-worktree.mdc
-  - layer-convention.mdc
-  - stack-versions.mdc
-  - testing-required.mdc
-last_reviewed: 2026-10-09
-version: 3
 ---
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section 12 - AI workflow process
+> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Workflow — 6 Bước Bắt Buộc
 
@@ -49,6 +41,31 @@ Mọi thay đổi **lớn** (sửa rule, tạo/sửa nhiều file, refactor) ph�
 | User nói "sửa typo trong file X" | Không hỏi → sửa luôn, báo cáo ở Bước 6 |
 | User nói "refactor cả folder `src/types/`" | Bước 0: nói scope + cách chia → AskQuestion → chờ duyệt → Plan → Chia plan → Hỏi format chi tiết → Làm |
 | User nói "thêm auth mới" | Bước 0: nói sensitive → AskQuestion → nếu đồng ý mới qua Plan |
+
+## Bước 0.1 — Tạo nhánh (BẮT BUỘC)
+
+- **Tuyệt đối KHÔNG commit trực tiếp lên `dev`**. Luôn tạo nhánh mới từ `dev`:
+  - Format: `<type>/<short-desc>` (vd: `feat/route-guard`, `fix/typo-encoding`, `docs/update-workflow`)
+  - Lệnh: `git fetch origin dev && git checkout -b <branch> dev`
+- **Trước khi push** (Bước 6): luôn merge `origin/dev` mới nhất vào nhánh đang làm:
+  - `git fetch origin dev && git merge origin/dev`
+  - Nếu có conflict → resolve + `git commit` (merge commit)
+- Push dùng `git push` bình thường (không cần force vì commit cũ giữ nguyên hash).
+- Xem chi tiết ở `git-workflow.mdc` (9-step mandatory workflow + hard gate).
+
+### Lý do
+
+- Tránh mất commit khi merge `dev` vào nhánh (giữ nguyên lịch sử commit, dễ review).
+- Tránh conflict với người khác đang cùng làm trên `dev`.
+- Review/PR từ feature branch rõ ràng hơn.
+
+### Ví dụ
+
+| Tình huống | Branch |
+|---|---|
+| User: "thêm auth mới" | `feat/auth-jwt-step-1` |
+| User: "sửa typo ở workflow-process.mdc" | `fix/workflow-process-typo` |
+| User: "refactor folder src/types/" | `refactor/types-cleanup` |
 
 ## Bước 0.5 — Worktree (khi 2 chat song song)
 
@@ -225,6 +242,7 @@ Sau khi xong Bước 5, **auto-commit** (không hỏi user). Rồi báo cáo v�
 
 ## Tests
 - Build: `npm run build` → pass / fail
+- Commit message bằng **tiếng Anh** + Conventional Commits (xem `.cursor/rules/git-workflow.mdc` → "Commit language")
 - Lint: `npm run lint` → pass / fail
 - Manual smoke: trang nào đã mở, status
 
@@ -250,4 +268,3 @@ Sau khi xong Bước 5, **auto-commit** (không hỏi user). Rồi báo cáo v�
 - Khi user nói "làm nhanh", **vẫn** qua đủ 6 bước — chỉ rút gọn thời gian mỗi bước.
 - Khi conflict giữa rule này và rule khác, **rule này thắng** (vì đây là quy trình tổng).
 - Bước 0.5 (worktree) chỉ áp dụng khi có **2+ chat song song** thật sự.
-

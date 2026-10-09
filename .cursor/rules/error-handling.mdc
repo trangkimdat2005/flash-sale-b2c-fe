@@ -1,17 +1,8 @@
 ---
-description: Error-handling standard - ApiError class, throw/catch/toast policy, console format, error boundary, 404/500/offline UI.
-globs: []
+description: Quy ước xử lý lỗi — ApiError class, toast vs throw vs return, console log, error boundary, 404/500/offline UI. Áp dụng cho mọi task.
 alwaysApply: true
-owner: team
-depends_on:
-  - api-data.mdc
-  - auth-jwt.mdc
-  - validation-forms.mdc
-last_reviewed: 2026-10-09
-version: 3
 ---
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section 12 - workflow process (error reporting)
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Error Handling — Chuẩn Xử Lý Lỗi
 

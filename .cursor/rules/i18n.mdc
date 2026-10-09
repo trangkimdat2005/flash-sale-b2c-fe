@@ -1,14 +1,11 @@
 ---
-description: next-intl i18n policy: locale vi+en, URL no-diacritics, error key mapping.
+description: Quy ước i18n với next-intl — locale, namespace convention, format date/money/error, plural. Apply cho toàn bộ src/**, src/i18n/**, messages/**, middleware.ts.
 globs:
   - src/**/*.{ts,tsx}
   - src/i18n/**
   - messages/**
   - src/middleware.ts
 alwaysApply: true
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

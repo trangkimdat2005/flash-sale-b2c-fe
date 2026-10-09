@@ -1,14 +1,11 @@
 ---
-description: TanStack Query (server) + Zustand (client) + Context + local state rules.
+description: Quy ước state management — TanStack Query (server), Zustand (client global), Context (UI), local (component). Apply cho src/stores/**, src/lib/**, src/hooks/**, src/providers/**.
 globs:
   - src/stores/**
   - src/lib/**
   - src/hooks/**
   - src/providers/**
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

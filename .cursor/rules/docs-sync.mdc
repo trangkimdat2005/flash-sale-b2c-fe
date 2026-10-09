@@ -1,12 +1,9 @@
 ---
-description: Source-of-truth rules for docs/CLAUDE.md and AGENTS.md.
+description: Quy định bảo vệ Source of Truth #1 (docs/CLAUDE.md) + quy trình đồng bộ khi rule thay đổi. Áp dụng mọi task có đụng đến docs/.
 globs:
   - docs/**
   - AGENTS.md
 alwaysApply: true
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

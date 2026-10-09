@@ -1,14 +1,11 @@
 ---
-description: STOMP realtime: useFlashSaleWs, WsConnectionProvider, stock updates.
+description: Quy ước WebSocket realtime (STOMP) — connection, lifecycle, event handling, fallback. Apply cho useFlashSaleWs, WsConnectionProvider, flash-sale store, components/flash-sale.
 globs:
   - src/hooks/useFlashSaleWs.ts
   - src/providers/WsConnectionProvider.tsx
   - src/stores/flash-sale.store.ts
   - src/components/flash-sale/**
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

@@ -1,136 +1,133 @@
 ---
-description: Git workflow: branching, commit format, pre-commit checklist, push policy.
+description: Quy tắc git workflow — branching model (base từ dev), commit convention, push policy (xin phép user trước khi push). Apply mọi task tạo commit hoặc merge.
 alwaysApply: true
-owner: team
-last_reviewed: 2026-10-09
-version: 2
-globs: []
 ---
-> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 뿯½ React 19.2 뿯½ TS 5.x 뿯½ Tailwind 4.x
+> Last reviewed: 2026-10-08 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Git Workflow
 
 ## Branching model
 
 ```text
-main       # production-ready, ch뿯ẽ merge qua PR
-dev        # integration branch, base cho m뿯ẽi branch m뿯ẽi
-feature/<shorter-desc>    # vd: feature/order-module
-fix/<shorter-desc>        # vd: fix/auth-401-loop
-hotfix/<shorter-desc>     # kh뿯ẽn c뿯ẽp, branch t뿯ẽ main, merge v뿯½o main + dev
-refactor/<shorter-desc>   # vd: refactor/extract-product-card
-chore/<shorter-desc>      # vd: chore/bump-react-19
-docs/<shorter-desc>       # vd: docs/sync-flashsale-endpoint
+main       # production-ready, chỉ merge qua PR
+dev        # integration branch, base cho mọi branch mới
+feature/<short-desc>    # vd: feature/order-module
+fix/<short-desc>        # vd: fix/auth-401-loop
+hotfix/<short-desc>     # khẩn cấp, branch từ main, merge vào main + dev
+refactor/<short-desc>   # vd: refactor/extract-product-card
+chore/<short-desc>      # vd: chore/bump-react-19
+docs/<short-desc>       # vd: docs/sync-flashsale-endpoint
 ```
 
-- `fix/<x>` — bug th뿯ƽ뿯ẽng, branch t뿯ẽ `dev`, merge v뿯½o `dev`.
-- `hotfix/<x>` — kh뿯ẽn c뿯ẽp tr뿯½n production, branch t뿯ẽ `main`, merge v뿯½o `main` r뿯ẽi cherry-pick/merge ng뿯ƽ뿯ẽc v뿯ẽ `dev`.
+- `fix/<x>` — bug thường, branch từ `dev`, merge vào `dev`.
+- `hotfix/<x>` — khẩn cấp trên production, branch từ `main`, merge vào `main` rồi cherry-pick/merge ngược về `dev`.
 
-## Quy tr뿯½nh B뿯ẽT BU뿯ẽC (9 b뿯ƽ뿯ẽc)
+## Quy trình BẮT BUỘC (9 bước)
 
 ```text
 1. git fetch origin dev
 2. git checkout dev
-3. git pull --rebase origin dev          # đ뿯ẽng b뿯ẽ dev m뿯ẽi nh뿯ẽt
-4. git checkout -b <type>/<shorter-desc>  # t뿯ẽo feature branch t뿯ẽ dev
-5. ... l뿯½m task ...
+3. git pull origin dev                  # đồng bộ dev mới nhất
+4. git checkout -b <type>/<short-desc>  # tạo feature branch từ dev
+5. ... làm task ...
 6. git add .
-7. git commit -m "<type>: <m뿯½ t뿯ẽ ng뿯ẽn>"  # C뿯ẽM commit tr뿯ẽc ti뿯ẽp l뿯½n dev
+7. git commit -m "<type>: <mô tả ngắn>"  # CẤM commit trực tiếp lên dev
 8. git fetch origin dev
-   git rebase origin/dev                  # merge code t뿯ẽ dev tr뿯ƽ뿯ẽc khi push
-                                          # n뿯ẽu conflict 뿯↽ D뿯ẽNG, h뿯ẽi user
-9. D뿯ẽNG — KH뿯½NG push (ch뿯ẽ user duy뿯ẽt push)
+   git merge origin/dev                  # merge code từ dev trước khi push
+                                          # nếu conflict → DỪNG, hỏi user
+9. DỪNG — KHÔNG push (chờ user duyệt push)
 ```
 
-`shorter-desc` ph뿯ẽi m뿯½ t뿯ẽ đ뿯½ng t뿯½nh năng. Kh뿯½ng d뿯½ng t뿯½n chung chung `feature/new`, `fix/bug`.
+`short-desc` phải mô tả đúng tính năng. Không dùng tên chung chung `feature/new`, `fix/bug`.
 
-## C뿯ẽm commit tr뿯ẽc ti뿯ẽp l뿯½n dev (HARD GATE)
+## Cấm commit trực tiếp lên dev (HARD GATE)
 
-**Tuy뿯ẽt đ뿯ẽi KH뿯½NG Đ뿯ƽ뿯ẽC commit tr뿯ẽc ti뿯ẽp l뿯½n `dev`** — kh뿯½ng c뿯½ ngo뿯ẽi l뿯ẽ, k뿯ẽ c뿯ẽ:
-- S뿯ẽa typo 1 d뿯½ng trong docs
-- C뿯ẽp nh뿯ẽt README
-- Th뿯½m/s뿯ẽa rule `.mdc`
-- S뿯ẽa `.gitignore`
+**Tuyệt đối KHÔNG ĐƯỢC commit trực tiếp lên `dev`** — không có ngoại lệ, kể cả:
 
-M뿯ẽi thay đ뿯ẽi (k뿯ẽ c뿯ẽ docs-only) đ뿯ẽu ph뿯ẽi qua feature branch + rebase dev tr뿯ƽ뿯ẽc khi push.
+- Sửa typo 1 dòng trong docs
+- Cập nhật README
+- Thêm/sửa rule `.mdc`
+- Sửa `.gitignore`
 
-### Khi ph뿯½t hi뿯ẽn agent đang 뿯ẽ nh뿯½nh `dev`
+Mọi thay đổi (kể cả docs-only) đều phải qua feature branch + merge dev trước khi push.
 
-Agent **PH뿯ẽI t뿯ẽ t뿯ẽo feature branch** theo t뿯½n task, KH뿯½NG h뿯ẽi user, KH뿯½NG t뿯ẽ ch뿯ẽi:
+### Khi phát hiện agent đang ở nhánh `dev`
+
+Agent **PHẢI tự tạo feature branch** theo tên task, KHÔNG hỏi user, KHÔNG từ chối:
 
 ```bash
-# T뿯ẽ đ뿯ẽng ch뿯ẽy:
+# Từ đúng chỗ đang chạy:
 git fetch origin dev
 git checkout dev
-git pull --rebase origin dev
-git checkout -b <type>/<shorter-desc>   # t뿯½n theo task hi뿯ẽn t뿯ẽi
+git pull origin dev
+git checkout -b <type>/<short-desc>   # tên theo task hiện tại
 ```
 
-Sau đ뿯½ b뿯½o c뿯½o user branch m뿯ẽi v뿯½ ti뿯ẽp t뿯ẽc l뿯½m.
+Sau đó báo cáo user branch mới và tiếp tục làm.
 
-### Quy t뿯ẽc đ뿯ẽt t뿯½n branch
+### Quy tắc đặt tên branch
 
-| Type | Convention | V뿯½ d뿯ẽ |
+| Type | Convention | Ví dụ |
 |---|---|---|
-| Feature m뿯ẽi | `feature/<short-desc>` | `feature/cart-module` |
+| Feature mới | `feature/<short-desc>` | `feature/cart-module` |
 | Bug fix | `fix/<short-desc>` | `fix/auth-401-loop` |
-| Kh뿯ẽn c뿯ẽp | `hotfix/<short-desc>` (t뿯ẽ main) | `hotfix/payment-callback` |
+| Khẩn cấp | `hotfix/<short-desc>` (từ main) | `hotfix/payment-callback` |
 | Refactor | `refactor/<short-desc>` | `refactor/extract-product-card` |
 | Maintenance | `chore/<short-desc>` | `chore/bump-react-19` |
 | Docs/Rule | `docs/<short-desc>` | `docs/update-commit-rule` |
 
-### V뿯½ ph뿯ẽm v뿯½ x뿯ẽ l뿯½
+### Vi phạm và xử lý
 
-| Vi ph뿯ẽm | H뿯½nh đ뿯ẽng |
+| Vi phạm | Hành động |
 |---|---|
-| Agent commit l뿯½n `dev` | Revert commit ngay + t뿯ẽo feature branch m뿯ẽi + cherry-pick commit |
-| Agent push l뿯½n `dev` (kh뿯½ng qua feature) | C뿯ẽnh b뿯½o user + revert remote commit |
-| Agent rebase dev sai c뿯½ch (m뿯ẽt commit) | D뿯ẽng, kh뿯½i ph뿯ẽc t뿯ẽ reflog tr뿯ƽ뿯ẽc khi ti뿯ẽp t뿯ẽc |
+| Agent commit lên `dev` | Revert commit ngay + tạo feature branch mới + cherry-pick commit |
+| Agent push lên `dev` (không qua feature) | Cảnh báo user + revert remote commit |
+| Agent merge dev sai cách (mất commit) | Dừng, khôi phục từ reflog trước khi tiếp tục |
 
-## Auto-commit trigger (sau khi ho뿯½n th뿯½nh 1 subplan)
+## Auto-commit trigger (sau khi hoàn thành 1 subplan)
 
-Sau khi 1 subplan / 1 task ho뿯½n th뿯½nh (B뿯ƽ뿯ẽc 6 trong `workflow-process.mdc`), agent **PH뿯ẽI** th뿯ẽc hi뿯ẽn commit **TR뿯ƽ뿯ẽC KHI** b뿯½o c뿯½o user — kh뿯½ng ph뿯ẽi t뿯½y ch뿯ẽn.
+Sau khi 1 subplan / 1 task hoàn thành (Bước 6 trong `workflow-process.mdc`), agent **PHẢI** thực hiện commit **TRƯỚC KHI** báo cáo user — không phải tùy chọn.
 
-### M뿯ẽc trigger
+### Mốc trigger
 
-M뿯ẽi **subplan** ho뿯½n th뿯½nh = **1 commit** (뿯½p d뿯ẽng khi ch뿯ẽy 1 subplan đ뿯ẽc l뿯ẽp). Khi nhi뿯ẽu concern l뿯ẽn l뿯ẽn trong 1 subplan (vd: feat + fix), agent **t뿯ẽ t뿯½ch** commit theo concern (m뿯ẽi commit 1 concern).
+Mỗi **subplan** hoàn thành = **1 commit** (áp dụng khi chạy 1 subplan độc lập). Khi nhiều concern lẫn lộn trong 1 subplan (vd: feat + fix), agent **tự tách** commit theo concern (mỗi commit 1 concern).
 
-### Task đ뿯ƽ뿯ẽc coi l뿯½ "ho뿯½n th뿯½nh" khi T뿯ẽT C뿯ẽ đ뿯½ng
+### Task được coi là "hoàn thành" khi TẤT CẢ đúng
 
-- [ ] Code đ뿯½ đ뿯ƽ뿯ẽc vi뿯ẽt/s뿯ẽa theo plan đ뿯½ duy뿯ẽt
-- [ ] T뿯ẽt c뿯ẽ file LOGIC đ뿯½ c뿯½ test k뿯½m theo (B뿯ƽ뿯ẽc 5.0 audit trong `workflow-process.mdc`)
+- [ ] Code đã được viết/sửa theo plan đã duyệt
+- [ ] Tất cả file LOGIC đã có test kèm theo (Bước 5.0 audit trong `workflow-process.mdc`)
 - [ ] `npm run test` PASS
 - [ ] `npm run lint` PASS
 - [ ] `npm run tsc --noEmit` PASS
-- [ ] User ch뿯ƽa ph뿯ẽn h뿯ẽi "đ뿯ẽi" / "ch뿯ƽa commit" / "g뿯ẽp nhi뿯ẽu task"
+- [ ] User chưa phản hồi "đợi" / "chưa commit" / "gộp nhiều task"
 
-### Quy tr뿯½nh auto-commit
+### Quy trình auto-commit
 
 ```text
-1. git status           # xem file n뿯½o đ뿯½ thay đ뿯ẽi
+1. git status           # xem file nào đã thay đổi
 2. git diff --stat      # audit: LOGIC vs COPY
-3. PH뿯ẽI qua 7 m뿯ẽc pre-commit checklist (d뿯ƽ뿯ẽi đ뿯½y)
+3. PHẢI qua 7 mốc pre-commit checklist (dưới đây)
 4. git add .
-5. git commit -m "<type>: <desc>"  # body c뿯½ Test: section
-6. git log --oneline -1 # verify commit đ뿯ƽ뿯ẽc t뿯ẽo
-7. B뿯½O C뿯½O user (k뿯½m hash + summary)
+5. git commit -m "<type>: <desc>"  # body có Test: section
+6. git log --oneline -1 # verify commit được tạo
+7. BÁO CÁO user (kèm hash + summary)
 ```
 
-### Khi KH뿯½NG auto-commit (B뿯ẽT BU뿯ẽC d뿯ẽng, h뿯ẽi user)
+### Khi KHÔNG auto-commit (BẮT BUỘC dừng, hỏi user)
 
-| T뿯½nh hu뿯ẽng | H뿯½nh đ뿯ẽng |
+| Tình huống | Hành động |
 |---|---|
-| Task ch뿯ƽa pass test/lint | D뿯ẽng, s뿯ẽa code, **CH뿯ƽA commit** |
-| C뿯½ file "l뿯ẽ" l뿯ẽn v뿯½o (kh뿯½ng li뿯½n quan task) | H뿯ẽi user b뿯ẽng `AskQuestion` |
-| C뿯½ conflict v뿯ẽi worktree kh뿯½c | D뿯ẽng, xem `git-worktree.mdc` |
-| User n뿯½i "đ뿯ẽi" / "g뿯ẽp" / "ch뿯ƽa commit" | D뿯ẽng, ch뿯ẽ l뿯ẽnh |
-| Sensitive change (auth/payment/deploy) | H뿯ẽi user tr뿯ƽ뿯ẽc khi commit |
-| Nhi뿯ẽu concern l뿯ẽn l뿯ẽn (refactor l뿯ẽn) | Agent t뿯ẽ t뿯½ch commit theo concern — KH뿯½NG c뿯ẽn h뿯ẽi |
-| Pre-commit checklist c뿯½ m뿯ẽc FAIL | D뿯ẽng, s뿯ẽa, **CH뿯ƽA commit** |
+| Task chưa pass test/lint | Dừng, sửa code, **CHƯA commit** |
+| Có file "lạ" lẫn vào (không liên quan task) | Hỏi user bằng `AskQuestion` |
+| Có conflict với worktree khác | Dừng, xem `git-worktree.mdc` |
+| User nói "đợi" / "gộp" / "chưa commit" | Dừng, chờ lệnh |
+| Sensitive change (auth/payment/deploy) | Hỏi user trước khi commit |
+| Nhiều concern lẫn lộn (refactor lớn) | Agent tự tách commit theo concern — KHÔNG cần hỏi |
+| Pre-commit checklist có mốc FAIL | Dừng, sửa, **CHƯA commit** |
 
-### Nhi뿯ẽu concern trong 1 subplan — t뿯ẽ t뿯½ch commit
+### Nhiều concern trong 1 subplan — tự tách commit
 
-N뿯ẽu 1 subplan c뿯½ nhi뿯ẽu concern (vd: th뿯½m component + s뿯ẽa typo + refactor), agent **t뿯ẽ t뿯½ch** th뿯½nh nhi뿯ẽu commit theo concern:
+Nếu 1 subplan có nhiều concern (vd: thêm component + sửa typo + refactor), agent **tự tách** thành nhiều commit theo concern:
 
 ```text
 Commit 1: feat(common): add ErrorState component  (concern: feat)
@@ -138,64 +135,65 @@ Commit 2: fix(common): correct typo in EmptyState  (concern: fix)
 Commit 3: refactor(common): extract StatusBadge variant  (concern: refactor)
 ```
 
-M뿯ẽi commit ph뿯ẽi t뿯ẽ pass 7 m뿯ẽc pre-commit checklist. KH뿯½NG g뿯ẽp concern kh뿯½c nhau v뿯½o 1 commit.
+Mỗi commit phải tự pass 7 mốc pre-commit checklist. KHÔNG gộp concern khác nhau vào 1 commit.
 
-### L뿯ẽnh shell ki뿯ẽm tra sau commit
+### Lệnh shell kiểm tra sau commit
 
 ```bash
-# Sau khi commit, LU뿯½N ch뿯ẽy:
-git log --oneline -5        # xem commit v뿯ẽa t뿯ẽo
-git show --stat HEAD        # xem file n뿯½o đ뿯½ commit
-git status                  # đ뿯ẽm b뿯ẽo working tree s뿯ẽch
+# Sau khi commit, LUÔN chạy:
+git log --oneline -5        # xem commit vừa tạo
+git show --stat HEAD        # xem file nào đã commit
+git status                  # đảm bảo working tree sạch
 ```
 
-## Pre-commit checklist (B뿯ẽT BU뿯ẽC — hard gate)
+## Pre-commit checklist (BẮT BUỘC — hard gate)
 
-Tr뿯ƽ뿯ẽc khi ch뿯ẽy `git commit`, agent **PH뿯ẽI** verify **T뿯ẽNG M뿯ẽC** d뿯ƽ뿯ẽi đ뿯½y. **B뿯ẽt k뿯ẽ m뿯ẽc n뿯½o FAIL 뿯↽ KH뿯½NG Đ뿯ƽ뿯ẽC commit**, d뿯½ đang trong worktree, commit amend, hay rebase.
+Trước khi chạy `git commit`, agent **PHẢI** verify **TỪNG MỐC** dưới đây. **Bất kỳ mốc nào FAIL → KHÔNG ĐƯỢC commit**, dù đang trong worktree, commit amend, hay merge.
 
 ```text
-뿯▽ 1. AUDIT FILE (B뿯ƽ뿯ẽc 5.0 workflow-process.mdc)
-   - Li뿯ẽt k뿯½ t뿯ẽng file s뿯ẽ commit, ph뿯½n lo뿯ẽi LOGIC vs COPY THU뿯ẽN
-   - File LOGIC 뿯↽ c뿯½ file .test.ts(x) k뿯½m (file test m뿯ẽi ho뿯ẽc đ뿯½ c뿯½ test cover)
-   - File COPY THU뿯ẽN 뿯↽ ghi trong commit body l뿯½ do kh뿯½ng c뿯ẽn test
+✓ 1. AUDIT FILE (Bước 5.0 workflow-process.mdc)
+   - Liệt kê từng file sẽ commit, phân loại LOGIC vs COPY THUẦN
+   - File LOGIC → có file .test.ts(x) kèm (file test mới hoặc đã có test cover)
+   - File COPY THUẦN → ghi trong commit body lý do không cần test
 
-뿯▽ 2. TEST Đ뿯ẽ Đ뿯½ VI뿯ẽT TR뿯ƽ뿯ẽC (workflow-process.mdc B뿯ƽ뿯ẽc 5.1 + testing-required.mdc)
-   - M뿯ẽi bugfix đ뿯ẽu c뿯½ reproduction test vi뿯ẽt TR뿯ƽ뿯ẽC khi s뿯ẽa code
-   - M뿯ẽi file logic đ뿯ẽu c뿯½ test FAIL tr뿯½n code cũ
-   - Kh뿯½ng c뿯½ file n뿯½o "post-cleanup" / "pre-existing" đ뿯ƽ뿯ẽc t뿯ẽ 뿯½ mi뿯ẽn
+✓ 2. TEST ĐÃ ĐƯỢC VIẾT TRƯỚC (workflow-process.mdc Bước 5.1 + testing-required.mdc)
+   - Mỗi bugfix đều có reproduction test viết TRƯỚC khi sửa code
+   - Mỗi file logic đều có test FAIL trên code cũ
+   - Không có file nào "post-cleanup" / "pre-existing" được tự ý miễn
 
-뿯▽ 3. Đ뿯½ CH뿯ẽY TEST (testing-required.mdc)
-   - npm run test (ho뿯ẽc npx vitest run) 뿯↽ t뿯ẽt c뿯ẽ PASS
-   - Kh뿯½ng c뿯½ FAIL, kh뿯½ng c뿯½ .skip / .todo / xo뿯½ assertion
-   - Test m뿯ẽi vi뿯ẽt 뿯↽ FAIL tr뿯½n code cũ, PASS sau khi s뿯ẽa
+✓ 3. ĐÃ CHẠY TEST (testing-required.mdc)
+   - npm run test (hoặc npx vitest run) → tất cả PASS
+   - Không có FAIL, không có .skip / .todo / xoá assertion
+   - Test mới viết → FAIL trên code cũ, PASS sau khi sửa
 
-뿯▽ 4. T뿯ẽNG FILE LOGIC C뿯½ .test.ts(x) (testing-required.mdc)
-   - File logic thay đ뿯ẽi 뿯↽ đ뿯½ c뿯½ file test k뿯½m (m뿯ẽi t뿯ẽo ho뿯ẽc đ뿯½ c뿯½)
-   - File copy thu뿯ẽn 뿯↽ ghi r뿯½ trong commit body
+✓ 4. TỪNG FILE LOGIC CÓ .test.ts(x) (testing-required.mdc)
+   - File logic thay đổi → đã có file test kèm (mới tạo hoặc đã có)
+   - File copy thuần → ghi rõ trong commit body
 
-뿯▽ 5. npm run lint PASS
-   - Kh뿯½ng c뿯½ warning m뿯ẽi (warning cũ OK n뿯ẽu kh뿯½ng ph뿯ẽi do thay đ뿯ẽi c뿯ẽa m뿯½nh)
+✓ 5. npm run lint PASS
+   - Không có warning mới (warning cũ OK nếu không phải do thay đổi của mình)
 
-뿯▽ 6. COMMIT MESSAGE
-   - Ti뿯ẽng Anh + Conventional Commit format
-   - Body LI뿯ẽT K뿯½ file test m뿯ẽi/s뿯ẽa (vd: "Test: src/lib/decimal.test.ts (added)")
-   - N뿯ẽu c뿯½ file copy thu뿯ẽn 뿯↽ ghi l뿯½ do trong body
+✓ 6. COMMIT MESSAGE
+   - Tiếng Anh + Conventional Commit format
+   - Body LIỆT KÊ file test mới/sửa (vd: "Test: src/lib/decimal.test.ts (added)")
+   - Nếu có file copy thuần → ghi lý do trong body
 
-뿯▽ 7. COMMIT CH뿯ẽ CH뿯ẽA FILE Đ뿯½ THAY Đ뿯ẽI TRONG TASK
-   - git status review: kh뿯½ng c뿯½ file "l뿯ẽ" kh뿯½ng li뿯½n quan
-   - Kh뿯½ng c뿯½ file t뿯ẽ worktree kh뿯½c l뿯ẽn v뿯½o
+✓ 7. COMMIT CHỈ CHỨA FILE ĐÃ THAY ĐỔI TRONG TASK
+   - git status review: không có file "lạ" không liên quan
+   - Không có file từ worktree khác lẫn vào
 ```
 
-**Quy t뿯ẽc c뿯ẽng** (B뿯ẽT K뿯ẽ vi ph뿯ẽm n뿯½o 뿯↽ revert commit + l뿯½m l뿯ẽi đ뿯½ng quy tr뿯½nh):
-- Kh뿯½ng c뿯½ test đ뿯ẽ tr뿯ƽ뿯ẽc = kh뿯½ng đ뿯ƽ뿯ẽc commit.
-- C뿯½ test FAIL 뿯↽ fix code tr뿯ƽ뿯ẽc, KH뿯½NG commit code l뿯ẽi.
-- Test b뿯ẽ `.skip` / `.todo` / xo뿯½ assertion đ뿯ẽ pass = KH뿯½NG h뿯ẽp l뿯ẽ.
-- Bugfix m뿯½ kh뿯½ng c뿯½ reproduction test tr뿯ƽ뿯ẽc = KH뿯½NG h뿯ẽp l뿯ẽ.
-- Commit kh뿯½ng li뿯ẽt k뿯½ file test k뿯½m = KH뿯½NG h뿯ẽp l뿯ẽ (vi ph뿯ẽm m뿯ẽc 6).
-- T뿯ẽ 뿯½ ph뿯½n lo뿯ẽi to뿯½n b뿯ẽ commit l뿯½ "chore/cleanup" đ뿯ẽ skip audit = KH뿯½NG h뿯ẽp l뿯ẽ.
-- Đ뿯½ vi ph뿯ẽm 1 l뿯ẽn 뿯↽ KH뿯½NG c뿯½ "l뿯ẽn sau s뿯ẽ s뿯ẽa". PH뿯ẽI revert ngay + l뿯½m l뿯ẽi t뿯ẽ đ뿯ẽu v뿯ẽi test đ뿯ẽ.
+**Quy tắc cứng** (BẤT KỲ vi phạm nào → revert commit + làm lại đúng quy trình):
 
-## Commit message (Conventional Commit, ti뿯ẽng Anh)
+- Không có test đã viết trước = không được commit.
+- Có test FAIL → fix code trước, KHÔNG commit code lỗi.
+- Test bị `.skip` / `.todo` / xoá assertion để pass = KHÔNG hợp lệ.
+- Bugfix mà không có reproduction test trước = KHÔNG hợp lệ.
+- Commit không liệt kê file test kèm = KHÔNG hợp lệ (vi phạm mốc 6).
+- Tự ý phân loại toàn bộ commit là "chore/cleanup" để skip audit = KHÔNG hợp lệ.
+- Đã vi phạm 1 lần → KHÔNG có "lần sau sẽ sửa". PHẢI revert ngay + làm lại từ đầu với test đỏ.
+
+## Commit message (Conventional Commit, tiếng Anh)
 
 ```text
 feat: implement flash sale reservation flow
@@ -206,7 +204,7 @@ docs: sync flash sale endpoint contract
 hotfix: patch payment callback signature mismatch
 ```
 
-**Commit message body** (B뿯ẽT BU뿯ẽC cho commit c뿯½ s뿯ẽa code logic):
+**Commit message body** (BẮT BUỘC cho commit có sửa code logic):
 
 ```text
 feat: implement cart add item
@@ -223,47 +221,96 @@ Files copy only (no test required):
 ```
 
 - 1 commit = 1 concern.
-- Reference issue/task ID n뿯ẽu c뿯½ (`feat: implement cart (#12)`).
-- D뿯½ng `git add .` — KH뿯½NG `git add <file>` th뿯ẽ c뿯½ng.
-- Commit CH뿯ẽ file đ뿯½ th뿯ẽc s뿯ẽ thay đ뿯ẽi trong task.
+- Reference issue/task ID nếu có (`feat: implement cart (#12)`).
+- Dùng `git add .` — KHÔNG `git add <file>` thủ công.
+- Commit CHỈ file đã thực sự thay đổi trong task.
 
-## Push policy (xin ph뿯½p + rebase dev tr뿯ƽ뿯ẽc khi push)
 
-**Tr뿯ƽ뿯ẽc khi push**, agent **B뿯ẽT BU뿯ẽC** merge code m뿯ẽi nh뿯ẽt t뿯ẽ dev:
+
+## Commit language (ENFORCED from 2026-10-09)
+
+**Rule**: All commit messages (subject, body, footer, breaking change notes) **MUST be written in English**. Vietnamese is allowed only in:
+
+- Source code comments (e.g. `// TODO: xử lý edge case`)
+- UI strings / copy shown to end users
+- Local-only content: branch names (`feat/them-trang-chu`), local draft notes
+
+### Why
+
+- Git history is global / public on GitHub — readability for all contributors
+- `git log --grep`, code review, changelog generation are all keyword-based
+- Conventional Commits spec (https://www.conventionalcommits.org/) is English-first by convention
+- Onboarding new contributors (en/vi) easier with one consistent language
+
+### Examples (good vs bad)
+
+```text
+# GOOD — English
+feat(cart): implement add-to-cart with optimistic update
+fix(auth): prevent infinite 401 refresh loop
+docs(rules): enforce English-only commit messages
+refactor(api): extract decimal.js wrapper for VND
+
+# BAD — Vietnamese, will be rejected
+feat(cart): thêm sản phẩm vào giỏ với optimistic update
+fix(auth): sửa lỗi vòng lặp 401 vô tận
+docs(rules): quy tắc commit phải viết tiếng Anh
+```
+
+### Pre-commit self-check (extend mốc 6 in Pre-commit checklist)
+
+Before `git commit`, agent MUST verify:
+
+- [ ] Subject line is **English** (no Vietnamese diacritics: ă, â, ể, ữ, ơ, ư, đ, etc.)
+- [ ] Body / footer is **English**
+- [ ] If a test file is mentioned in body → file path is correct and test exists
+- [ ] Type prefix matches one of: `feat | fix | docs | refactor | chore | test | perf | build | ci`
+- [ ] Subject length ≤ 72 chars; body wrapped at 72 chars
+
+### When to relax
+
+- User explicitly asks for Vietnamese commit (e.g. "commit bằng tiếng Việt cho PR này")
+- Hotfix on private branch where the user is the only reviewer
+- Never relax on: `main`, `dev`, or any shared branch
+
+## Push policy (xin phép + merge dev trước khi push)
+
+**Trước khi push**, agent **BẮT BUỘC** merge code mới nhất từ dev:
 
 ```bash
-# B뿯ƽ뿯ẽc 1: Fetch dev m뿯ẽi nh뿯ẽt
+# Bước 1: Fetch dev mới nhất
 git fetch origin dev
 
-# B뿯ƽ뿯ẽc 2: Rebase feature branch l뿯½n dev (linear history, d뿯ẽ review)
-git rebase origin/dev
+# Bước 2: Merge feature branch với dev (giữ lịch sử commit)
+git merge origin/dev
 
-# B뿯ƽ뿯ẽc 3: N뿯ẽu conflict 뿯↽ D뿯ẽNG, h뿯ẽi user (xem Conflict resolution b뿯½n d뿯ƽ뿯ẽi)
-# B뿯ƽ뿯ẽc 4: N뿯ẽu OK 뿯↽ b뿯½o c뿯½o user (remote URL, branch, s뿯ẽ commit, conflict?)
+# Bước 3: Nếu conflict → DỪNG, hỏi user (xem Conflict resolution bên dưới)
+# Bước 4: Nếu OK → báo cáo user (remote URL, branch, số commit, conflict?)
 
-# B뿯ƽ뿯ẽc 5: CH뿯ẽ user duy뿯ẽt push 뿯↽ m뿯ẽi ch뿯ẽy:
+# Bước 5: CHỜ user duyệt push → mới chạy:
 git push -u origin <branch>
 ```
 
-**Quy t뿯ẽc c뿯ẽng**:
-- Agent **KH뿯½NG t뿯ẽ 뿯½** `git push` — ph뿯ẽi xin ph뿯½p user tr뿯ƽ뿯ẽc khi push.
-- M뿯ẽi l뿯ẽn push 뿯↽ b뿯½o c뿯½o tr뿯ƽ뿯ẽc (remote URL, branch, s뿯ẽ commit) 뿯↽ ch뿯ẽ user duy뿯ẽt 뿯↽ m뿯ẽi push.
-- Sau push 뿯↽ b뿯½o c뿯½o l뿯ẽi (k뿯ẽt qu뿯ẽ push, hash, URL tr뿯½n remote).
-- Tr뿯ƽ뿯ẽng h뿯ẽp KH뿯½NG push: dry-run task, sensitive change (auth/payment/deploy), branch m뿯½ user ch뿯ƽa đ뿯ẽnh nghĩa.
-- N뿯ẽu user ch뿯ƽa setup remote (`git remote -v` tr뿯ẽng) 뿯↽ agent ph뿯ẽi h뿯ẽi URL, kh뿯½ng t뿯ẽ 뿯½ t뿯ẽo remote.
-- **KH뿯½NG BAO GI뿯ẽ force push** l뿯½n `dev` ho뿯ẽc `main` — ch뿯ẽ force push l뿯½n feature branch c뿯ẽa m뿯½nh (sau rebase).
+**Quy tắc cứng**:
+
+- Agent **KHÔNG tự ý** `git push` — phải xin phép user trước khi push.
+- Mỗi lần push → báo cáo trước (remote URL, branch, số commit) → chờ user duyệt → mới push.
+- Sau push → báo cáo lại (kết quả push, hash, URL trên remote).
+- Trường hợp KHÔNG push: dry-run task, sensitive change (auth/payment/deploy), branch mà user chưa định nghĩa.
+- Nếu user chưa setup remote (`git remote -v` trống) → agent phải hỏi URL, không tự ý tạo remote.
+- **KHÔNG BAO GIỜ force push** lên `dev` hoặc `main` — chỉ force push lên feature branch của mình (nếu cần).
 
 ## Conflict resolution
 
-Khi `git pull`, `git merge`, `git rebase` x뿯ẽy ra conflict:
+Khi `git pull`, `git merge`, hoặc `git rebase` (nếu có) xảy ra conflict:
 
-1. `git status` li뿯ẽt k뿯½ file conflict.
-2. Agent **KH뿯½NG t뿯ẽ 뿯½** resolve b뿯ẽng `git checkout --theirs/--ours` / `git add` / s뿯ẽa n뿯ẽi dung.
-3. Agent **đ뿯ẽc t뿯ẽng file**, t뿯½m t뿯ẽt cho user: d뿯½ng conflict, kh뿯½c bi뿯ẽt local vs remote, h뿯ẽ qu뿯ẽ.
-4. D뿯½ng `AskQuestion` đ뿯ẽ user ch뿯ẽn: gi뿯ẽ ours / gi뿯ẽ theirs / k뿯ẽt h뿯ẽp th뿯ẽ c뿯½ng.
-5. Sau user duy뿯ẽt 뿯↽ m뿯ẽi s뿯ẽa + `git add .` + commit.
+1. `git status` liệt kê file conflict.
+2. Agent **KHÔNG tự ý** resolve bằng `git checkout --theirs/--ours` / `git add` / sửa nội dung.
+3. Agent **đọc từng file**, tóm tắt cho user: dòng conflict, khác biệt local vs remote, hệ quả.
+4. Dùng `AskQuestion` để user chọn: giữ ours / giữ theirs / kết hợp thủ công.
+5. Sau user duyệt → mới sửa + `git add .` + commit.
 
-## Kh뿯½ng commit
+## Không commit
 
 - `.env`, `.env.local`, `.env.production`, `node_modules/`, `.next/`, `out/`, `build/`.
 - `*.tsbuildinfo`, `next-env.d.ts`.

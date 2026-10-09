@@ -1,5 +1,5 @@
 ---
-description: Flash Sale payment: 5-min timer, ZaloPay QR, Idempotency-Key. Apply checkout/flash-sale.
+description: Quy ước đặc thù cho flash-sale + payment flow — reservation, idempotency, payment callback. Apply cho flash-sale components, checkout, Countdown, flash-sale API.
 globs:
   - src/components/flash-sale/**
   - src/components/common/Countdown.tsx
@@ -7,9 +7,6 @@ globs:
   - src/features/flash-sale/**
   - src/features/checkout/**
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

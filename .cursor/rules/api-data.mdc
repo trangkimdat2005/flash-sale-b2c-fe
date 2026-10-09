@@ -1,5 +1,5 @@
 ---
-description: API data layer: apiFetch, hooks, types, mock. Apply src/lib/api/**, src/features/**/api.ts.
+description: Quy ước về data layer — API client, TanStack Query hook, types, mock. Apply cho src/lib/api/**, src/features/**/api.ts, hooks.ts, types.ts, mock.ts.
 globs:
   - src/lib/api/**
   - src/lib/api-client.ts
@@ -8,9 +8,6 @@ globs:
   - src/features/**/mock.ts
   - src/features/**/types.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

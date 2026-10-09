@@ -1,5 +1,5 @@
 ---
-description: RHF + Zod validation patterns, error mapping, multi-step form.
+description: Quy ước form + validation với React Hook Form + Zod. Apply cho *Form.tsx, *Modal.tsx, src/lib/validators/**, src/features/**/schemas.ts.
 globs:
   - src/app/**/page.tsx
   - 'src/**/*Form.tsx'
@@ -7,9 +7,6 @@ globs:
   - src/lib/validators/**
   - src/features/**/schemas.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

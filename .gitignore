@@ -53,6 +53,7 @@ test-results/
 *.log
 
 # local scripts (debug/convert helpers)
+<<<<<<< HEAD
 # Note: scripts/verify-rules.ps1 and scripts/snapshot-keywords.ps1 are committed
 # (rule verification utilities). Other scripts/* remain local debug/convert helpers.
 /scripts/*
@@ -61,3 +62,9 @@ test-results/
 
 # Stitch MCP (key merged into .env - no separate file needed)
 
+=======
+/scripts/
+
+# Scratch
+.scratch/
+>>>>>>> dev

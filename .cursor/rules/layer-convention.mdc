@@ -1,5 +1,5 @@
 ---
-description: Source-to-target folder mapping for lib/stores/providers/hooks/components/app.
+description: Quy ước tổ chức layer src/ — lib, stores, providers, hooks, components, app, features. Áp dụng mọi file trong src/.
 globs:
   - src/lib/**
   - src/stores/**
@@ -9,9 +9,6 @@ globs:
   - src/app/**
   - src/features/**
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

@@ -1,5 +1,5 @@
 ---
-description: Flash Sale API endpoints, DTOs, request/response contracts. Apply flash-sale files.
+description: Backend Flash Sale B2C API contract (Swagger) — conventions, response shape, error codes, auth, WebSocket. Cross-ref docs/api-document.md (gốc 1.358 dòng) + docs/api-reference.md (module 791 dòng). Apply when working on API, hooks, stores, or features touching backend endpoints.
 globs:
   - src/lib/api/**
   - src/lib/validators/**
@@ -10,9 +10,6 @@ globs:
   - src/features/**/hooks.ts
   - src/features/**/types.ts
 alwaysApply: false
-owner: team
-last_reviewed: 2026-10-09
-version: 2
 ---
 > Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 

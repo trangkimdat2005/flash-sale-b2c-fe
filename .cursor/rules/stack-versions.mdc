@@ -1,16 +1,8 @@
 ---
-description: Mandatory tech stack and version pins for the Flash Sale B2C frontend.
-globs: []
+description: Stack & version bắt buộc cho Flash Sale B2C FE. Apply mọi task.
 alwaysApply: true
-owner: team
-depends_on:
-  - component-pattern.mdc
-  - design-system.mdc
-last_reviewed: 2026-10-09
-version: 2
 ---
-> Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
-> Source-of-truth: docs/CLAUDE.md section 1 - tech stack
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 · React 19.2 · TS 5.x · Tailwind 4.x
 
 # Stack & Versions
 
@@ -36,7 +28,6 @@ version: 2
 | Lint | ESLint + `eslint-config-next` | 9.x + 16.3.8 |
 
 **Rules:**
-
 - **KHÔNG bump version** khi không có lý do — đọc breaking changes trong `node_modules/next/dist/docs/` trước.
 - Path alias `@/*` → repo root (đã cấu hình).
 - Lockfile: `package-lock.json` — không xóa, không convert sang pnpm/yarn.
