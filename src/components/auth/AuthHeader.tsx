@@ -25,12 +25,12 @@ export function AuthHeader() {
             aria-label="Vibe Mart – Trang chủ"
           >
             <Image
-              src="/brand/logo/vibe-mart-logo-mark-light.png"
+              src="/brand/logo/vibe-mart-logo-lockup-light-transparent.png"
               alt="Vibe Mart"
-              width={32}
+              width={120}
               height={32}
               priority
-              className="h-8 w-8"
+              className="h-8 w-auto"
             />
           </Link>
           <span

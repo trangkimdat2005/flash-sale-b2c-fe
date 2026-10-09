@@ -34,12 +34,12 @@ export function AuthBrandPanel() {
       {/* Top: logo + wordmark */}
       <div className="relative z-10 flex items-center gap-2">
         <Image
-          src="/brand/logo/vibe-mart-logo-mark-on-square.png"
+          src="/brand/logo/vibe-mart-logo-lockup-light-transparent.png"
           alt="Vibe Mart"
-          width={36}
+          width={120}
           height={36}
           priority
-          className="h-9 w-9"
+          className="h-9 w-auto"
         />
       </div>
 
