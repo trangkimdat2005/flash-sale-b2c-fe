@@ -36,10 +36,12 @@ export function AuthBrandPanel() {
         <Image
           src="/brand/logo/vibe-mart-logo-lockup-light-transparent.png"
           alt="Vibe Mart"
-          width={120}
-          height={36}
+          width={0}
+          height={0}
+          sizes="120px"
           priority
           className="h-9 w-auto"
+          style={{ width: 'auto', height: '36px' }}
         />
       </div>
 

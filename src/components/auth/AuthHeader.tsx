@@ -27,10 +27,12 @@ export function AuthHeader() {
             <Image
               src="/brand/logo/vibe-mart-logo-lockup-light-transparent.png"
               alt="Vibe Mart"
-              width={120}
-              height={32}
+              width={0}
+              height={0}
+              sizes="120px"
               priority
               className="h-8 w-auto"
+              style={{ width: 'auto', height: '32px' }}
             />
           </Link>
           <span
