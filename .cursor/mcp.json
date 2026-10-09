@@ -1,9 +1,10 @@
 {
   "mcpServers": {
     "stitch": {
-      "url": "https://stitch.googleapis.com/mcp",
-      "headers": {
-        "X-Goog-Api-Key": "${env:STITCH_API_KEY}"
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "stitch-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "flash-sale-b2c"
       }
     }
   }
