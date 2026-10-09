@@ -97,4 +97,25 @@ describe('LoginForm', () => {
     const link = screen.getByRole('link', { name: /Đăng ký ngay/i });
     expect(link).toHaveAttribute('href', '/dang-ky');
   });
+
+  it('renders Remember me checkbox unchecked by default', () => {
+    withQueryClient(<LoginForm />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: /Ghi nhớ đăng nhập/i,
+    });
+    expect(checkbox).toBeInTheDocument();
+    expect(checkbox).not.toBeChecked();
+  });
+
+  it('toggles Remember me checkbox on click', async () => {
+    const user = userEvent.setup();
+    withQueryClient(<LoginForm />);
+    const checkbox = screen.getByRole('checkbox', {
+      name: /Ghi nhớ đăng nhập/i,
+    });
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    await user.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+  });
 });

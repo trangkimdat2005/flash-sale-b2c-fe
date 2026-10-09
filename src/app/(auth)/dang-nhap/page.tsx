@@ -9,22 +9,20 @@ import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
 /**
- * Trang đăng nhập – full layout Stitch (203897a8):
- * - Cột trái: AuthBrandPanel (ẩn trên mobile)
- * - Cột phải: LoginForm + SocialLoginButtons (giữa card)
+ * Trang đăng nhập – Stitch 203897a8.
+ * - Container: max-w-[1240px], mx-auto, px-4 md:px-8, py-4 md:py-8
+ * - 2-cột desktop (md:flex-row):
+ *   + Trái: AuthBrandPanel (md:w-[54%], lg:w-[55%])
+ *   + Phải: form card (md:w-[46%], lg:w-[45%]), max-w-[420px]
+ * - Mobile: stack dọc, brand ẩn
  *
- * Redirect rule (plan 2026-10-09 quyết định 8):
+ * Redirect rule:
  * - Đã login → về HOME (BUYER) hoặc SELLER_HOME/ADMIN_HOME
- * - Chưa login → render form
- *
- * Sau khi useLoginMutation thành công, store.setUser được gọi → re-render
- * → useEffect phát hiện user có role → redirect theo role.
  */
 export default function DangNhapPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
 
-  // Redirect nếu đã login (ví dụ user vào /dang-nhap khi đã có session)
   useEffect(() => {
     if (!user) return;
     if (user.role === ROLES.SELLER) {
@@ -37,14 +35,16 @@ export default function DangNhapPage() {
   }, [user, router]);
 
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] grid-cols-1 lg:grid-cols-2">
-      <AuthBrandPanel />
-      <div className="flex items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md space-y-6 rounded-xl border border-line bg-card p-8 shadow-sm">
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col items-stretch justify-center gap-6 px-4 py-4 md:flex-row md:gap-8 md:px-8 md:py-8 lg:gap-10 min-h-[640px]">
+      <div className="hidden w-full md:flex md:w-[54%] md:items-stretch lg:w-[55%]">
+        <AuthBrandPanel />
+      </div>
+      <section className="flex w-full items-center justify-center md:w-[46%] lg:w-[45%]">
+        <div className="flex w-full max-w-[420px] flex-col gap-0 rounded-xl bg-surface-container-lowest p-8 shadow-md sm:p-9">
           <LoginForm />
           <SocialLoginButtons />
         </div>
-      </div>
+      </section>
     </div>
   );
 }

@@ -67,3 +67,6 @@ test-results/
 
 # Scratch
 .scratch/
+
+# agent scratch downloads (Stitch/Figma reference assets, MCP tool dumps)
+agent-tools/

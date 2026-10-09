@@ -3,33 +3,45 @@ import { useTranslations } from "next-intl";
 
 /**
  * AuthFooter – footer riêng cho trang xác thực.
- * Gọn: copyright + 3 link pháp lý.
+ * Stitch screen 203897a8: copyright + 3 link pháp lý ngăn bởi dấu "•".
+ * max-w-[1240px], nền surface-container-lowest.
  */
 export function AuthFooter() {
   const t = useTranslations("auth.chrome.footer");
   return (
     <footer
-      className="w-full border-t border-line bg-page py-6"
+      className="w-full bg-surface-container-lowest py-6 shadow-[0_-1px_6px_rgba(0,0,0,0.02)]"
       data-testid="auth-footer"
     >
-      <div className="mx-auto flex max-w-[1280px] flex-col items-center justify-between gap-3 px-4 text-sm text-ink-2 sm:flex-row">
-        <p>{t("copyright")}</p>
-        <nav className="flex items-center gap-4" aria-label="Footer">
+      <div className="mx-auto flex max-w-[1240px] flex-col items-center justify-between gap-2 px-4 text-sm sm:flex-row md:px-8">
+        <p className="text-on-surface-variant text-center sm:text-left">
+          {t("copyright")}
+        </p>
+        <nav
+          className="flex items-center gap-4 text-on-surface-variant"
+          aria-label="Footer"
+        >
           <Link
             href="/dieu-khoan"
-            className="hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded"
+            className="hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             {t("terms")}
           </Link>
+          <span className="text-outline-variant" aria-hidden>
+            •
+          </span>
           <Link
             href="/chinh-sach-bao-mat"
-            className="hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded"
+            className="hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             {t("privacy")}
           </Link>
+          <span className="text-outline-variant" aria-hidden>
+            •
+          </span>
           <Link
             href="/lien-he"
-            className="hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded"
+            className="hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             {t("contact")}
           </Link>
