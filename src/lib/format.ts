@@ -23,13 +23,14 @@ export function formatVND(value: string | number | Decimal): string {
   return `${grouped}${VND_SUFFIX}`;
 }
 
-/** Rút gọn số lớn cho dashboard / card. */
+/** Rút gọn số lớn cho dashboard / card. Locale vi: "1,2k", "12,3k", "1,28 tỷ₫" */
 export function formatShortNumber(value: string | number | Decimal): string {
   const n = Number(toDecimal(value).toString());
+  const fmt = (s: string) => s.replace(".", ",");
   if (n < 1_000) return n.toString();
-  if (n < 1_000_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}k`;
-  if (n < 1_000_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}k`;
-  return `${(n / 1_000_000_000).toFixed(2).replace(/\.?0+$/, "")} tỷ${VND_SUFFIX}`;
+  if (n < 1_000_000) return `${fmt((n / 1_000).toFixed(1).replace(/\.0$/, ""))}k`;
+  if (n < 1_000_000_000) return `${fmt((n / 1_000_000).toFixed(1).replace(/\.0$/, ""))}k`;
+  return `${fmt((n / 1_000_000_000).toFixed(2).replace(/\.?0+$/, ""))} tỷ${VND_SUFFIX}`;
 }
 
 /** "14:00 – 01/10/2026" */
