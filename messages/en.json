@@ -96,6 +96,7 @@
       "loginCta": "Sign in",
       "dividerEmail": "or sign up with email"
     },
+    "forgotPassword": { "title": "Forgot password", "subtitle": "Reset your password via email", "comingSoon": "This feature is under development. Please contact support.", "backToLogin": "Back to login" },
     "errors": {
       "identifierRequired": "Please enter your email or phone number",
       "identifierInvalid": "Invalid email or phone number",
