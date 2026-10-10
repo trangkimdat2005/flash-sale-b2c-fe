@@ -5,22 +5,22 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Về Vibe Mart",
     links: [
-      { label: "Giới thiệu", href: "/gioi-thieu" },
-      { label: "Liên hệ", href: "/lien-he" },
+      { label: "Giới thiệu", href: ROUTES.ABOUT },
+      { label: "Liên hệ", href: ROUTES.CONTACT },
     ],
   },
   {
     title: "Hỗ trợ",
     links: [
-      { label: "Trung tâm trợ giúp", href: "/ho-tro" },
+      { label: "Trung tâm trợ giúp", href: ROUTES.HELP_CENTER },
       { label: "Đăng ký bán hàng", href: ROUTES.SELLER_REGISTER },
     ],
   },
   {
     title: "Pháp lý",
     links: [
-      { label: "Điều khoản", href: "/dieu-khoan" },
-      { label: "Chính sách bảo mật", href: "/chinh-sach-bao-mat" },
+      { label: "Điều khoản", href: ROUTES.TERMS },
+      { label: "Chính sách bảo mật", href: ROUTES.PRIVACY },
     ],
   },
 ];
