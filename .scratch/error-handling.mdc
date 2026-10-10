@@ -1,235 +1,470 @@
----
-description: Quy ╞░ß╗¢c xß╗¡ l├╜ lß╗ùi ΓÇö ApiError class, toast vs throw vs return, console log, error boundary, 404/500/offline UI. ├üp dß╗Ñng cho mß╗ìi task.
-alwaysApply: true
----
-> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 ┬╖ React 19.2 ┬╖ TS 5.x ┬╖ Tailwind 4.x
-
-# Error Handling ΓÇö Chuß║⌐n Xß╗¡ L├╜ Lß╗ùi
-
-## 1. Ph├ón cß║Ñp lß╗ùi
-
-| Loß║íi lß╗ùi | V├¡ dß╗Ñ | C├ích xß╗¡ l├╜ |
-|---|---|---|
-| **Validation** | Form input sai, body API sai | `setError` (RHF), KH├öNG toast |
-| **Business logic** | Stock = 0, slot ─æ├ú kß║┐t th├║c | Disable button + hiß╗çn message inline |
-| **Auth** | 401 expired, refresh fail | Auto refresh, fallback logout (xem `auth-jwt.mdc`) |
-| **Network** | Offline, timeout, 5xx | Toast error, retry option |
-| **System** | 500, crash | Error Boundary + reload page |
-| **Not found** | 404, route kh├┤ng tß╗ôn tß║íi | Empty state page |
-
-## 2. ApiError class (`src/lib/api/errors.ts`)
-
-─É├ú ─æß╗ïnh ngh─⌐a ΓÇö xem `api-data.mdc` mß╗Ñc 3.
-
-```ts
-export class ApiError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public status: number,
-    public details?: unknown
-  ) { super(message); }
-}
-```
-
-- `code` tß╗½ backend (`AUTH_001`, `VALIDATION_ERROR`, ...).
-- Mapping code ΓåÆ user message ß╗ƒ `messages/<locale>.json` key `error.<CODE>` (xem `i18n.mdc` mß╗Ñc 5).
-
-## 3. Khi n├áo THROW vs RETURN vs TOAST
-
-### THROW (default cho API layer + hook layer)
-
-- `apiFetch` throw `ApiError` khi response kh├┤ng OK.
-- Pure API function trong `api-helpers.ts` kh├┤ng cß║ºn throw th├¬m (─æ├ú ─æ╞░ß╗úc `apiFetch` xß╗¡ l├╜).
-- Hook trong `api.ts` KH├öNG `try/catch` ΓÇö ─æß╗â error bubble l├¬n component.
-
-```ts
-// Γ£à apiFetch throw
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(...);
-  if (!res.ok) throw parseError(res);
-  return res.json();
-}
-```
-
-### CATCH (ß╗ƒ component hoß║╖c n╞íi cß║ºn user feedback)
-
-- Component xß╗¡ l├╜ error trong `mutation.onError` hoß║╖c `query.isError`.
-- KH├öNG `try/catch` trong hook (─æß╗â component tß╗▒ quyß║┐t).
-
-```tsx
-// Γ£à Component
-const addItem = useAddCartItem();
-addItem.mutate(data, {
-  onError: (err) => {
-    if (err instanceof ApiError) {
-      if (err.code === 'VALIDATION_ERROR') {
-        // map details ΓåÆ form errors (xem validation-forms.mdc)
-      } else {
-        toast.error(t(`error.${err.code}`));
-      }
-    } else {
-      toast.error(t('error.INTERNAL_ERROR'));
-    }
-  },
-});
-```
-
-### RETURN error (khi cß║ºn pattern matching)
-
-- Form c├│ thß╗â return error object thay v├¼ throw.
-- Custom hook c├│ thß╗â return `{ error, data }` khi cß║ºn explicit.
-
-### TOAST
-
-- Chß╗ë d├╣ng khi user cß║ºn feedback ngay (vd: "Thanh to├ín thß║Ñt bß║íi").
-- KH├öNG toast validation error (hiß╗ân thß╗ï inline trong form).
-
-## 4. Console log
-
-| Level | Khi n├áo | Format |
-|---|---|---|
-| `console.error` | Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc, bug | `console.error('[<module>.<func>]', err)` |
-| `console.warn` | Edge case ─æ├ú handle nh╞░ng cß║ºn biß║┐t | `console.warn('[<module>.<func>]', { state })` |
-| `console.log` | Debug tß║ím, KH├öNG commit | Xo├í tr╞░ß╗¢c khi commit |
-| `console.info` | Hiß║┐m, th├┤ng tin kh├┤ng quan trß╗ìng | ΓÇö |
-
-**KH├öNG log**:
-
-- Token (`access_token`, `refresh_token`).
-- Password, secret, API key.
-- PII (email, sß╗æ ─æiß╗çn thoß║íi, ─æß╗ïa chß╗ë) ΓÇö chß╗ë log khi cß║ºn thiß║┐t phß║úi debug.
-
-**Format chuß║⌐n**:
-
-```ts
-console.error('[cart.useAddItem]', err);
-console.error('[cart.useAddItem] Invalid input', { data, validationErr });
-```
-
-ΓåÆ Prefix `[<module>.<func>]` ─æß╗â dß╗à grep.
-
-## 5. Error Boundary
-
-### Global error (`src/app/global-error.tsx`)
-
-```tsx
-'use client';
-export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
-  return (
-    <html>
-      <body>
-        <h2>─É├ú c├│ lß╗ùi xß║úy ra</h2>
-        <button onClick={reset}>Thß╗¡ lß║íi</button>
-      </body>
-    </html>
-  );
-}
-```
-
-### Per-page error (`src/app/<route>/error.tsx`)
-
-```tsx
-'use client';
-import { useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
-  const t = useTranslations('error');
-  useEffect(() => {
-    console.error('[<route>.page]', error);
-  }, [error]);
-  return (
-    <div>
-      <h2>{t('pageError')}</h2>
-      <button onClick={reset}>{t('retry')}</button>
-    </div>
-  );
-}
-```
-
-ΓåÆ Error Boundary KH├öNG catch ─æ╞░ß╗úc async error + Server Component error trong Next 16 d├╣ng `error.tsx`.
-
-### Per-component error (t├╣y chß╗ìn, cho component quan trß╗ìng)
-
-```tsx
-import { ErrorBoundary } from 'react-error-boundary';
-
-<ErrorBoundary fallback={<ErrorFallback />} onError={(err) => logError(err)}>
-  <CriticalFeature />
-</ErrorBoundary>
-```
-
-ΓåÆ D├╣ng cho widget quan trß╗ìng (vd: countdown timer, payment QR) ΓÇö kh├┤ng crash cß║ú page.
-
-## 6. Page lß╗ùi ─æß║╖c th├╣
-
-| Trang | Khi n├áo | File |
-|---|---|---|
-| 404 | Route kh├┤ng match | `src/app/not-found.tsx` |
-| 500 | Server Component throw | `src/app/error.tsx` |
-| Global crash | Root layout throw | `src/app/global-error.tsx` |
-| Network offline | `navigator.onLine === false` | `src/components/common/OfflineBanner.tsx` |
-| Empty state | Query trß║ú vß╗ü rß╗ùng | Inline trong component |
-
-### Empty state pattern
-
-```tsx
-const { data, isLoading } = useCart();
-if (isLoading) return <Skeleton />;
-if (!data || data.items.length === 0) return <EmptyState icon="≡ƒ¢Æ" title={t('empty')} />;
-return <CartList items={data.items} />;
-```
-
-ΓåÆ KH├öNG trß║ú vß╗ü `null` ΓÇö lu├┤n c├│ fallback UI.
-
-## 7. Race condition handling
-
-| T├¼nh huß╗æng | C├ích xß╗¡ l├╜ |
-|---|---|
-| User click "Mua" 2 lß║ºn nhanh | Disable button ngay khi click, d├╣ng `Idempotency-Key` |
-| Backend confirm sold-out tr╞░ß╗¢c WS | Refetch tr╞░ß╗¢c khi mutate, check 409 |
-| Token expired trong l├║c fetch | `apiFetch` tß╗▒ refresh 1 lß║ºn (xem `auth-jwt.mdc`) |
-| Race giß╗»a mutation v├á refetch | TanStack Query tß╗▒ handle, nh╞░ng check `mutation.isPending` |
-
-## 8. Retry strategy
-
-| Loß║íi error | Retry? |
-|---|---|
-| Network error (timeout, offline) | Γ£à Retry 1 lß║ºn vß╗¢i exponential backoff |
-| 5xx server error | Γ£à Retry 1 lß║ºn |
-| 4xx client error | Γ¥î KH├öNG retry |
-| 401 (auth) | Refresh token ΓåÆ retry 1 lß║ºn |
-| 409 (conflict) | Γ¥î KH├öNG retry (state conflict) |
-| 429 (rate limit) | Retry sau `Retry-After` gi├óy |
-
-## 9. Loading state (KH├öNG phß║úi lß╗ùi nh╞░ng li├¬n quan)
-
-- `isLoading` ban ─æß║ºu ΓåÆ Skeleton.
-- `isFetching` (refetch) ΓåÆ KH├öNG skeleton (giß╗» UI c┼⌐, optional spinner nhß╗Å).
-- `isPending` (mutation) ΓåÆ Disable button + spinner tr├¬n button.
-
-## 10. Khi user gß║╖p lß╗ùi user-facing
-
-- C├│ message r├╡ r├áng bß║▒ng tiß║┐ng Viß╗çt.
-- C├│ action ─æß╗â user thß╗¡ lß║íi (n├║t "Thß╗¡ lß║íi", "Quay lß║íi trang chß╗º").
-- KH├öNG hiß╗çn stack trace cho user cuß╗æi.
-- Log ─æß║ºy ─æß╗º stack trace ß╗ƒ console (chß╗ë dev).
-
-## 11. Khi n├áo b├ío user (trong agent context)
-
-- Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc (bug thß║¡t).
-- Backend trß║ú field/code mß╗¢i kh├┤ng c├│ trong mapping.
-- Error k├⌐o d├ái > 5s (network chß║¡m).
-- Token kh├┤ng refresh ─æ╞░ß╗úc sau 2 lß║ºn.
-
-## 12. KH├öNG
-
-- KH├öNG swallow error (`catch {}` rß╗ùng).
-- KH├öNG `try/catch` ß╗ƒ hook layer.
-- KH├öNG toast validation error.
-- KH├öNG log token/password/PII ra console.
-- KH├öNG `console.error(err)` kh├┤ng c├│ prefix module.
-- KH├öNG trß║ú `null` thay v├¼ empty state UI.
-- KH├öNG retry 4xx error.
-- KH├öNG ─æß╗â user thß║Ñy raw error.message tß╗½ backend.
+---
+
+description: Quy ╞░ß╗¢c xß╗¡ l├╜ lß╗ùi ΓÇö ApiError class, toast vs throw vs return, console log, error boundary, 404/500/offline UI. ├üp dß╗Ñng cho mß╗ìi task.
+
+alwaysApply: true
+
+---
+
+> Last reviewed: 2026-10-07 | Stack: Next 16.3.8 ┬╖ React 19.2 ┬╖ TS 5.x ┬╖ Tailwind 4.x
+
+
+
+# Error Handling ΓÇö Chuß║⌐n Xß╗¡ L├╜ Lß╗ùi
+
+
+
+## 1. Ph├ón cß║Ñp lß╗ùi
+
+
+
+| Loß║íi lß╗ùi | V├¡ dß╗Ñ | C├ích xß╗¡ l├╜ |
+
+|---|---|---|
+
+| **Validation** | Form input sai, body API sai | `setError` (RHF), KH├öNG toast |
+
+| **Business logic** | Stock = 0, slot ─æ├ú kß║┐t th├║c | Disable button + hiß╗çn message inline |
+
+| **Auth** | 401 expired, refresh fail | Auto refresh, fallback logout (xem `auth-jwt.mdc`) |
+
+| **Network** | Offline, timeout, 5xx | Toast error, retry option |
+
+| **System** | 500, crash | Error Boundary + reload page |
+
+| **Not found** | 404, route kh├┤ng tß╗ôn tß║íi | Empty state page |
+
+
+
+## 2. ApiError class (`src/lib/api/errors.ts`)
+
+
+
+─É├ú ─æß╗ïnh ngh─⌐a ΓÇö xem `api-data.mdc` mß╗Ñc 3.
+
+
+
+```ts
+
+export class ApiError extends Error {
+
+  constructor(
+
+    public code: string,
+
+    message: string,
+
+    public status: number,
+
+    public details?: unknown
+
+  ) { super(message); }
+
+}
+
+```
+
+
+
+- `code` tß╗½ backend (`AUTH_001`, `VALIDATION_ERROR`, ...).
+
+- Mapping code ΓåÆ user message ß╗ƒ `messages/<locale>.json` key `error.<CODE>` (xem `i18n.mdc` mß╗Ñc 5).
+
+
+
+## 3. Khi n├áo THROW vs RETURN vs TOAST
+
+
+
+### THROW (default cho API layer + hook layer)
+
+
+
+- `apiFetch` throw `ApiError` khi response kh├┤ng OK.
+
+- Pure API function trong `api-helpers.ts` kh├┤ng cß║ºn throw th├¬m (─æ├ú ─æ╞░ß╗úc `apiFetch` xß╗¡ l├╜).
+
+- Hook trong `api.ts` KH├öNG `try/catch` ΓÇö ─æß╗â error bubble l├¬n component.
+
+
+
+```ts
+
+// Γ£à apiFetch throw
+
+export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+
+  const res = await fetch(...);
+
+  if (!res.ok) throw parseError(res);
+
+  return res.json();
+
+}
+
+```
+
+
+
+### CATCH (ß╗ƒ component hoß║╖c n╞íi cß║ºn user feedback)
+
+
+
+- Component xß╗¡ l├╜ error trong `mutation.onError` hoß║╖c `query.isError`.
+
+- KH├öNG `try/catch` trong hook (─æß╗â component tß╗▒ quyß║┐t).
+
+
+
+```tsx
+
+// Γ£à Component
+
+const addItem = useAddCartItem();
+
+addItem.mutate(data, {
+
+  onError: (err) => {
+
+    if (err instanceof ApiError) {
+
+      if (err.code === 'VALIDATION_ERROR') {
+
+        // map details ΓåÆ form errors (xem validation-forms.mdc)
+
+      } else {
+
+        toast.error(t(`error.${err.code}`));
+
+      }
+
+    } else {
+
+      toast.error(t('error.INTERNAL_ERROR'));
+
+    }
+
+  },
+
+});
+
+```
+
+
+
+### RETURN error (khi cß║ºn pattern matching)
+
+
+
+- Form c├│ thß╗â return error object thay v├¼ throw.
+
+- Custom hook c├│ thß╗â return `{ error, data }` khi cß║ºn explicit.
+
+
+
+### TOAST
+
+
+
+- Chß╗ë d├╣ng khi user cß║ºn feedback ngay (vd: "Thanh to├ín thß║Ñt bß║íi").
+
+- KH├öNG toast validation error (hiß╗ân thß╗ï inline trong form).
+
+
+
+## 4. Console log
+
+
+
+| Level | Khi n├áo | Format |
+
+|---|---|---|
+
+| `console.error` | Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc, bug | `console.error('[<module>.<func>]', err)` |
+
+| `console.warn` | Edge case ─æ├ú handle nh╞░ng cß║ºn biß║┐t | `console.warn('[<module>.<func>]', { state })` |
+
+| `console.log` | Debug tß║ím, KH├öNG commit | Xo├í tr╞░ß╗¢c khi commit |
+
+| `console.info` | Hiß║┐m, th├┤ng tin kh├┤ng quan trß╗ìng | ΓÇö |
+
+
+
+**KH├öNG log**:
+
+
+
+- Token (`access_token`, `refresh_token`).
+
+- Password, secret, API key.
+
+- PII (email, sß╗æ ─æiß╗çn thoß║íi, ─æß╗ïa chß╗ë) ΓÇö chß╗ë log khi cß║ºn thiß║┐t phß║úi debug.
+
+
+
+**Format chuß║⌐n**:
+
+
+
+```ts
+
+console.error('[cart.useAddItem]', err);
+
+console.error('[cart.useAddItem] Invalid input', { data, validationErr });
+
+```
+
+
+
+ΓåÆ Prefix `[<module>.<func>]` ─æß╗â dß╗à grep.
+
+
+
+## 5. Error Boundary
+
+
+
+### Global error (`src/app/global-error.tsx`)
+
+
+
+```tsx
+
+'use client';
+
+export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+
+  return (
+
+    <html>
+
+      <body>
+
+        <h2>─É├ú c├│ lß╗ùi xß║úy ra</h2>
+
+        <button onClick={reset}>Thß╗¡ lß║íi</button>
+
+      </body>
+
+    </html>
+
+  );
+
+}
+
+```
+
+
+
+### Per-page error (`src/app/<route>/error.tsx`)
+
+
+
+```tsx
+
+'use client';
+
+import { useEffect } from 'react';
+
+import { useTranslations } from 'next-intl';
+
+
+
+export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+
+  const t = useTranslations('error');
+
+  useEffect(() => {
+
+    console.error('[<route>.page]', error);
+
+  }, [error]);
+
+  return (
+
+    <div>
+
+      <h2>{t('pageError')}</h2>
+
+      <button onClick={reset}>{t('retry')}</button>
+
+    </div>
+
+  );
+
+}
+
+```
+
+
+
+ΓåÆ Error Boundary KH├öNG catch ─æ╞░ß╗úc async error + Server Component error trong Next 16 d├╣ng `error.tsx`.
+
+
+
+### Per-component error (t├╣y chß╗ìn, cho component quan trß╗ìng)
+
+
+
+```tsx
+
+import { ErrorBoundary } from 'react-error-boundary';
+
+
+
+<ErrorBoundary fallback={<ErrorFallback />} onError={(err) => logError(err)}>
+
+  <CriticalFeature />
+
+</ErrorBoundary>
+
+```
+
+
+
+ΓåÆ D├╣ng cho widget quan trß╗ìng (vd: countdown timer, payment QR) ΓÇö kh├┤ng crash cß║ú page.
+
+
+
+## 6. Page lß╗ùi ─æß║╖c th├╣
+
+
+
+| Trang | Khi n├áo | File |
+
+|---|---|---|
+
+| 404 | Route kh├┤ng match | `src/app/not-found.tsx` |
+
+| 500 | Server Component throw | `src/app/error.tsx` |
+
+| Global crash | Root layout throw | `src/app/global-error.tsx` |
+
+| Network offline | `navigator.onLine === false` | `src/components/common/OfflineBanner.tsx` |
+
+| Empty state | Query trß║ú vß╗ü rß╗ùng | Inline trong component |
+
+
+
+### Empty state pattern
+
+
+
+```tsx
+
+const { data, isLoading } = useCart();
+
+if (isLoading) return <Skeleton />;
+
+if (!data || data.items.length === 0) return <EmptyState icon="≡ƒ¢Æ" title={t('empty')} />;
+
+return <CartList items={data.items} />;
+
+```
+
+
+
+ΓåÆ KH├öNG trß║ú vß╗ü `null` ΓÇö lu├┤n c├│ fallback UI.
+
+
+
+## 7. Race condition handling
+
+
+
+| T├¼nh huß╗æng | C├ích xß╗¡ l├╜ |
+
+|---|---|
+
+| User click "Mua" 2 lß║ºn nhanh | Disable button ngay khi click, d├╣ng `Idempotency-Key` |
+
+| Backend confirm sold-out tr╞░ß╗¢c WS | Refetch tr╞░ß╗¢c khi mutate, check 409 |
+
+| Token expired trong l├║c fetch | `apiFetch` tß╗▒ refresh 1 lß║ºn (xem `auth-jwt.mdc`) |
+
+| Race giß╗»a mutation v├á refetch | TanStack Query tß╗▒ handle, nh╞░ng check `mutation.isPending` |
+
+
+
+## 8. Retry strategy
+
+
+
+| Loß║íi error | Retry? |
+
+|---|---|
+
+| Network error (timeout, offline) | Γ£à Retry 1 lß║ºn vß╗¢i exponential backoff |
+
+| 5xx server error | Γ£à Retry 1 lß║ºn |
+
+| 4xx client error | Γ¥î KH├öNG retry |
+
+| 401 (auth) | Refresh token ΓåÆ retry 1 lß║ºn |
+
+| 409 (conflict) | Γ¥î KH├öNG retry (state conflict) |
+
+| 429 (rate limit) | Retry sau `Retry-After` gi├óy |
+
+
+
+## 9. Loading state (KH├öNG phß║úi lß╗ùi nh╞░ng li├¬n quan)
+
+
+
+- `isLoading` ban ─æß║ºu ΓåÆ Skeleton.
+
+- `isFetching` (refetch) ΓåÆ KH├öNG skeleton (giß╗» UI c┼⌐, optional spinner nhß╗Å).
+
+- `isPending` (mutation) ΓåÆ Disable button + spinner tr├¬n button.
+
+
+
+## 10. Khi user gß║╖p lß╗ùi user-facing
+
+
+
+- C├│ message r├╡ r├áng bß║▒ng tiß║┐ng Viß╗çt.
+
+- C├│ action ─æß╗â user thß╗¡ lß║íi (n├║t "Thß╗¡ lß║íi", "Quay lß║íi trang chß╗º").
+
+- KH├öNG hiß╗çn stack trace cho user cuß╗æi.
+
+- Log ─æß║ºy ─æß╗º stack trace ß╗ƒ console (chß╗ë dev).
+
+
+
+## 11. Khi n├áo b├ío user (trong agent context)
+
+
+
+- Lß╗ùi kh├┤ng xß╗¡ l├╜ ─æ╞░ß╗úc (bug thß║¡t).
+
+- Backend trß║ú field/code mß╗¢i kh├┤ng c├│ trong mapping.
+
+- Error k├⌐o d├ái > 5s (network chß║¡m).
+
+- Token kh├┤ng refresh ─æ╞░ß╗úc sau 2 lß║ºn.
+
+
+
+## 12. KH├öNG
+
+
+
+- KH├öNG swallow error (`catch {}` rß╗ùng).
+
+- KH├öNG `try/catch` ß╗ƒ hook layer.
+
+- KH├öNG toast validation error.
+
+- KH├öNG log token/password/PII ra console.
+
+- KH├öNG `console.error(err)` kh├┤ng c├│ prefix module.
+
+- KH├öNG trß║ú `null` thay v├¼ empty state UI.
+
+- KH├öNG retry 4xx error.
+
+- KH├öNG ─æß╗â user thß║Ñy raw error.message tß╗½ backend.
+
