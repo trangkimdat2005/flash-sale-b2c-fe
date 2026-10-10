@@ -28,6 +28,7 @@ Khi user **đồng thời** mở ≥ 2 đoạn chat cùng chạy trong repo, có
    ```bash
    git worktree add ../flash-sale-b2c-fe-chat-<n> -b feat/<branch-name>
    ```
+   **Lưu ý**: `<branch-name>` ở đây là placeholder tiếng Anh (vd: `feat/auth-jwt-step-1`). Xem `git-workflow.mdc` mục "Branch name language (ENFORCED from 2026-10-10)" để biết quy tắc chi tiết.
 3. **Trong worktree**: làm việc cô lập, không ảnh hưởng worktree khác.
 4. **Khi merge lại**:
    - **Không conflict → agent tự merge** vào branch chính.
