@@ -71,18 +71,57 @@
       "noAccount": "Chưa có tài khoản?",
       "signupCta": "Đăng ký ngay"
     },
+    "register": {
+      "title": "Tạo tài khoản",
+      "subtitle": "Chỉ mất 1 phút để bắt đầu nhận ưu đãi",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn An",
+      "emailLabel": "Email",
+      "emailPlaceholder": "nguyen.van.an@gmail.com",
+      "phoneLabel": "Số điện thoại",
+      "phonePrefix": "+84",
+      "phonePlaceholder": "912 345 678",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "passwordHint": "Tối thiểu 8 ký tự, có chữ và số",
+      "confirmPasswordLabel": "Nhập lại mật khẩu",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu vừa tạo",
+      "termsLabel": "Tôi đồng ý với",
+      "termsLink": "Điều khoản dịch vụ",
+      "andLabel": "và",
+      "privacyLink": "Chính sách bảo mật",
+      "submit": "Đăng ký",
+      "submitPending": "Đang đăng ký…",
+      "submitSuccess": "Đăng ký thành công",
+      "hasAccount": "Đã có tài khoản?",
+      "loginCta": "Đăng nhập",
+      "dividerEmail": "hoặc đăng ký bằng email"
+    },
     "errors": {
       "identifierRequired": "Vui lòng nhập email hoặc số điện thoại",
       "identifierInvalid": "Email hoặc số điện thoại không hợp lệ",
       "passwordRequired": "Vui lòng nhập mật khẩu",
       "passwordTooShort": "Mật khẩu tối thiểu 8 ký tự",
       "invalidCredentials": "Email hoặc mật khẩu chưa đúng",
-      "oauthNotImplemented": "Chức năng đang phát triển"
+      "oauthNotImplemented": "Chức năng đang phát triển",
+      "termsRequired": "Bạn cần đồng ý điều khoản để tiếp tục",
+      "registerFailed": "Đăng ký thất bại"
     },
     "social": {
       "google": "Đăng nhập bằng Google",
       "facebook": "Đăng nhập bằng Facebook",
-      "github": "Đăng nhập bằng GitHub"
+      "github": "Đăng nhập bằng GitHub",
+      "googleRegister": "Đăng ký bằng Google",
+      "facebookRegister": "Đăng ký bằng Facebook",
+      "githubRegister": "Đăng ký bằng GitHub"
+    },
+    "password": {
+      "strength": {
+        "weak": "Yếu",
+        "medium": "Khá mạnh",
+        "strong": "Mạnh",
+        "veryStrong": "Rất mạnh"
+      }
     },
     "brand": {
       "title": "Mua sắm dễ dàng, săn deal mỗi ngày",

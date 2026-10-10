@@ -12,9 +12,11 @@ import {
 import { ROUTES } from "@/lib/constants";
 import {
   loginRequest,
+  registerRequest,
   fetchMe,
   logoutRequest,
   type LoginRequest,
+  type RegisterRequest,
   type UserResponse,
   type AuthResponse,
 } from "./api";
@@ -55,6 +57,37 @@ export function useLoginMutation() {
     },
     onError: (err: Error) => {
       toast.error(err.message || "Đăng nhập thất bại");
+    },
+  });
+}
+
+/**
+ * useRegisterMutation – đăng ký tài khoản mới.
+ *
+ * Flow:
+ *  1. POST /api/v1/auth/register
+ *  2. Lưu token + user
+ *  3. Toast "Đăng ký thành công"
+ *  4. Component chủ động router.push('/xac-thuc-email?email=<...>')
+ *     (OTP verification page – TODO task riêng khi backend sẵn sàng)
+ *
+ * KHÔNG auto-redirect ở hook để RegisterForm quyết định UX flow.
+ */
+export function useRegisterMutation() {
+  const setUser = useAuthStore((s) => s.setUser);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: RegisterRequest) => registerRequest(input),
+    onSuccess: async (res: AuthResponse) => {
+      setAccessToken(res.accessToken);
+      setRefreshToken(res.refreshToken);
+      const user = toAuthUser(res.user, res.accessToken);
+      setUser(user);
+      toast.success("Đăng ký thành công");
+      qc.invalidateQueries({ queryKey: KEYS.me });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Đăng ký thất bại");
     },
   });
 }

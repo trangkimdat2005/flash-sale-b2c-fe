@@ -1,6 +1,12 @@
 import { apiFetch } from '@/lib/api';
 import { z } from 'zod';
-import { emailSchema, passwordSchema } from './schemas';
+import {
+  emailSchema,
+  fullNameSchema,
+  passwordRegisterSchema,
+  phoneRegisterSchema,
+  passwordSchema,
+} from './schemas';
 
 /**
  * Auth API – gọi backend Spring Boot thật.
@@ -10,6 +16,7 @@ import { emailSchema, passwordSchema } from './schemas';
  * - POST /api/v1/auth/login     payload: { usernameOrEmail, password }
  * - POST /api/v1/auth/logout    payload: { refreshToken }
  * - GET  /api/v1/users/me       trả về UserResponse (cần Bearer)
+ * - POST /api/v1/auth/register  payload: { fullName, email, phone, password }
  *
  * Mọi response thành công đều có dạng envelope
  * ApiResponse<T> = { success, code, message, data: T, timestamp }.
@@ -23,6 +30,13 @@ import { emailSchema, passwordSchema } from './schemas';
 const loginPayloadSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
+});
+
+const registerPayloadSchema = z.object({
+  fullName: fullNameSchema,
+  email: emailSchema,
+  phone: phoneRegisterSchema,
+  password: passwordRegisterSchema,
 });
 
 /** UserResponse – từ backend (OpenAPI UserResponse schema). */
@@ -54,6 +68,15 @@ export interface LoginRequest {
   password: string;
 }
 
+/** FE form input – đăng ký (đã bỏ confirmPassword + agreedTerms). */
+export interface RegisterRequest {
+  fullName: string;
+  email: string;
+  /** Số điện thoại đã bỏ prefix +84, 9 chữ số VN. */
+  phone: string;
+  password: string;
+}
+
 export async function loginRequest(
   payload: LoginRequest
 ): Promise<AuthResponse> {
@@ -62,6 +85,27 @@ export async function loginRequest(
     method: 'POST',
     json: {
       usernameOrEmail: parsed.email,
+      password: parsed.password,
+    },
+    withAuth: false,
+  });
+}
+
+/**
+ * registerRequest – gọi POST /api/v1/auth/register.
+ * Lưu ý: chỉ gửi 4 field (fullName, email, phone, password) – KHÔNG gửi
+ * confirmPassword hay agreedTerms (client-side only).
+ */
+export async function registerRequest(
+  payload: RegisterRequest
+): Promise<AuthResponse> {
+  const parsed = registerPayloadSchema.parse(payload);
+  return apiFetch<AuthResponse>('/api/v1/auth/register', {
+    method: 'POST',
+    json: {
+      fullName: parsed.fullName,
+      email: parsed.email,
+      phone: `+84${parsed.phone}`,
       password: parsed.password,
     },
     withAuth: false,
