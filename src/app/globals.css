@@ -1,48 +1,95 @@
 @import "tailwindcss";
 
 /* =========================================================
- * Vibe Mart – Design tokens "Ocean Mint" (theo docs/CLAUDE.md)
- * Tailwind v4: khai báo token qua @theme để dùng làm class
+ * Vibe Mart – Design tokens "Ocean Mint E-Commerce" (Material 3)
+ * Stitch design system từ project 15206106541998912100 (Vibe Mart).
+ * Tailwind v4: khai báo token qua @theme để dùng làm class.
  * CẤM viết mã màu hex trực tiếp trong component – chỉ dùng token.
  * Chỉ light mode (rule §3).
+ *
+ * Sync lần cuối: 2026-10-10 (theo Stitch design system).
+ * Semantic alias giữ tên quen thuộc (brand→primary, sale→tertiary…)
+ * để component có thể từ từ migrate.
  * ========================================================= */
 @theme {
-  /* Brand (Storefront + nút chính Admin) */
-  --color-brand: #0284c7;
-  --color-brand-hover: #0369a1;
-  --color-brand-soft: #e0f2fe;
+  /* === Primary (Storefront) – Material 3 primary scale === */
+  --color-primary: #006194;
+  --color-primary-hover: #004b73;
+  --color-primary-soft: #cce5ff;
+  --color-primary-container: #007bb9;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #fdfcff;
 
-  /* Seller Center */
+  /* Semantic alias (cho code cũ dùng brand) – sẽ bỏ khi migrate xong */
+  --color-brand: #006194;
+  --color-brand-hover: #004b73;
+  --color-brand-soft: #cce5ff;
+
+  /* === Secondary (Seller Center accent) – Material 3 === */
+  --color-secondary: #006c49;
+  --color-secondary-hover: #005236;
+  --color-secondary-soft: #6cf8bb;
+  --color-secondary-container: #6cf8bb;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #00714d;
+
+  /* Semantic alias (cho code cũ dùng seller) */
   --color-seller: #10b981;
   --color-seller-hover: #059669;
   --color-seller-soft: #d1fae5;
 
-  /* Admin Console */
+  /* === Tertiary (Flash Sale / urgency) – Material 3 === */
+  --color-tertiary: #ba0035;
+  --color-tertiary-hover: #920028;
+  --color-tertiary-soft: #ffdada;
+  --color-tertiary-container: #e21e49;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #fffbff;
+
+  /* Semantic alias (cho code cũ dùng sale) */
+  --color-sale: #ba0035;
+  --color-sale-soft: #ffdada;
+
+  /* === Neutral / Surface (Material 3) === */
+  --color-background: #faf8ff;
+  --color-surface: #faf8ff;
+  --color-surface-dim: #d2d9f4;
+  --color-surface-bright: #faf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f2f3ff;
+  --color-surface-container: #eaedff;
+  --color-surface-container-high: #e2e7ff;
+  --color-surface-container-highest: #dae2fd;
+  --color-surface-variant: #dae2fd;
+  --color-on-surface: #131b2e;
+  --color-on-surface-variant: #3f4850;
+  --color-outline: #707881;
+  --color-outline-variant: #bfc7d2;
+  --color-inverse-surface: #283044;
+  --color-inverse-on-surface: #eef0ff;
+  --color-surface-tint: #006398;
+
+  /* Semantic alias (cho code cũ dùng page/card/line/ink) */
+  --color-page: #faf8ff;
+  --color-card: #ffffff;
+  --color-line: #e2e8f0;
+  --color-ink: #0f172a;
+  --color-ink-2: #3f4850;
+  --color-ink-3: #707881;
+
+  /* === Status (giữ nguyên theo CLAUDE.md) === */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #ba1a1a;
+  --color-danger-soft: #ffdad6;
+  --color-info: #006194;
+  --color-star: #f59e0b;
+
+  /* === Admin Console === */
   --color-admin: #1e293b;
   --color-admin-2: #334155;
 
-  /* Flash Sale (CHỈ dùng cho sale, giá giảm, badge -%, cảnh báo) */
-  --color-sale: #e11d48;
-  --color-sale-soft: #ffe4e6;
-
-  /* Nền + viền */
-  --color-page: #f8fafc;
-  --color-card: #ffffff;
-  --color-line: #e2e8f0;
-
-  /* Chữ */
-  --color-ink: #0f172a;
-  --color-ink-2: #64748b;
-  --color-ink-3: #94a3b8;
-
-  /* Trạng thái */
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
-  --color-danger: #dc2626;
-  --color-info: #0284c7;
-  --color-star: #f59e0b;
-
-  /* Font (Be Vietnam Pro – load qua next/font, gán vào --font-be-vietnam) */
+  /* === Font (Be Vietnam Pro – load qua next/font, gán vào --font-be-vietnam) === */
   --font-sans: var(--font-be-vietnam), "Inter", system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
@@ -50,8 +97,8 @@
 /* Base */
 html,
 body {
-  background-color: var(--color-page);
-  color: var(--color-ink);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -59,7 +106,7 @@ body {
 
 /* Focus ring mặc định (rule §10) */
 :focus-visible {
-  outline: 2px solid var(--color-brand);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -74,4 +121,23 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* =========================================================
+ * Ẩn icon mắt native của trình duyệt trên input[type="password"]
+ * (Chrome / Edge mặc định render nút "Hiện mật khẩu" bên cạnh
+ *  icon custom của LoginForm — gây trùng lặp và rối mắt).
+ * Giữ nguyên icon custom (eye / eye-off) làm nguồn toggle duy nhất.
+ * ========================================================= */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+  display: none;
+}
+
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-strong-password-auto-fill-button,
+input[type='password']::-webkit-textfield-decoration-container {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none !important;
 }

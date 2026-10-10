@@ -1,68 +1,50 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useLoginMutation, loginSchema, type LoginInput } from "@/features/auth";
-import { ROUTES } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/stores/auth.store";
+import { ROUTES, ROLES } from "@/lib/constants";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { AuthBrandPanel } from "@/components/auth/AuthBrandPanel";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 
+/**
+ * Trang đăng nhập – Stitch 203897a8.
+ * - Container: max-w-[1240px], mx-auto, px-4 md:px-8, py-4 md:py-8
+ * - 2-cột desktop (md:flex-row):
+ *   + Trái: AuthBrandPanel (md:w-[54%], lg:w-[55%])
+ *   + Phải: form card (md:w-[46%], lg:w-[45%]), max-w-[420px]
+ * - Mobile: stack dọc, brand ẩn
+ *
+ * Redirect rule:
+ * - Đã login → về HOME (BUYER) hoặc SELLER_HOME/ADMIN_HOME
+ */
 export default function DangNhapPage() {
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
-  });
-  const login = useLoginMutation();
+  const user = useAuthStore((s) => s.user);
 
-  const onSubmit = (data: LoginInput) => {
-    login.mutate(data, {
-      onSuccess: () => {
-        // TODO: điều hướng theo role ở bước sau (sau khi store có role thật).
-        router.push(ROUTES.HOME);
-      },
-    });
-  };
+  useEffect(() => {
+    if (!user) return;
+    if (user.role === ROLES.SELLER) {
+      router.replace(ROUTES.SELLER_HOME);
+    } else if (user.role === ROLES.ADMIN) {
+      router.replace(ROUTES.ADMIN_HOME);
+    } else {
+      router.replace(ROUTES.HOME);
+    }
+  }, [user, router]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <div>
-        <h1 className="text-xl font-semibold text-ink">Đăng nhập</h1>
-        <p className="mt-1 text-sm text-ink-2">Chào mừng bạn quay lại Vibe Mart.</p>
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col items-stretch justify-center gap-6 px-4 py-4 md:flex-row md:gap-8 md:px-8 md:py-8 lg:gap-10 min-h-[640px]">
+      <div className="hidden w-full md:flex md:w-[54%] md:items-stretch lg:w-[55%]">
+        <AuthBrandPanel />
       </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" autoComplete="email" {...register("email")} />
-        {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="password">Mật khẩu</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-        />
-        {errors.password && (
-          <p className="text-xs text-danger">{errors.password.message}</p>
-        )}
-      </div>
-
-      <Button type="submit" className="w-full" disabled={login.isPending}>
-        {login.isPending ? "Đang đăng nhập…" : "Đăng nhập"}
-      </Button>
-
-      <p className="text-center text-xs text-ink-2">
-        Chưa có tài khoản?{" "}
-        <Link href="/dang-ky" className="text-brand hover:underline">
-          Đăng ký
-        </Link>
-      </p>
-    </form>
+      <section className="flex w-full items-center justify-center md:w-[46%] lg:w-[45%]">
+        <div className="flex w-full max-w-[420px] flex-col gap-0 rounded-xl bg-surface-container-lowest p-8 shadow-md sm:p-9">
+          <LoginForm />
+          <SocialLoginButtons />
+        </div>
+      </section>
+    </div>
   );
 }

@@ -48,6 +48,24 @@ export function clearAccessToken(): void {
   document.cookie = `${COOKIE_KEYS.ACCESS_TOKEN}=; Path=/; Max-Age=0`;
 }
 
+/** Refresh token – lưu sessionStorage (đóng khi tab đóng, an toàn hơn localStorage). */
+const REFRESH_TOKEN_KEY = "fs_refresh_token";
+
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export function setRefreshToken(token: string): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
+}
+
+export function clearRefreshToken(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
 export type ApiFetchOptions = Omit<RequestInit, "body"> & {
   /** Query params (sẽ stringify an toàn). */
   query?: Record<string, string | number | boolean | undefined | null>;
@@ -71,14 +89,23 @@ interface BackendEnvelope<T> {
 
 /** Lấy base URL – chuẩn hoá không có dấu "/" ở cuối. */
 function getBaseUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+  // Default cho backend local: http://localhost:8080 (KHÔNG có /api – version
+  // prefix sẽ được buildUrl() thêm vào). Production: set NEXT_PUBLIC_API_URL
+  // tới domain backend (vd: http://180.93.137.28).
+  const raw =
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
   return raw.replace(/\/$/, "");
 }
 
 function buildUrl(path: string, query?: ApiFetchOptions["query"]): string {
   const base = getBaseUrl();
+  // Backend Spring Boot uses /api/v1 prefix for all endpoints
+  // (rule flash-sale-b2c-api). Prepend it unless caller already included.
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  const url = new URL(`${base}${cleanPath}`);
+  const withVersion = cleanPath.startsWith("/api/") || cleanPath.startsWith("/api/v")
+    ? cleanPath
+    : `/api/v1${cleanPath}`;
+  const url = new URL(`${base}${withVersion}`);
   if (query) {
     for (const [k, v] of Object.entries(query)) {
       if (v === undefined || v === null) continue;

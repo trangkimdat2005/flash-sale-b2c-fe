@@ -55,6 +55,60 @@
       "ENDED": "Đã kết thúc"
     }
   },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng bạn quay lại",
+      "identifierLabel": "Email hoặc Số điện thoại",
+      "identifierPlaceholder": "example@gmail.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "rememberMe": "Ghi nhớ đăng nhập",
+      "forgotPassword": "Quên mật khẩu?",
+      "submit": "Đăng nhập",
+      "submitPending": "Đang đăng nhập…",
+      "dividerOr": "hoặc tiếp tục với",
+      "noAccount": "Chưa có tài khoản?",
+      "signupCta": "Đăng ký ngay"
+    },
+    "errors": {
+      "identifierRequired": "Vui lòng nhập email hoặc số điện thoại",
+      "identifierInvalid": "Email hoặc số điện thoại không hợp lệ",
+      "passwordRequired": "Vui lòng nhập mật khẩu",
+      "passwordTooShort": "Mật khẩu tối thiểu 8 ký tự",
+      "invalidCredentials": "Email hoặc mật khẩu chưa đúng",
+      "oauthNotImplemented": "Chức năng đang phát triển"
+    },
+    "social": {
+      "google": "Đăng nhập bằng Google",
+      "facebook": "Đăng nhập bằng Facebook",
+      "github": "Đăng nhập bằng GitHub"
+    },
+    "brand": {
+      "title": "Mua sắm dễ dàng, săn deal mỗi ngày",
+      "intro": "Nền tảng thương mại điện tử đồng hành cùng trải nghiệm mua sắm hiện đại, an tâm tuyệt đối với hàng triệu ưu đãi độc quyền.",
+      "benefit1Title": "Hàng nghìn gian hàng uy tín",
+      "benefit1Desc": "Sản phẩm chính hãng 100% được chứng thực",
+      "benefit2Title": "Flash Sale giá sốc mỗi khung giờ",
+      "benefit2Desc": "Voucher hoàn tiền đến 50% hàng tuần",
+      "benefit2Badge": "HOT DEAL",
+      "benefit3Title": "Thanh toán ZaloPay hoặc COD",
+      "benefit3Desc": "Bảo mật chuẩn PCI DSS và nhận hàng thanh toán linh hoạt"
+    },
+    "chrome": {
+      "header": {
+        "authLabel": "Xác thực tài khoản",
+        "navHelp": "Trợ giúp",
+        "navHome": "Về trang chủ"
+      },
+      "footer": {
+        "copyright": "© 2026 Vibe Mart. Tất cả các quyền được bảo lưu.",
+        "terms": "Điều khoản dịch vụ",
+        "privacy": "Chính sách bảo mật",
+        "contact": "Liên hệ"
+      }
+    }
+  },
   "error": {
     "UNAUTHORIZED": "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.",
     "FORBIDDEN": "Bạn không có quyền truy cập khu vực này.",

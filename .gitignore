@@ -33,6 +33,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.local.example
 
 # vercel
 .vercel
@@ -62,6 +63,10 @@ test-results/
 !/scripts/audit-workflow.mjs
 !/scripts/audit-workflow.test.mjs
 !/scripts/audit-workflow.ps1
+!/scripts/i18n-parity.test.mjs
 
 # Scratch
 .scratch/
+
+# agent scratch downloads (Stitch/Figma reference assets, MCP tool dumps)
+agent-tools/
