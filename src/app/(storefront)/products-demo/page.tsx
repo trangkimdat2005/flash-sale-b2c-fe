@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+"use client";
+
 import {
   ProductCard,
   ProductCardDefault,
@@ -25,12 +26,6 @@ import {
  * 14 biến thể ProductCard (Bộ Component Thẻ Sản Phẩm - Biến thể 1: Modern Clean).
  * KHÔNG push lên dev. Khi review xong sẽ xoá page này.
  */
-
-export const metadata: Metadata = {
-  title: "ProductCard Design Review – Vibe Mart",
-  description: "Review tất cả biến thể ProductCard Modern Clean",
-  robots: { index: false, follow: false },
-};
 
 const IMG_TSHIRT =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDcWC9TPjvI32EkSEPY2YGhpKgBjX5eIEsAkQI3mhKA9XwtVOUjE5m8Zrzo27WyOHDR3YnBWPeV7pbPo-uIt-r2ZXIJcMploNraemxhEChQwRK1bsyTaaJ9xtCQNyBOu7izvFnFdmPY-Aoivq1IcJbaFkWCRa5pOSgccC8kPZI2dwawFTxFV_Y0l4A1k1IsNs3m5j5bfMQB1mRrdRnMDz7eT-oka7RwclSYrzcrk2sG3-euAutkw7aBxQ";
