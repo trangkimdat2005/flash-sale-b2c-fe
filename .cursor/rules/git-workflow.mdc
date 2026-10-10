@@ -76,6 +76,8 @@ Sau đó báo cáo user branch mới và tiếp tục làm.
 | Maintenance | `chore/<short-desc>` | `chore/bump-react-19` |
 | Docs/Rule | `docs/<short-desc>` | `docs/update-commit-rule` |
 
+**`<short-desc>` MUST be in English** (lowercase, hyphen-separated, no diacritics). Xem mục "Branch name language (ENFORCED from 2026-10-10)" bên dưới để biết chi tiết.
+
 ### Vi phạm và xử lý
 
 | Vi phạm | Hành động |
@@ -83,6 +85,79 @@ Sau đó báo cáo user branch mới và tiếp tục làm.
 | Agent commit lên `dev` | Revert commit ngay + tạo feature branch mới + cherry-pick commit |
 | Agent push lên `dev` (không qua feature) | Cảnh báo user + revert remote commit |
 | Agent merge dev sai cách (mất commit) | Dừng, khôi phục từ reflog trước khi tiếp tục |
+
+## Branch name language (ENFORCED from 2026-10-10)
+
+**Rule**: Tất cả branch name (kể cả local feature branch, worktree branch, hotfix, refactor, docs) **MUST be in English**. Tiếng Việt chỉ được phép ở:
+
+- Source code comments (vd: `// TODO: xử lý edge case`)
+- UI strings / copy shown to end users
+- Local draft notes (KHÔNG phải branch name)
+- Worktree directory name (vd: `../flash-sale-b2c-fe-wt-<chat-id>`) — đây là filesystem path, không phải git branch
+
+### Format chuẩn
+
+```text
+<type>/<short-desc>
+```
+
+- `<type>` ∈ { `feature`, `fix`, `hotfix`, `refactor`, `chore`, `docs`, `test`, `perf`, `build`, `ci` }
+- `<short-desc>` chỉ chứa: chữ thường a-z, số 0-9, dấu gạch ngang `-`. Tối đa 50 ký tự.
+- **KHÔNG dấu tiếng Việt** (ă, â, ể, ữ, ơ, ư, đ, é, è, ...).
+- **KHÔNG viết hoa** (trừ khi convention yêu cầu như `JIRA-123`).
+- **KHÔNG ký tự đặc biệt** ngoài `-`: underscore `_`, space, slash `/`, ...
+
+### Tại sao
+
+- Git history hiển thị trên GitHub PR/branch list — phải nhất quán với commit message tiếng Anh.
+- Onboarding contributor mới (en/vi) dễ đọc branch list hơn.
+- CI/CD scripts, git hook, release tool thường expect ASCII branch name.
+- Convention đã có sẵn cho commit message (ENFORCED from 2026-10-09) — branch name cần đồng bộ.
+
+### Ví dụ (good vs bad)
+
+```text
+# GOOD — English, hyphen-separated
+feature/cart-module
+fix/auth-401-loop
+refactor/extract-product-card
+docs/update-commit-rule
+hotfix/payment-callback
+chore/bump-react-19
+
+# BAD — Vietnamese, will be rejected
+feature/them-gio-hang
+fix/sua-loi-401
+refactor/tach-product-card
+docs/cap-nhat-rule-commit
+hotfix/fix-thanh-toan
+chore/bump-react-19 (this one is OK — pure English)
+```
+
+### Pre-branch self-check (extend mốc 8 in Pre-commit checklist, Bước 0.1 workflow-process.mdc)
+
+Trước khi chạy `git checkout -b <branch>`, agent MUST verify:
+
+- [ ] `<type>` ∈ { `feature`, `fix`, `hotfix`, `refactor`, `chore`, `docs`, `test`, `perf`, `build`, `ci` }
+- [ ] `<short-desc>` chỉ chứa `[a-z0-9-]`
+- [ ] `<short-desc>` ≤ 50 ký tự
+- [ ] `<short-desc>` **không có dấu tiếng Việt** (ă, â, ể, ữ, ơ, ư, đ, é, è, ô, ...)
+- [ ] `<short-desc>` **không viết hoa** chữ cái đầu (vd: `cart-module` OK, `Cart-Module` NO)
+- [ ] Branch **không trùng** với branch đã có local/remotes (chạy `git branch -a | grep <short-desc>`)
+
+### Khi nào RELAX
+
+- **KHÔNG BAO GIỜ relax** trên `main`, `dev`, hoặc bất kỳ branch nào push lên remote.
+- Local-only experimental branch (vd: `wip/test-something`) nên tuân thủ rule này. Nếu cần debug nhanh, dùng stash thay vì tạo branch Việt.
+- User **rõ ràng** yêu cầu tên branch tiếng Việt cho 1 task đặc biệt (vd: research spike) → ghi rõ trong PR description.
+
+### Vi phạm và xử lý
+
+| Vi phạm | Hành động |
+|---|---|
+| Agent tạo branch Việt tên (vd: `feature/them-trang-chu`) | Tự rename ngay: `git branch -m <new-name>` trước khi commit bất kỳ |
+| Agent push branch Việt tên lên remote | Revert: xoá remote branch + tạo lại với tên EN, cảnh báo user |
+| Branch đã tồn tại từ trước 2026-10-10 (grandfathered) | Không bắt buộc rename, nhưng nên dọn dẹp khi merge xong |
 
 ## Auto-commit trigger (sau khi hoàn thành 1 subplan)
 
@@ -233,7 +308,7 @@ Files copy only (no test required):
 
 - Source code comments (e.g. `// TODO: xử lý edge case`)
 - UI strings / copy shown to end users
-- Local-only content: branch names (`feat/them-trang-chu`), local draft notes
+- Local draft notes (not commits, not branch names — see "Branch name language" below)
 
 ### Why
 

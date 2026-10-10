@@ -102,6 +102,7 @@ find ~/.cursor/projects -name "*.jsonl" -mtime -1 2>/dev/null | wc -l
 
 - **Tuyệt đối KHÔNG commit trực tiếp lên `dev`**. Luôn tạo nhánh mới từ `dev`:
   - Format: `<type>/<short-desc>` (vd: `feat/route-guard`, `fix/typo-encoding`, `docs/update-workflow`)
+  - **`<short-desc>` MUST be in English** (lowercase, hyphen-separated, no diacritics) — xem `git-workflow.mdc` mục "Branch name language (ENFORCED from 2026-10-10)".
   - Lệnh: `git fetch origin dev && git checkout -b <branch> dev`
 - **Trước khi push** (Bước 6): luôn merge `origin/dev` mới nhất vào nhánh đang làm:
   - `git fetch origin dev && git merge origin/dev`
