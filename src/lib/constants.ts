@@ -291,6 +291,7 @@ export const ROUTES = {
   SEARCH: "/tim-kiem",
   LOGIN: "/dang-nhap",
   REGISTER: "/dang-ky",
+  FORGOT_PASSWORD: "/quen-mat-khau",
   SELLER_REGISTER: "/dang-ky-ban-hang",
 
   SELLER_HOME: "/seller/tong-quan",

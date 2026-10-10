@@ -96,6 +96,7 @@
       "loginCta": "Đăng nhập",
       "dividerEmail": "hoặc đăng ký bằng email"
     },
+    "forgotPassword": { "title": "Quên mật khẩu", "subtitle": "Đặt lại mật khẩu qua email", "comingSoon": "Tính năng đang được phát triển. Vui lòng liên hệ hỗ trợ.", "backToLogin": "Quay lại đăng nhập" },
     "errors": {
       "identifierRequired": "Vui lòng nhập email hoặc số điện thoại",
       "identifierInvalid": "Email hoặc số điện thoại không hợp lệ",
