@@ -55,6 +55,98 @@
       "ENDED": "Ended"
     }
   },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back",
+      "identifierLabel": "Email or phone number",
+      "identifierPlaceholder": "example@gmail.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign in",
+      "submitPending": "Signing in…",
+      "dividerOr": "or continue with",
+      "noAccount": "Don't have an account?",
+      "signupCta": "Sign up now"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Take less than 1 minute to start receiving offers",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "John Doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john.doe@example.com",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "0912 345 678",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter password",
+      "passwordHint": "Minimum 8 characters, with letters and numbers",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Re-enter your password",
+      "termsLabel": "I agree to the",
+      "termsLink": "Terms of service",
+      "andLabel": "and",
+      "privacyLink": "Privacy policy",
+      "submit": "Sign up",
+      "submitPending": "Signing up…",
+      "submitSuccess": "Registration successful",
+      "hasAccount": "Already have an account?",
+      "loginCta": "Sign in",
+      "dividerEmail": "or sign up with email"
+    },
+    "errors": {
+      "identifierRequired": "Please enter your email or phone number",
+      "identifierInvalid": "Invalid email or phone number",
+      "passwordRequired": "Please enter your password",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "invalidCredentials": "Incorrect email or password",
+      "oauthNotImplemented": "Feature coming soon",
+      "termsRequired": "You must agree to the terms to continue",
+      "registerFailed": "Registration failed"
+    },
+    "social": {
+      "google": "Sign in with Google",
+      "facebook": "Sign in with Facebook",
+      "github": "Sign in with GitHub",
+      "googleRegister": "Sign up with Google",
+      "facebookRegister": "Sign up with Facebook",
+      "githubRegister": "Sign up with GitHub"
+    },
+    "password": {
+      "strength": {
+        "weak": "Weak",
+        "medium": "Fair",
+        "strong": "Strong",
+        "veryStrong": "Very strong"
+      }
+    },
+    "brand": {
+      "title": "Shop easy, hunt deals every day",
+      "intro": "A modern e-commerce platform with millions of exclusive offers and a worry-free shopping experience.",
+      "benefit1Title": "Thousands of trusted stores",
+      "benefit1Desc": "100% authentic products, fully verified",
+      "benefit2Title": "Flash sales with shocking prices every slot",
+      "benefit2Desc": "Up to 50% cashback voucher every week",
+      "benefit2Badge": "HOT DEAL",
+      "benefit3Title": "Pay with ZaloPay or COD",
+      "benefit3Desc": "PCI DSS security standard and flexible cash-on-delivery"
+    },
+    "chrome": {
+      "header": {
+        "authLabel": "Account authentication",
+        "navHelp": "Help",
+        "navHome": "Back to home"
+      },
+      "footer": {
+        "copyright": "© 2026 Vibe Mart. All rights reserved.",
+        "terms": "Terms of service",
+        "privacy": "Privacy policy",
+        "contact": "Contact"
+      }
+    }
+  },
   "error": {
     "UNAUTHORIZED": "Your session has expired. Please sign in again.",
     "FORBIDDEN": "You don't have access to this area.",

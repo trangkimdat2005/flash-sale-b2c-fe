@@ -70,27 +70,41 @@ src/
 
 ---
 
-## 3. Design tokens (design system "Ocean Mint")
+## 3. Design tokens (design system "Ocean Mint E-Commerce" – Material 3)
 
-Khai báo một lần trong `tailwind.config.ts`. **Cấm viết mã màu hex trực tiếp trong component** – luôn dùng tên token.
+> Đồng bộ theo Stitch design system (project 15206106541998912100, screen 203897a8). Cập nhật 2026-10-10.
+> Semantic alias (`brand`, `sale`, `seller`, `page`, `card`, `ink`, ...) giữ tên quen thuộc để component migrate dần dần. Giá trị mặc định = Material 3 tonal palette.
+
+Khai báo một lần trong `src/app/globals.css` (Tailwind v4 `@theme`). **Cấm viết mã màu hex trực tiếp trong component** – luôn dùng tên token.
 
 | Token Tailwind | Giá trị | Dùng cho |
 |---|---|---|
-| `brand` / `brand-hover` / `brand-soft` | `#0284C7` / `#0369A1` / `#E0F2FE` | Storefront, nút chính Admin |
-| `seller` / `seller-hover` / `seller-soft` | `#10B981` / `#059669` / `#D1FAE5` | Seller Center |
+| `primary` / `primary-hover` / `primary-soft` | `#006194` / `#004B73` / `#CCE5FF` | Storefront, nút chính Admin |
+| `secondary` / `secondary-soft` | `#006C49` / `#6CF8BB` | Seller Center |
+| `tertiary` / `tertiary-soft` | `#BA0035` / `#FFDADA` | **CHỈ Flash Sale**, giá giảm, badge -%, cảnh báo hết hạn |
 | `admin` / `admin-2` | `#1E293B` / `#334155` | Sidebar Admin |
-| `sale` / `sale-soft` | `#E11D48` / `#FFE4E6` | CHỈ Flash Sale, giá giảm, badge -%, cảnh báo hết hạn |
-| `page` / `card` / `line` | `#F8FAFC` / `#FFFFFF` / `#E2E8F0` | Nền trang, nền card, viền |
-| `ink` / `ink-2` / `ink-3` | `#0F172A` / `#64748B` / `#94A3B8` | Chữ chính / phụ / mờ |
-| `success` / `warning` / `danger` / `info` | `#16A34A` / `#F59E0B` / `#DC2626` / `#0284C7` | Trạng thái |
+| `background` / `surface` / `surface-container` / `surface-container-lowest` | `#FAF8FF` / `#FAF8FF` / `#EAEDFF` / `#FFFFFF` | Nền trang, nền card, viền |
+| `on-surface` / `on-surface-variant` / `outline` / `outline-variant` | `#131B2E` / `#3F4850` / `#707881` / `#BFC7D2` | Chữ chính / phụ / placeholder / viền input |
+| `success` / `warning` / `danger` / `info` | `#16A34A` / `#F59E0B` / `#BA1A1A` / `#006194` | Trạng thái |
 | `star` | `#F59E0B` | Sao đánh giá |
 
-- Font: **Be Vietnam Pro** qua `next/font/google` (subset `vietnamese`), weight 400/500/600.
-- Cỡ chữ: H1 28px/600, H2 22px/600, H3 18px/600, body 14–15px, caption 12px. Giá tiền: 600 + `tabular-nums`.
-- Bo góc: card `rounded-xl` (12px), nút/input `rounded-lg` (8px), badge `rounded-md` (6px).
-- Khoảng cách theo lưới 8px. Shadow tối đa `shadow-sm`; ưu tiên viền 1px `border-line`.
-- Nút cao 40px (nhỏ 32px). Icon lucide 20px (16px trong nút nhỏ).
+**Semantic alias (cho code cũ – sẽ bỏ khi migrate xong)**:
+
+| Alias | Map sang |
+|---|---|
+| `brand` / `brand-hover` / `brand-soft` | `primary` / `primary-hover` / `primary-soft` |
+| `seller` / `seller-hover` / `seller-soft` | `secondary` / `secondary-hover` / `secondary-soft` |
+| `sale` / `sale-soft` | `tertiary` / `tertiary-soft` |
+| `page` / `card` / `line` | `background` / `surface-container-lowest` / `#E2E8F0` |
+| `ink` / `ink-2` / `ink-3` | `#0F172A` / `on-surface-variant` / `outline` |
+
+- Font: **Be Vietnam Pro** qua `next/font/google` (subset `vietnamese`), weight 400/500/600/700.
+- Cỡ chữ: display-lg 36px/700, display-lg-mobile 28px/700, headline-lg 24px/600, headline-md 20px/600, headline-sm 18px/600, body-lg 16px/400, body-md 14px/400, body-sm 12px/400, label-lg 14px/600, label-md 12px/500, label-sm 10px/600, price-lg 20px/700, price-md 16px/700. Giá tiền: 700 + `tabular-nums`.
+- Bo góc: card `rounded-xl` (12px), nút/input `rounded-lg` (8px), badge `rounded-md` (6px), tag/pill `rounded-full` (9999px).
+- Khoảng cách theo lưới 8px (space-xs 4, space-sm 8, space-md 16, space-lg 24, space-xl 32). Shadow tối đa `shadow-sm`; ưu tiên viền 1px `border-outline-variant`.
+- Nút cao 40px (nhỏ 32px, primary login 42px). Icon 20px (16px trong nút nhỏ).
 - **Chỉ Light mode.** Không viết class `dark:`.
+- Breakpoint Tailwind mặc định (`md` 768, `lg` 1024, `xl` 1280). Auth layout: 2 cột `md:flex-row` (trái 54% / phải 46%), `max-w-[1240px]`.
 
 ---
 
@@ -113,6 +127,11 @@ Trước khi tạo component mới, tìm trong `components/` xem đã có chưa.
 
 | Component | Vị trí | Ghi chú |
 |---|---|---|
+| `AuthHeader` | auth | Fixed top, max-w-1240, backdrop-blur-xl. Logo + breadcrumb "Xác thực tài khoản" + nav (Trợ giúp, Về trang chủ). |
+| `AuthFooter` | auth | max-w-1240, copyright + 3 link pháp lý ngăn bởi dấu "•". |
+| `AuthBrandPanel` | auth | 2-cột trái (md:flex): bg-surface-container, rounded-2xl, blur blobs, 3 benefit cards (storefront/bolt/wallet) + SVG flat illustration. Ẩn trên mobile. |
+| `LoginForm` | auth | RHF + Zod. Form card max-w-420, input h-42px, error có icon. Row tiện ích: Remember me + Quên mật khẩu. Primary h-42px, bg-primary. Stitch screen 203897a8. |
+| `SocialLoginButtons` | auth | 3-col grid (Google/FB/GitHub), h-10, divider "hoặc tiếp tục với". Click → toast "Chức năng đang phát triển". |
 | `StorefrontHeader` | storefront | Prop `activeNav` để tô đúng mục đang chọn (xem bảng mục 9); prop `variant="compact"` cho Giỏ hàng/Checkout/ZaloPay |
 | `StorefrontFooter` | storefront | Một bản duy nhất cho mọi trang người mua |
 | `MobileBottomNav` | storefront | 4 tab: Trang chủ, Flash Sale, Đơn hàng, Tôi; prop `active` |
