@@ -71,18 +71,18 @@ describe('fullNameSchema', () => {
 });
 
 describe('phoneRegisterSchema', () => {
-  it('accepts 9-digit VN phone (no prefix)', () => {
-    const r = phoneRegisterSchema.safeParse('912345678');
+  it('accepts 10-digit VN phone with leading 0', () => {
+    const r = phoneRegisterSchema.safeParse('0912345678');
     expect(r.success).toBe(true);
   });
 
-  it('rejects phone with leading 0', () => {
-    const r = phoneRegisterSchema.safeParse('0912345678');
+  it('rejects phone without leading 0', () => {
+    const r = phoneRegisterSchema.safeParse('912345678');
     expect(r.success).toBe(false);
   });
 
   it('rejects too-short phone', () => {
-    const r = phoneRegisterSchema.safeParse('12345');
+    const r = phoneRegisterSchema.safeParse('09123');
     expect(r.success).toBe(false);
   });
 
@@ -118,7 +118,7 @@ describe('registerSchema', () => {
   const valid = {
     fullName: 'Nguyễn Văn An',
     email: 'an.nguyen@example.com',
-    phone: '912345678',
+    phone: '0912345678',
     password: 'VibeMart@2026',
     confirmPassword: 'VibeMart@2026',
   };

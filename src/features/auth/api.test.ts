@@ -54,7 +54,7 @@ describe('registerRequest (real backend contract)', () => {
     await registerRequest({
       fullName: 'Nguyễn Văn An',
       email: 'an@example.com',
-      phone: '912345678',
+      phone: '0912345678',
       password: 'VibeMart@2026',
     });
     expect(mockedApiFetch).toHaveBeenCalledWith('/api/v1/auth/register', {
@@ -69,7 +69,7 @@ describe('registerRequest (real backend contract)', () => {
     });
   });
 
-  it('prepends +84 prefix to phone before sending', async () => {
+  it('strips leading 0 and prepends +84 before sending', async () => {
     mockedApiFetch.mockResolvedValueOnce({
       accessToken: 't',
       refreshToken: 'r',
@@ -80,7 +80,7 @@ describe('registerRequest (real backend contract)', () => {
     await registerRequest({
       fullName: 'A B',
       email: 'user@example.com',
-      phone: '987654321',
+      phone: '0987654321',
       password: 'VibeMart@2026',
     });
     const call = mockedApiFetch.mock.calls[0][1] as { json: { phone: string } };
@@ -92,19 +92,19 @@ describe('registerRequest (real backend contract)', () => {
       registerRequest({
         fullName: 'A B',
         email: 'not-email',
-        phone: '912345678',
+        phone: '0912345678',
         password: 'VibeMart@2026',
       })
     ).rejects.toThrow();
     expect(mockedApiFetch).not.toHaveBeenCalled();
   });
 
-  it('rejects phone with leading 0 (must be 9 digits, prefix handled client-side)', async () => {
+  it('rejects phone shorter than 10 digits', async () => {
     await expect(
       registerRequest({
         fullName: 'A B',
         email: 'user@example.com',
-        phone: '0912345678',
+        phone: '09123',
         password: 'VibeMart@2026',
       })
     ).rejects.toThrow();
@@ -115,8 +115,8 @@ describe('registerRequest (real backend contract)', () => {
     await expect(
       registerRequest({
         fullName: 'A B',
-        email: 'a@b.c',
-        phone: '912345678',
+        email: 'user@example.com',
+        phone: '0912345678',
         password: 'Short1',
       })
     ).rejects.toThrow();

@@ -236,23 +236,16 @@ export function RegisterForm() {
         <Label htmlFor="phone" className="text-sm font-semibold text-on-surface">
           {t('phoneLabel')}
         </Label>
-        <div className="flex items-center overflow-hidden rounded-lg shadow-[inset_0_0_0_1px_#bfc7d2]">
-          <div className="flex h-[42px] shrink-0 items-center gap-1.5 bg-surface-container px-3 text-sm font-medium text-on-surface-variant">
-            <span>🇻🇳</span>
-            <span>+84</span>
-          </div>
-          <Input
-            id="phone"
-            type="tel"
-            autoComplete="tel-national"
-            placeholder={t('phonePlaceholder')}
-            aria-invalid={!!errors.phone}
-            inputMode="tel"
-            className="h-[42px] flex-1 rounded-none border-none bg-surface-container-lowest px-3.5 shadow-none focus-visible:ring-0"
-            style={{ borderRadius: 0 }}
-            {...register('phone')}
-          />
-        </div>
+        <Input
+          id="phone"
+          type="tel"
+          autoComplete="tel-national"
+          inputMode="tel"
+          placeholder={t('phonePlaceholder')}
+          aria-invalid={!!errors.phone}
+          className="h-[42px] rounded-lg bg-surface-container-lowest px-3.5 shadow-[inset_0_0_0_1px_#bfc7d2]"
+          {...register('phone')}
+        />
         {errors.phone && (
           <div className="mt-1 flex items-center gap-1.5 text-danger" role="alert">
             <ErrorIcon />

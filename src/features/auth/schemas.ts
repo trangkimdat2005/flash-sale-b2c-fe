@@ -20,16 +20,16 @@ export { passwordSchema };
 
 /**
  * phoneRegisterSchema – số điện thoại VN dùng cho form đăng ký.
- * FE hiển thị prefix `+84` cố định → validate phần sau (9 chữ số, bắt đầu 3-9).
- * Ví dụ: `912345678` (sau khi bỏ `0` hoặc `+84`).
+ * User nhập số bắt đầu bằng 0 (ví dụ: 0912345678).
+ * FE strip leading 0 trước khi gửi API → backend nhận +84...
  */
 export const phoneRegisterSchema = z
   .string()
   .min(1, 'Vui lòng nhập số điện thoại')
-  .max(15, 'Số điện thoại quá dài')
+  .max(11, 'Số điện thoại quá dài')
   .regex(
-    /^[3-9]\d{8}$/,
-    'Số điện thoại không hợp lệ (VD: 912 345 678)'
+    /^(0[3-9]\d{8})$/,
+    'Số điện thoại không hợp lệ (VD: 0912 345 678)'
   );
 
 /**

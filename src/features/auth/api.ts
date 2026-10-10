@@ -95,17 +95,19 @@ export async function loginRequest(
  * registerRequest – gọi POST /api/v1/auth/register.
  * Lưu ý: chỉ gửi 4 field (fullName, email, phone, password) – KHÔNG gửi
  * confirmPassword hay agreedTerms (client-side only).
+ * Phone: strip leading 0 (user nhập 0912...) → gửi +84912...
  */
 export async function registerRequest(
   payload: RegisterRequest
 ): Promise<AuthResponse> {
   const parsed = registerPayloadSchema.parse(payload);
+  const phoneWithoutLeadingZero = parsed.phone.replace(/^0/, '');
   return apiFetch<AuthResponse>('/api/v1/auth/register', {
     method: 'POST',
     json: {
       fullName: parsed.fullName,
       email: parsed.email,
-      phone: `+84${parsed.phone}`,
+      phone: `+84${phoneWithoutLeadingZero}`,
       password: parsed.password,
     },
     withAuth: false,

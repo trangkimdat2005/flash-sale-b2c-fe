@@ -242,9 +242,8 @@ describe('RegisterForm', () => {
     expect(checkbox.checked).toBe(false);
   });
 
-  it('renders phone prefix +84', () => {
+  it('does not render the +84 phone prefix (user types full number)', () => {
     withQueryClient(<RegisterForm />);
-    // The phone input should have the +84 prefix visible
-    expect(screen.getByText('+84')).toBeInTheDocument();
+    expect(screen.queryByText('+84')).not.toBeInTheDocument();
   });
 });
