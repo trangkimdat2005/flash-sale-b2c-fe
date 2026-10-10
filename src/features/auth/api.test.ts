@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { loginRequest, fetchMe, logoutRequest } from './api';
+import { loginRequest, registerRequest, fetchMe, logoutRequest } from './api';
 
 vi.mock('@/lib/api', () => ({
   apiFetch: vi.fn(),
@@ -37,6 +37,88 @@ describe('loginRequest (real backend contract)', () => {
     // string from reaching the API.
     await expect(
       loginRequest({ email: '0912345678', password: '12345678' })
+    ).rejects.toThrow();
+    expect(mockedApiFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('registerRequest (real backend contract)', () => {
+  it('POSTs /api/v1/auth/register with { fullName, email, phone, password }', async () => {
+    mockedApiFetch.mockResolvedValueOnce({
+      accessToken: 'token',
+      refreshToken: 'refresh',
+      tokenType: 'Bearer',
+      expiresIn: 3600,
+      user: { id: 1, email: 'u@e.com', fullName: 'An' },
+    });
+    await registerRequest({
+      fullName: 'Nguyễn Văn An',
+      email: 'an@example.com',
+      phone: '0912345678',
+      password: 'VibeMart@2026',
+    });
+    expect(mockedApiFetch).toHaveBeenCalledWith('/api/v1/auth/register', {
+      method: 'POST',
+      json: {
+        fullName: 'Nguyễn Văn An',
+        email: 'an@example.com',
+        phone: '+84912345678',
+        password: 'VibeMart@2026',
+      },
+      withAuth: false,
+    });
+  });
+
+  it('strips leading 0 and prepends +84 before sending', async () => {
+    mockedApiFetch.mockResolvedValueOnce({
+      accessToken: 't',
+      refreshToken: 'r',
+      tokenType: 'Bearer',
+      expiresIn: 3600,
+      user: { id: 1, email: 'user@example.com', fullName: 'A' },
+    });
+    await registerRequest({
+      fullName: 'A B',
+      email: 'user@example.com',
+      phone: '0987654321',
+      password: 'VibeMart@2026',
+    });
+    const call = mockedApiFetch.mock.calls[0][1] as { json: { phone: string } };
+    expect(call.json.phone).toBe('+84987654321');
+  });
+
+  it('rejects invalid email (does not call API)', async () => {
+    await expect(
+      registerRequest({
+        fullName: 'A B',
+        email: 'not-email',
+        phone: '0912345678',
+        password: 'VibeMart@2026',
+      })
+    ).rejects.toThrow();
+    expect(mockedApiFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects phone shorter than 10 digits', async () => {
+    await expect(
+      registerRequest({
+        fullName: 'A B',
+        email: 'user@example.com',
+        phone: '09123',
+        password: 'VibeMart@2026',
+      })
+    ).rejects.toThrow();
+    expect(mockedApiFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects password shorter than 8 chars', async () => {
+    await expect(
+      registerRequest({
+        fullName: 'A B',
+        email: 'user@example.com',
+        phone: '0912345678',
+        password: 'Short1',
+      })
     ).rejects.toThrow();
     expect(mockedApiFetch).not.toHaveBeenCalled();
   });
